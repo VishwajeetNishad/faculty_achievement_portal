@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard | NIET Control Center</title>
+  <title>HOD Department Analytics | NIET Faculty Achievement Portal</title>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="../../css/variables.css">
@@ -18,35 +18,35 @@
 
   <div class="app-wrapper">
 
-    <!-- Admin Sidebar -->
+    <!-- HOD Sidebar -->
     <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
       <div class="sidebar-header">
-        <span class="niet-brand-badge" style="background-color: #DC2626; color: #FFF;">ADMIN</span>
+        <span class="niet-brand-badge" style="background-color: #0284C7; color: #FFF;">HOD</span>
         <div class="sidebar-brand-title">
           NIET Portal
-          <span>Control Center</span>
+          <span id="hodDeptBadge">Department Control</span>
         </div>
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Administration</div>
+        <div class="nav-section-title">Department Admin</div>
         <ul class="nav-list">
           <li class="nav-item">
             <a href="dashboard.html" class="nav-link active">
               <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Admin Dashboard
+              HOD Dashboard
             </a>
           </li>
           <li class="nav-item">
-            <a href="achievements.html" class="nav-link">
+            <a href="../admin/achievements.html" class="nav-link">
               <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
               Verification Queue
             </a>
           </li>
           <li class="nav-item">
-            <a href="faculty.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              Faculty Roster
+            <a href="../dashboard.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              My Faculty View
             </a>
           </li>
         </ul>
@@ -68,15 +68,15 @@
           <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
             <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="page-title">Admin Control Center Overview</h1>
+          <h1 class="page-title" id="hodHeaderTitle">Department Analytics</h1>
         </div>
 
         <div class="header-right">
           <div class="user-profile-widget">
-            <div class="avatar-circle" style="background-color: #DC2626;">AD</div>
+            <div class="avatar-circle" style="background-color: #0284C7;">HD</div>
             <div class="user-details">
-              <span class="user-name">System Admin</span>
-              <span class="user-role-tag">Institutional Controller</span>
+              <span class="user-name" id="hodUserName">Head of Department</span>
+              <span class="user-role-tag" id="hodDeptTag">Department Control</span>
             </div>
           </div>
         </div>
@@ -85,15 +85,15 @@
       <div class="page-content">
         <div class="content-container">
 
-          <!-- Admin Metric Cards Grid -->
-          <div class="stats-grid" id="adminStatsContainer">
+          <!-- HOD Metric Cards Grid -->
+          <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-icon-wrapper primary">
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value" id="adminTotalFaculty">48</span>
-                <span class="stat-label">Total Faculty Members</span>
+                <span class="stat-value" id="hodFacultyCount">0</span>
+                <span class="stat-label">Department Faculty</span>
               </div>
             </div>
 
@@ -102,7 +102,7 @@
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value" id="adminPendingCount">0</span>
+                <span class="stat-value" id="hodPendingCount">0</span>
                 <span class="stat-label">Pending Verification Queue</span>
               </div>
             </div>
@@ -112,17 +112,17 @@
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value" id="adminVerifiedCount">0</span>
-                <span class="stat-label">Total Approved</span>
+                <span class="stat-value" id="hodApprovedCount">0</span>
+                <span class="stat-label">Approved Records</span>
               </div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon-wrapper danger">
-                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value" id="adminRejectedCount">0</span>
+                <span class="stat-value" id="hodRejectedCount">0</span>
                 <span class="stat-label">Rejected Records</span>
               </div>
             </div>
@@ -133,9 +133,9 @@
             <!-- Category Distribution Card -->
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">Institutional Category Breakdown</h3>
+                <h3 class="card-title">Department Category Breakdown</h3>
               </div>
-              <div class="card-body" id="adminCategoryContainer">
+              <div class="card-body" id="hodCategoryContainer">
                 <div class="loading-spinner"><div class="spinner"></div><p>Loading category stats...</p></div>
               </div>
             </div>
@@ -145,59 +145,32 @@
               <div class="card-header">
                 <h3 class="card-title">Academic Year Distribution</h3>
               </div>
-              <div class="card-body" id="adminYearContainer">
+              <div class="card-body" id="hodYearContainer">
                 <div class="loading-spinner"><div class="spinner"></div><p>Loading year stats...</p></div>
               </div>
             </div>
           </div>
 
-          <!-- Department Comparison Analytics Table -->
-          <div class="card" style="margin-bottom: 1.5rem;">
-            <div class="card-header">
-              <h2 class="card-title">Department Performance & Comparison</h2>
-              <a href="faculty.html" class="btn btn-outline btn-sm">Manage Faculty Roster</a>
-            </div>
-            <div class="card-body" style="padding: 0;">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Department</th>
-                      <th>Faculty Count</th>
-                      <th>Total Submissions</th>
-                      <th>Approved</th>
-                      <th>Pending</th>
-                      <th>Rejected</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminDeptComparisonBody">
-                    <!-- Populated by admin.js -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pending Verification Queue Table -->
+          <!-- Recent Department Submissions Table -->
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Pending Verification Queue</h2>
-              <a href="achievements.html" class="btn btn-outline btn-sm">View All Submissions</a>
+              <h2 class="card-title">Recent Department Submissions</h2>
+              <a href="../admin/achievements.html" class="btn btn-primary btn-sm">Review Queue</a>
             </div>
             <div class="card-body" style="padding: 0;">
               <div class="table-responsive">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Faculty & Dept</th>
-                      <th>Title & Category</th>
-                      <th>Submitted Date</th>
+                      <th>Faculty & Title</th>
+                      <th>Category</th>
+                      <th>Academic Year</th>
+                      <th>Submission Date</th>
                       <th>Status</th>
-                      <th>Action</th>
                     </tr>
                   </thead>
-                  <tbody id="adminQueueTableBody">
-                    <!-- Dynamic rendering by admin.js -->
+                  <tbody id="hodRecentTableBody">
+                    <!-- Populated dynamically by hod.js -->
                   </tbody>
                 </table>
               </div>
@@ -211,34 +184,10 @@
 
   </div>
 
-  <!-- Review & Verification Action Modal -->
-  <div class="modal-backdrop" id="reviewModal" aria-hidden="true" role="dialog" aria-labelledby="reviewModalTitle">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h3 class="modal-title" id="reviewModalTitle">Review Faculty Achievement Record</h3>
-        <button class="modal-close-btn" onclick="closeModal('reviewModal')" aria-label="Close modal">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="reviewModalContent" style="margin-bottom: 1.25rem;">
-          <!-- Populated dynamically -->
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="verifyComment">Verification Feedback / Rejection Reason</label>
-          <textarea id="verifyComment" class="form-control" placeholder="Provide feedback or justification for rejection..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-danger" id="btnRejectRecord">Reject Achievement</button>
-        <button class="btn btn-primary" id="btnApproveRecord">Approve Achievement</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Scripts -->
   <script src="../../js/config.js"></script>
   <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
-  <script src="../../js/admin.js"></script>
+  <script src="../../js/hod.js"></script>
 </body>
 </html>

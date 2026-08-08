@@ -20,6 +20,16 @@
 
 ---
 
+## Dashboard Analytics Endpoints
+
+| Method | Endpoint | Access | Description | Expected Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/dashboard/faculty` | Authenticated | Faculty user's own analytics (total, pending, approved, rejected, category breakdown, year breakdown, recent 5) | `200 OK` / `401 Unauthorized` |
+| **GET** | `/api/dashboard/hod` | `ROLE_HOD` | HOD's department analytics (faculty count, total, status counts, category breakdown, year breakdown, recent submissions) | `200 OK` / `403 Forbidden` |
+| **GET** | `/api/dashboard/admin` | `ROLE_ADMIN` | Institutional-wide analytics (total faculty, active faculty, total depts, department comparison table, category breakdown, year breakdown) | `200 OK` / `403 Forbidden` |
+
+---
+
 ## Achievement Endpoints Summary
 
 | Method | Endpoint | Access | Description | Expected Status |

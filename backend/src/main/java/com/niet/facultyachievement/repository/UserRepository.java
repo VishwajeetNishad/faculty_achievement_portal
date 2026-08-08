@@ -1,6 +1,7 @@
 package com.niet.facultyachievement.repository;
 
 import com.niet.facultyachievement.entity.User;
+import com.niet.facultyachievement.entity.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByDepartmentId(Long departmentId);
     boolean existsByEmail(String email);
     boolean existsByEmployeeId(String employeeId);
+
+    long countByDepartmentId(Long departmentId);
+    long countByStatus(UserStatus status);
 }

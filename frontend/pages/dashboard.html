@@ -136,6 +136,29 @@
             </div>
           </div>
 
+          <!-- Analytics Grid: Category & Academic Year Distribution -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+            <!-- Category Distribution Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Category Distribution</h3>
+              </div>
+              <div class="card-body" id="categoryAnalyticsContainer">
+                <div class="loading-spinner"><div class="spinner"></div><p>Loading category stats...</p></div>
+              </div>
+            </div>
+
+            <!-- Academic Year Distribution Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Academic Year Distribution</h3>
+              </div>
+              <div class="card-body" id="yearAnalyticsContainer">
+                <div class="loading-spinner"><div class="spinner"></div><p>Loading year stats...</p></div>
+              </div>
+            </div>
+          </div>
+
           <!-- Recent Achievements Table Card -->
           <div class="card">
             <div class="card-header">
@@ -194,7 +217,6 @@
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
-  <script src="../js/mockData.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/common.js"></script>
   <script src="../js/dashboard.js"></script>

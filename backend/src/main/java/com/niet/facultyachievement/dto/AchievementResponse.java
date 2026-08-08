@@ -42,4 +42,36 @@ public class AchievementResponse {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public static AchievementResponse fromEntity(com.niet.facultyachievement.entity.Achievement achievement) {
+        if (achievement == null) return null;
+        var user = achievement.getUser();
+        var category = achievement.getCategory();
+        var verifier = achievement.getVerifiedBy();
+
+        return AchievementResponse.builder()
+                .id(achievement.getId())
+                .userId(user != null ? user.getId() : null)
+                .facultyName(user != null ? user.getFullName() : null)
+                .facultyEmail(user != null ? user.getEmail() : null)
+                .employeeId(user != null ? user.getEmployeeId() : null)
+                .departmentCode(user != null && user.getDepartment() != null ? user.getDepartment().getCode() : null)
+                .departmentName(user != null && user.getDepartment() != null ? user.getDepartment().getName() : null)
+                .categoryId(category != null ? category.getId() : null)
+                .categoryCode(category != null ? category.getCode() : null)
+                .categoryName(category != null ? category.getCategoryName() : null)
+                .title(achievement.getTitle())
+                .description(achievement.getDescription())
+                .achievementDate(achievement.getAchievementDate())
+                .academicYear(achievement.getAcademicYear())
+                .status(achievement.getStatus())
+                .verificationComment(achievement.getVerificationComment())
+                .verifiedByUserId(verifier != null ? verifier.getId() : null)
+                .verifiedByName(verifier != null ? verifier.getFullName() : null)
+                .verifiedAt(achievement.getVerifiedAt())
+                .proofDocumentUrl(achievement.getProofDocumentUrl())
+                .createdAt(achievement.getCreatedAt())
+                .updatedAt(achievement.getUpdatedAt())
+                .build();
+    }
 }

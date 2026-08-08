@@ -89,26 +89,37 @@ async function initializeAdminDashboard() {
 async function renderAdminStatsAndQueue() {
   const tableBody = document.getElementById('adminQueueTableBody');
   if (tableBody) {
-    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Fetching verification queue from live API...</p></td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Fetching institutional analytics from live API...</p></td></tr>`;
   }
 
-  // 1. Fetch PENDING records from API: GET /api/achievements/status/PENDING
+  // 1. Fetch Real Admin Dashboard Analytics: GET /api/dashboard/admin
+  const dashRes = await ApiClient.get('/dashboard/admin');
+
+  if (dashRes.success && dashRes.data) {
+    const data = dashRes.data;
+
+    // Update Metric Cards
+    const totalFacElem = document.getElementById('adminTotalFaculty');
+    const pendingElem = document.getElementById('adminPendingCount');
+    const verifiedElem = document.getElementById('adminVerifiedCount');
+    const rejectedElem = document.getElementById('adminRejectedCount');
+
+    if (totalFacElem) totalFacElem.textContent = data.totalFaculty;
+    if (pendingElem) pendingElem.textContent = data.pendingCount;
+    if (verifiedElem) verifiedElem.textContent = data.approvedCount;
+    if (rejectedElem) rejectedElem.textContent = data.rejectedCount;
+
+    // Render Department Comparison Table
+    renderDepartmentComparisonTable(data.departmentComparison || []);
+
+    // Render Distribution Bars
+    renderDistributionBars('adminCategoryContainer', data.categoryDistribution, data.totalAchievements, '#002147');
+    renderDistributionBars('adminYearContainer', data.academicYearDistribution, data.totalAchievements, '#F2A900');
+  }
+
+  // 2. Fetch PENDING records for verification queue
   const resPending = await ApiClient.get('/achievements/status/PENDING');
-  const resApproved = await ApiClient.get('/achievements/status/APPROVED');
-  const resRejected = await ApiClient.get('/achievements/status/REJECTED');
-
   const pendingItems = (resPending.success && Array.isArray(resPending.data)) ? resPending.data : [];
-  const approvedItems = (resApproved.success && Array.isArray(resApproved.data)) ? resApproved.data : [];
-  const rejectedItems = (resRejected.success && Array.isArray(resRejected.data)) ? resRejected.data : [];
-
-  // Update Admin Queue Stats
-  const pendingElem = document.getElementById('adminPendingCount');
-  const verifiedElem = document.getElementById('adminVerifiedCount');
-  const rejectedElem = document.getElementById('adminRejectedCount');
-
-  if (pendingElem) pendingElem.textContent = pendingItems.length;
-  if (verifiedElem) verifiedElem.textContent = approvedItems.length;
-  if (rejectedElem) rejectedElem.textContent = rejectedItems.length;
 
   // Render Verification Queue Table
   if (!tableBody) return;
@@ -306,6 +317,63 @@ function renderFacultyTable(roster) {
     `;
     tableBody.appendChild(tr);
   });
+}
+
+function renderDepartmentComparisonTable(depts) {
+  const tbody = document.getElementById('adminDeptComparisonBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (depts.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">No Department Data</div><p class="empty-state-text">No departments recorded in the system.</p></td></tr>`;
+    return;
+  }
+
+  depts.forEach(d => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="Department">
+        <div class="table-title-cell">${escapeHtml(d.departmentName)}</div>
+        <div class="table-subtext">${escapeHtml(d.departmentCode)}</div>
+      </td>
+      <td data-label="Faculty Count"><strong>${d.facultyCount}</strong></td>
+      <td data-label="Total Submissions"><strong>${d.totalAchievements}</strong></td>
+      <td data-label="Approved"><span class="badge badge-approved">✓ ${d.approvedCount}</span></td>
+      <td data-label="Pending"><span class="badge badge-pending">● ${d.pendingCount}</span></td>
+      <td data-label="Rejected"><span class="badge badge-rejected">! ${d.rejectedCount}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderDistributionBars(containerId, distMap, total, barColor) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (!distMap || Object.keys(distMap).length === 0) {
+    container.innerHTML = `<div class="empty-state" style="padding: 1rem;"><p class="empty-state-text">No analytics data recorded yet.</p></div>`;
+    return;
+  }
+
+  let html = '<div style="display: flex; flex-direction: column; gap: 0.85rem;">';
+  for (const [key, count] of Object.entries(distMap)) {
+    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+    html += `
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">
+          <span style="color: #1E293B;">${escapeHtml(key)}</span>
+          <span style="color: #64748B;">${count} (${percentage}%)</span>
+        </div>
+        <div style="width: 100%; height: 8px; background-color: #E2E8F0; border-radius: 4px; overflow: hidden;">
+          <div style="width: ${percentage}%; height: 100%; background-color: ${barColor}; border-radius: 4px; transition: width 0.4s ease;"></div>
+        </div>
+      </div>
+    `;
+  }
+  html += '</div>';
+
+  container.innerHTML = html;
 }
 
 function formatDate(dateStr) {

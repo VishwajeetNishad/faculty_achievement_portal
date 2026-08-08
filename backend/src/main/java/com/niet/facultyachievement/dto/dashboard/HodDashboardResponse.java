@@ -1,0 +1,26 @@
+package com.niet.facultyachievement.dto.dashboard;
+
+import com.niet.facultyachievement.dto.AchievementResponse;
+import lombok.*;
+
+import java.util.List;
+import java.util.Map;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class HodDashboardResponse {
+    private Long departmentId;
+    private String departmentCode;
+    private String departmentName;
+    private long facultyCount;
+    private long totalAchievements;
+    private long pendingCount;
+    private long approvedCount;
+    private long rejectedCount;
+    private Map<String, Long> categoryDistribution;
+    private Map<String, Long> academicYearDistribution;
+    private List<AchievementResponse> recentSubmissions;
+}
