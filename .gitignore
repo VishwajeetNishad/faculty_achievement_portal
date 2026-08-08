@@ -1,0 +1,66 @@
+# ==========================================
+# Faculty Achievement Portal - Git Ignore
+# ==========================================
+
+# Java
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.crash
+hs_err_pid*
+
+# Build Outputs & Maven
+target/
+build/
+dist/
+out/
+bin/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# IDEs - IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+*.swp
+*.phpt
+
+# IDEs - VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# Operating System - Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# OS - macOS / Linux
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Environment Files & Credentials
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+application-local.properties
+application-local.yml
