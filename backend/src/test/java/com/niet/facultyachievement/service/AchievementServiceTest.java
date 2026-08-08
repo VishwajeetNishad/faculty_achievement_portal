@@ -2,7 +2,6 @@ package com.niet.facultyachievement.service;
 
 import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
-import com.niet.facultyachievement.dto.AchievementUpdateRequest;
 import com.niet.facultyachievement.entity.Achievement;
 import com.niet.facultyachievement.entity.AchievementCategory;
 import com.niet.facultyachievement.entity.AchievementStatus;
@@ -38,7 +37,7 @@ class AchievementServiceTest {
     private AchievementCategoryRepository categoryRepository;
 
     @InjectMocks
-    private AchievementService achievementService;
+    private AchievementServiceImpl achievementService;
 
     private User sampleUser;
     private AchievementCategory sampleCategory;
