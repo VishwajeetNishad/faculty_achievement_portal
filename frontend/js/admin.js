@@ -1,8 +1,9 @@
 /**
  * Admin / HOD Verification Queue & Control Center Controller
- * Connected to Live Spring Boot Endpoint:
+ * Connected to Live Spring Boot Endpoints:
  * - GET /api/achievements/status/PENDING
  * - PATCH /api/achievements/{id}/verification
+ * - GET /api/achievements/{id}/proof
  */
 
 let selectedReviewId = null;
@@ -164,7 +165,7 @@ async function renderAdminStatsAndQueue() {
             <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
             <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
             ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
-            ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">Open Certificate Link</a></p>` : ''}
+            ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><button class="btn btn-outline btn-sm" onclick="openProtectedProofPdf(${item.id})">📄 View Protected Proof PDF</button></p>` : '<p style="margin-top: 0.5rem; color:#94A3B8;">No Proof Document Attached</p>'}
           `;
         }
         openModal('reviewModal');
@@ -173,6 +174,17 @@ async function renderAdminStatsAndQueue() {
       }
     });
   });
+}
+
+async function openProtectedProofPdf(id) {
+  showToast('Downloading protected PDF document...', 'info');
+  const res = await ApiClient.downloadBlob(`/achievements/${id}/proof`);
+  
+  if (res.success && res.objectUrl) {
+    window.open(res.objectUrl, '_blank');
+  } else {
+    showToast(res.message || 'Unable to load proof document', 'error');
+  }
 }
 
 function initializeFacultyRoster() {

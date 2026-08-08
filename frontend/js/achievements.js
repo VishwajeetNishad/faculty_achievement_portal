@@ -3,8 +3,9 @@
  * Connected to Authenticated Spring Boot Security Endpoints:
  * - GET /api/achievements/me
  * - GET /api/achievements/{id}
- * - GET /api/achievements/status/{status}
  * - POST /api/achievements
+ * - POST /api/achievements/{id}/proof
+ * - GET /api/achievements/{id}/proof
  * - PUT /api/achievements/{id}
  * - DELETE /api/achievements/{id}
  */
@@ -21,9 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-/**
- * 1. Achievements List & Filtering Controller
- */
 function initializeAchievementsPage() {
   const searchInput = document.getElementById('searchKeyword');
   const categoryFilter = document.getElementById('filterCategory');
@@ -49,7 +47,6 @@ function initializeAchievementsPage() {
     });
   }
 
-  // Delete Action Listener (Backend API Call with JWT Authorization)
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener('click', async () => {
@@ -58,7 +55,6 @@ function initializeAchievementsPage() {
       confirmDeleteBtn.disabled = true;
       confirmDeleteBtn.textContent = 'Deleting...';
 
-      // Backend Endpoint: DELETE /api/achievements/{id}
       const res = await ApiClient.delete(`/achievements/${pendingDeleteId}`);
       if (res.success) {
         showToast('Achievement deleted successfully from backend database.', 'success');
@@ -89,35 +85,39 @@ async function renderAchievementsTable() {
   let list = [];
   let res;
 
-  if (selectedStatus) {
-    // Backend Endpoint: GET /api/achievements/status/{status}
-    res = await ApiClient.get(`/achievements/status/${selectedStatus}`);
+  if (selectedStatus && selectedStatus.trim() !== '') {
+    res = await ApiClient.get(`/achievements/status/${selectedStatus.toUpperCase()}`);
   } else {
-    // Authenticated User Endpoint: GET /api/achievements/me
     res = await ApiClient.get('/achievements/me');
   }
 
-  if (res.success && Array.isArray(res.data)) {
-    list = res.data;
-  } else {
-    showToast(res.message || 'Error fetching achievements from API', 'error');
-    list = [];
+  if (!res.success) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-state">
+          <div class="empty-state-title" style="color: var(--danger-color);">Error Loading Data</div>
+          <p class="empty-state-text">${escapeHtml(res.message)}</p>
+        </td>
+      </tr>
+    `;
+    return;
   }
 
-  // Client-side Category, Year & Keyword Filtering
-  if (selectedCat) {
-    list = list.filter(a => (a.categoryCode === selectedCat) || (a.category === selectedCat));
+  list = Array.isArray(res.data) ? res.data : [];
+
+  if (selectedCat && selectedCat.trim() !== '') {
+    list = list.filter(a => (a.categoryCode || '').toLowerCase() === selectedCat.toLowerCase());
   }
 
-  if (selectedYear) {
+  if (selectedYear && selectedYear.trim() !== '') {
     list = list.filter(a => a.academicYear === selectedYear);
   }
 
-  if (keyword) {
+  if (keyword && keyword !== '') {
     list = list.filter(a => 
-      a.title.toLowerCase().includes(keyword) || 
-      (a.description && a.description.toLowerCase().includes(keyword)) ||
-      (a.categoryName && a.categoryName.toLowerCase().includes(keyword))
+      (a.title || '').toLowerCase().includes(keyword) || 
+      (a.categoryName || '').toLowerCase().includes(keyword) ||
+      (a.description || '').toLowerCase().includes(keyword)
     );
   }
 
@@ -127,8 +127,8 @@ async function renderAchievementsTable() {
     tableBody.innerHTML = `
       <tr>
         <td colspan="6" class="empty-state">
-          <div class="empty-state-title">No matching achievements found</div>
-          <p class="empty-state-text">Try adjusting your search criteria or submitting a new record.</p>
+          <div class="empty-state-title">No Achievements Found</div>
+          <p class="empty-state-text">No records match the current filters.</p>
         </td>
       </tr>
     `;
@@ -136,37 +136,44 @@ async function renderAchievementsTable() {
   }
 
   list.forEach(item => {
-    const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
-    const badgeSymbol = item.status === 'APPROVED' ? '✓' : (item.status === 'REJECTED' ? '!' : '●');
-    const categoryDisplayName = item.categoryName || item.categoryCode || 'Achievement';
-
     const tr = document.createElement('tr');
+    const statusClass = (item.status || 'PENDING').toLowerCase();
+    
     tr.innerHTML = `
-      <td data-label="Title & Details">
+      <td data-label="Title & Category">
         <div class="table-title-cell">${escapeHtml(item.title)}</div>
-        <div class="table-subtext">${escapeHtml(categoryDisplayName)}</div>
+        <div class="table-subtext">${escapeHtml(item.categoryName || item.categoryCode)}</div>
       </td>
-      <td data-label="Category">${escapeHtml(categoryDisplayName)}</td>
-      <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
       <td data-label="Date">${formatDate(item.achievementDate)}</td>
+      <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
       <td data-label="Status">
-        <span class="badge ${badgeClass}">
-          <span class="badge-symbol">${badgeSymbol}</span> ${item.status}
-        </span>
+        <span class="badge badge-${statusClass}">${item.status}</span>
+      </td>
+      <td data-label="Proof">
+        ${item.proofDocumentUrl ? `<button class="btn btn-outline btn-sm view-proof-btn" data-id="${item.id}">📄 View PDF</button>` : '<span style="color:#94A3B8; font-size:0.85rem;">No File</span>'}
       </td>
       <td data-label="Actions">
-        <div class="action-btn-group">
+        <div style="display:flex; gap:0.5rem;">
           <button class="btn btn-outline btn-sm view-item-btn" data-id="${item.id}">View</button>
-          ${item.status === 'PENDING' ? `<button class="btn btn-danger btn-sm delete-item-btn" data-id="${item.id}">Delete</button>` : ''}
+          <button class="btn btn-danger btn-sm delete-item-btn" data-id="${item.id}">Delete</button>
         </div>
       </td>
     `;
     tableBody.appendChild(tr);
   });
 
+  // Attach Proof PDF Click Handlers
+  tableBody.querySelectorAll('.view-proof-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      openProtectedProofPdf(id);
+    });
+  });
+
   tableBody.querySelectorAll('.view-item-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      showAchievementDetailsModal(btn.getAttribute('data-id'));
+      const id = btn.getAttribute('data-id');
+      showAchievementDetailsModal(id);
     });
   });
 
@@ -178,25 +185,31 @@ async function renderAchievementsTable() {
   });
 }
 
-/**
- * 2. Add Achievement Form & Backend POST /api/achievements Controller
- */
 function initializeAddAchievementForm() {
-  const categorySelect = document.getElementById('categorySelect');
-  const extensionSections = document.querySelectorAll('.fieldset-section');
   const form = document.getElementById('addAchievementForm');
+  const categorySelect = document.getElementById('achievementCategory');
+  const fieldsetSections = document.querySelectorAll('.fieldset-section');
 
   if (categorySelect) {
-    categorySelect.addEventListener('change', (e) => {
-      const selectedCategory = e.target.value;
-
-      extensionSections.forEach(section => {
-        section.style.display = 'none';
-        section.querySelectorAll('input, select, textarea').forEach(input => input.disabled = true);
+    categorySelect.addEventListener('change', () => {
+      const selectedVal = categorySelect.value;
+      
+      fieldsetSections.forEach(sec => {
+        sec.style.display = 'none';
+        sec.querySelectorAll('input, select, textarea').forEach(input => input.disabled = true);
       });
 
-      if (selectedCategory) {
-        const targetSection = document.getElementById(`section-${selectedCategory.toLowerCase()}`);
+      const catMap = {
+        '1': 'section-publication',
+        '2': 'section-patent',
+        '3': 'section-research_grant',
+        '4': 'section-workshop_fdp',
+        '5': 'section-award'
+      };
+
+      const targetId = catMap[selectedVal];
+      if (targetId) {
+        const targetSection = document.getElementById(targetId);
         if (targetSection) {
           targetSection.style.display = 'block';
           targetSection.querySelectorAll('input, select, textarea').forEach(input => input.disabled = false);
@@ -213,26 +226,17 @@ function initializeAddAchievementForm() {
       const title = document.getElementById('achievementTitle').value;
       const date = document.getElementById('achievementDate').value;
       const academicYear = document.getElementById('academicYear').value;
-      const description = document.getElementById('description')?.value || '';
+      const description = document.getElementById('achievementDescription')?.value || '';
       const proofUrl = document.getElementById('proofUrl')?.value || '';
+      const proofFileInput = document.getElementById('proofFileInput');
 
       if (!FormValidator.validateRequired(categoryVal) || !FormValidator.validateRequired(title) || !FormValidator.validateDate(date)) {
         showToast('Please fill out all required fields marked with *', 'error');
         return;
       }
 
-      const categoryIdMap = {
-        publication: 1,
-        patent: 2,
-        research_grant: 3,
-        workshop_fdp: 4,
-        award: 5
-      };
-
-      const categoryId = categoryIdMap[categoryVal] || 1;
-
       const requestPayload = {
-        categoryId: categoryId,
+        categoryId: parseInt(categoryVal, 10),
         title: title,
         description: description,
         achievementDate: date,
@@ -240,34 +244,69 @@ function initializeAddAchievementForm() {
         proofDocumentUrl: proofUrl || null
       };
 
-      const submitBtn = form.querySelector('button[type="submit"]');
+      const submitBtn = document.getElementById('submitAchievementBtn');
       if (submitBtn) {
         submitBtn.disabled = true;
-        submitBtn.textContent = 'Submitting to Server...';
+        submitBtn.textContent = 'Submitting Record...';
       }
 
-      // Backend Endpoint: POST /api/achievements (User inferred from JWT token context)
+      // Step 1: Create Achievement Record -> POST /api/achievements
       const res = await ApiClient.post('/achievements', requestPayload);
 
-      if (res.success) {
-        showToast('Achievement created successfully in backend MySQL database!', 'success');
-        form.reset();
-        setTimeout(() => {
-          window.location.href = 'achievements.html';
-        }, 1000);
-      } else {
+      if (!res.success || !res.data) {
         showToast(res.message || 'Failed to create achievement record.', 'error');
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = 'Submit Achievement Record';
         }
+        return;
       }
+
+      const createdId = res.data.id;
+
+      // Step 2: Upload PDF File if selected -> POST /api/achievements/{id}/proof
+      if (proofFileInput && proofFileInput.files && proofFileInput.files.length > 0) {
+        const pdfFile = proofFileInput.files[0];
+        
+        if (!pdfFile.name.toLowerCase().endsWith('.pdf')) {
+          showToast('Record created, but file upload failed: File must be a PDF (.pdf).', 'warning');
+        } else {
+          if (submitBtn) submitBtn.textContent = 'Uploading PDF Proof...';
+          
+          const formData = new FormData();
+          formData.append('file', pdfFile);
+
+          const uploadRes = await ApiClient.upload(`/achievements/${createdId}/proof`, formData);
+          if (uploadRes.success) {
+            showToast('Achievement record & PDF proof document uploaded successfully!', 'success');
+          } else {
+            showToast(`Achievement created, but PDF upload failed: ${uploadRes.message}`, 'warning');
+          }
+        }
+      } else {
+        showToast('Achievement created successfully!', 'success');
+      }
+
+      form.reset();
+      setTimeout(() => {
+        window.location.href = 'achievements.html';
+      }, 1000);
     });
   }
 }
 
+async function openProtectedProofPdf(id) {
+  showToast('Downloading protected PDF document...', 'info');
+  const res = await ApiClient.downloadBlob(`/achievements/${id}/proof`);
+  
+  if (res.success && res.objectUrl) {
+    window.open(res.objectUrl, '_blank');
+  } else {
+    showToast(res.message || 'Unable to load proof document', 'error');
+  }
+}
+
 async function showAchievementDetailsModal(id) {
-  // Backend Endpoint: GET /api/achievements/{id}
   const res = await ApiClient.get(`/achievements/${id}`);
   if (!res.success || !res.data) {
     showToast(res.message || 'Achievement details not found or access denied', 'error');
@@ -284,7 +323,8 @@ async function showAchievementDetailsModal(id) {
       <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
       ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
-      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">View Supporting Certificate</a></p>` : ''}
+      ${item.verificationComment ? `<p style="margin-bottom: 0.5rem; color:#DC2626;"><strong>Reviewer Comment:</strong> ${escapeHtml(item.verificationComment)}</p>` : ''}
+      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><button class="btn btn-primary btn-sm" onclick="openProtectedProofPdf(${item.id})">📄 View Protected Proof PDF</button></p>` : ''}
     `;
     openModal('viewModal');
   }

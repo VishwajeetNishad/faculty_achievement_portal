@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Achievement | NIET Faculty Achievement Portal</title>
+  <title>Add Achievement | Faculty Achievement Portal</title>
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="../css/variables.css">
@@ -11,41 +11,42 @@
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/tables.css">
   <link rel="stylesheet" href="../css/responsive.css">
 </head>
 <body>
 
   <div class="app-wrapper">
 
-    <!-- App Sidebar -->
+    <!-- Sidebar Navigation Component -->
     <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
         <span class="niet-brand-badge">NIET</span>
         <div class="sidebar-brand-title">
           Faculty Portal
-          <span>NIET Noida</span>
+          <span>NIET Greater Noida</span>
         </div>
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Main Navigation</div>
+        <div class="nav-section-title">Navigation</div>
         <ul class="nav-list">
           <li class="nav-item">
             <a href="dashboard.html" class="nav-link">
               <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Dashboard
+              Overview Dashboard
             </a>
           </li>
           <li class="nav-item">
             <a href="achievements.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
               My Achievements
             </a>
           </li>
           <li class="nav-item">
             <a href="add-achievement.html" class="nav-link active">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              Add Achievement
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              Submit Achievement
             </a>
           </li>
           <li class="nav-item">
@@ -58,93 +59,91 @@
       </nav>
 
       <div class="sidebar-footer">
-        <a href="login.html" class="nav-link" style="color: #FCA5A5;">
+        <a href="login.html" class="nav-link" style="color: #F87171;">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           Sign Out
         </a>
       </div>
     </aside>
 
-    <!-- App Main Content Area -->
+    <!-- Main Content Area -->
     <main class="app-main">
       
-      <!-- Topbar Header -->
       <header class="app-header">
         <div class="header-left">
           <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
             <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="page-title">Submit Achievement Record</h1>
+          <h1 class="page-title">Submit New Faculty Achievement</h1>
+        </div>
+
+        <div class="header-right">
+          <div class="user-profile-widget">
+            <div class="avatar-circle">DS</div>
+            <div class="user-details">
+              <span class="user-name">Dr. Sharma</span>
+              <span class="user-role-tag">CSE Department</span>
+            </div>
+          </div>
         </div>
       </header>
 
-      <!-- Page Body Content -->
       <div class="page-content">
         <div class="content-container">
 
-          <div class="card">
+          <div class="card" style="max-width: 900px; margin: 0 auto;">
             <div class="card-header">
-              <h2 class="card-title">Achievement Information Form</h2>
+              <h2 class="card-title">Achievement Submission Form</h2>
+              <span class="table-subtext">All submitted records are routed to HOD/Admin for verification.</span>
             </div>
-
+            
             <div class="card-body">
-              <form id="addAchievementForm">
-                
-                <!-- Section 1: Basic Information -->
-                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 1rem;">Section 1: Basic Information</h3>
-                
+              <form id="addAchievementForm" novalidate>
+
+                <!-- Section 1: Standard Achievement Info -->
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 1rem;">Section 1: General Details</h3>
+
                 <div class="form-grid">
-                  
+                  <div class="form-group full-width">
+                    <label class="form-label required-field" for="achievementTitle">Achievement Title</label>
+                    <input type="text" id="achievementTitle" class="form-control" placeholder="e.g. Deep Learning in Healthcare Paper" required>
+                  </div>
+
                   <div class="form-group">
-                    <label class="form-label" for="categorySelect">
-                      Achievement Category <span class="required-star">*</span>
-                    </label>
-                    <select id="categorySelect" class="form-control" required>
+                    <label class="form-label required-field" for="achievementCategory">Category</label>
+                    <select id="achievementCategory" class="form-control" required>
                       <option value="">-- Select Category --</option>
-                      <option value="publication">Research Publication</option>
-                      <option value="patent">Patent / Intellectual Property</option>
-                      <option value="research_grant">Research Grant</option>
-                      <option value="workshop_fdp">Workshop / FDP</option>
-                      <option value="award">Award / Recognition</option>
+                      <option value="1">Research Publication (PUBLICATION)</option>
+                      <option value="2">Patent Filed/Granted (PATENT)</option>
+                      <option value="3">Research Grant Received (RESEARCH_GRANT)</option>
+                      <option value="4">Workshop / FDP / STTP (WORKSHOP_FDP)</option>
+                      <option value="5">Academic / Professional Award (AWARD)</option>
                     </select>
                   </div>
 
                   <div class="form-group">
-                    <label class="form-label" for="achievementTitle">
-                      Title of Achievement <span class="required-star">*</span>
-                    </label>
-                    <input type="text" id="achievementTitle" class="form-control" placeholder="e.g. Deep Learning in Healthcare Systems" required>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label" for="achievementDate">
-                      Date of Achievement / Event <span class="required-star">*</span>
-                    </label>
-                    <input type="date" id="achievementDate" class="form-control" required>
-                  </div>
-
-                  <div class="form-group">
-                    <label class="form-label" for="academicYear">
-                      Academic Year <span class="required-star">*</span>
-                    </label>
+                    <label class="form-label required-field" for="academicYear">Academic Year</label>
                     <select id="academicYear" class="form-control" required>
-                      <option value="2025-2026">2025-2026</option>
+                      <option value="2025-2026" selected>2025-2026</option>
                       <option value="2024-2025">2024-2025</option>
                       <option value="2023-2024">2023-2024</option>
                     </select>
                   </div>
 
-                  <div class="form-group full-width">
-                    <label class="form-label" for="description">
-                      Description & Impact Summary
-                    </label>
-                    <textarea id="description" class="form-control" placeholder="Provide a brief summary of the research methodology, scope, or institutional impact..."></textarea>
+                  <div class="form-group">
+                    <label class="form-label required-field" for="achievementDate">Achievement Date</label>
+                    <input type="date" id="achievementDate" class="form-control" required>
                   </div>
-
                 </div>
 
-                <!-- Section 2: Category Specific Extension Fieldsets -->
-                
+                <div class="form-group full-width">
+                  <label class="form-label" for="achievementDescription">Summary / Description</label>
+                  <textarea id="achievementDescription" class="form-control" placeholder="Briefly describe your achievement, impact, or relevant metadata..."></textarea>
+                </div>
+
+                <!-- Section 2: Dynamic Category Extension Fieldsets -->
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-top: 1.5rem; margin-bottom: 1rem;">Section 2: Category Details</h3>
+
                 <!-- Publication Fieldset -->
                 <div class="fieldset-section" id="section-publication" style="display: none;">
                   <h3 class="fieldset-title">
@@ -162,16 +161,8 @@
                         <option value="SCI">SCI / SCIE</option>
                         <option value="SCOPUS">Scopus</option>
                         <option value="UGC_CARE">UGC CARE</option>
-                        <option value="OTHER">Other Peer Reviewed</option>
+                        <option value="OTHER">Other Indexing</option>
                       </select>
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label" for="impactFactor">Impact Factor</label>
-                      <input type="number" id="impactFactor" step="0.01" class="form-control" placeholder="e.g. 4.85">
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label" for="doi">DOI / URL</label>
-                      <input type="text" id="doi" class="form-control" placeholder="10.1109/TMI.2025.12345">
                     </div>
                   </div>
                 </div>
@@ -184,7 +175,7 @@
                   </h3>
                   <div class="form-grid">
                     <div class="form-group">
-                      <label class="form-label" for="patentNumber">Patent Number</label>
+                      <label class="form-label" for="patentNumber">Patent Application Number</label>
                       <input type="text" id="patentNumber" class="form-control" placeholder="e.g. 202511012345">
                     </div>
                     <div class="form-group">
@@ -216,18 +207,26 @@
                   </div>
                 </div>
 
-                <!-- Section 3: Supporting Document UI -->
-                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-top: 1.5rem; margin-bottom: 1rem;">Section 3: Supporting Proof Document</h3>
+                <!-- Section 3: Secure PDF Proof Document Upload -->
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-top: 1.5rem; margin-bottom: 1rem;">Section 3: Secure Proof Document Upload (PDF Only)</h3>
                 
                 <div class="form-group full-width">
-                  <label class="form-label" for="proofUrl">Proof Document Certificate / Web Link</label>
+                  <label class="form-label" for="proofFileInput">Upload Proof Document (PDF Certificate / Approval Letter - Max 10MB)</label>
+                  <input type="file" id="proofFileInput" accept=".pdf,application/pdf" class="form-control">
+                  <div class="form-text" style="font-size: 0.85rem; color: #64748B; margin-top: 0.35rem;">
+                    PDF magic bytes validation will be performed on the server. Max file size: 10 MB.
+                  </div>
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label" for="proofUrl">Or Provide Proof Document URL Reference</label>
                   <input type="url" id="proofUrl" class="form-control" placeholder="https://example.com/certificates/proof.pdf">
                 </div>
 
                 <!-- Form Action Buttons -->
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                   <a href="achievements.html" class="btn btn-outline">Cancel</a>
-                  <button type="submit" class="btn btn-primary btn-lg">Submit Achievement Record</button>
+                  <button type="submit" class="btn btn-primary btn-lg" id="submitAchievementBtn">Submit Achievement Record</button>
                 </div>
 
               </form>

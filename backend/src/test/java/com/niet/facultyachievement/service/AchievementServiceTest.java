@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
@@ -38,6 +39,9 @@ class AchievementServiceTest {
 
     @Mock
     private AchievementCategoryRepository categoryRepository;
+
+    @Mock
+    private FileStorageService fileStorageService;
 
     @InjectMocks
     private AchievementServiceImpl achievementService;
@@ -182,5 +186,21 @@ class AchievementServiceTest {
 
         assertThrows(BadRequestException.class, () ->
                 achievementService.verifyAchievement(100L, 2L, request));
+    }
+
+    @Test
+    void uploadProofDocument_Success() {
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file", "proof.pdf", "application/pdf", "%PDF-1.4 sample content".getBytes());
+
+        when(achievementRepository.findById(100L)).thenReturn(Optional.of(sampleAchievement));
+        when(fileStorageService.storeFile(mockFile)).thenReturn("uuid-123.pdf");
+        when(achievementRepository.save(any(Achievement.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AchievementResponse response = achievementService.uploadProofDocument(100L, 1L, mockFile);
+
+        assertNotNull(response);
+        assertTrue(response.getProofDocumentUrl().contains("uuid-123.pdf"));
+        verify(fileStorageService, times(1)).storeFile(mockFile);
     }
 }

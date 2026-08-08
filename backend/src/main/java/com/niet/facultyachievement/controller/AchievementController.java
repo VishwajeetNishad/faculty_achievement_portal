@@ -12,16 +12,20 @@ import com.niet.facultyachievement.repository.UserRepository;
 import com.niet.facultyachievement.service.AchievementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 /**
- * REST Controller for Faculty Achievement Management & Verification Workflow.
+ * REST Controller for Faculty Achievement Management, Proof Uploads & Verification Workflow.
  * Base Endpoint: /api/achievements
  */
 @RestController
@@ -144,11 +148,6 @@ public class AchievementController {
         return ResponseEntity.noContent().build();
     }
 
-    /**
-     * Dedicated Achievement Verification Workflow Endpoint
-     * PATCH /api/achievements/{id}/verification
-     * Accessible by HOD (department restricted) & ADMIN
-     */
     @PatchMapping("/{id}/verification")
     public ResponseEntity<AchievementResponse> verifyAchievement(
             Authentication authentication,
@@ -160,25 +159,66 @@ public class AchievementController {
         boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
         boolean isHod = roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
 
-        // Rule: Only HOD or ADMIN can perform verification
         if (!isAdmin && !isHod) {
             throw new AccessDeniedException("Faculty members are not authorized to verify achievement records");
         }
 
-        // Fetch target achievement to evaluate HOD department scope
         AchievementResponse target = achievementService.getAchievementById(id);
 
         if (isHod && !isAdmin) {
-            Long targetDeptId = target.getDepartmentCode() != null && reviewer.getDepartment() != null 
-                    && reviewer.getDepartment().getCode().equalsIgnoreCase(target.getDepartmentCode())
-                    ? reviewer.getDepartment().getId() : null;
+            boolean matchesDept = reviewer.getDepartment() != null && target.getDepartmentCode() != null
+                    && reviewer.getDepartment().getCode().equalsIgnoreCase(target.getDepartmentCode());
 
-            if (targetDeptId == null || !reviewer.getDepartment().getCode().equalsIgnoreCase(target.getDepartmentCode())) {
+            if (!matchesDept) {
                 throw new AccessDeniedException("HOD is not authorized to verify achievements belonging to other departments");
             }
         }
 
         AchievementResponse response = achievementService.verifyAchievement(id, reviewer.getId(), request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * POST /api/achievements/{id}/proof
+     * Secure Multipart File Upload Endpoint for PDF Proof Documents
+     */
+    @PostMapping(value = "/{id}/proof", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<AchievementResponse> uploadProofDocument(
+            Authentication authentication,
+            @PathVariable("id") Long id,
+            @RequestParam("file") MultipartFile file) {
+        User currentUser = getAuthenticatedUser(authentication);
+        AchievementResponse response = achievementService.uploadProofDocument(id, currentUser.getId(), file);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/achievements/{id}/proof
+     * Protected Download / View Endpoint for PDF Proof Documents
+     */
+    @GetMapping("/{id}/proof")
+    public ResponseEntity<Resource> getProofDocument(
+            Authentication authentication,
+            @PathVariable("id") Long id) {
+        User currentUser = getAuthenticatedUser(authentication);
+        Resource fileResource = achievementService.getProofDocumentResource(id, currentUser.getId());
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"achievement_proof_" + id + ".pdf\"")
+                .body(fileResource);
+    }
+
+    /**
+     * DELETE /api/achievements/{id}/proof
+     * Secure Deletion Endpoint for PDF Proof Documents
+     */
+    @DeleteMapping("/{id}/proof")
+    public ResponseEntity<Void> deleteProofDocument(
+            Authentication authentication,
+            @PathVariable("id") Long id) {
+        User currentUser = getAuthenticatedUser(authentication);
+        achievementService.deleteProofDocument(id, currentUser.getId());
+        return ResponseEntity.noContent().build();
     }
 }
