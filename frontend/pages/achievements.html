@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Achievements | NIET Faculty Achievement Portal</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/tables.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- App Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <span class="niet-brand-badge">NIET</span>
+        <div class="sidebar-brand-title">
+          Faculty Portal
+          <span>NIET Noida</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Main Navigation</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="achievements.html" class="nav-link active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+              My Achievements
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="add-achievement.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add Achievement
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="profile.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              My Profile
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="login.html" class="nav-link" style="color: #FCA5A5;">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </a>
+      </div>
+    </aside>
+
+    <!-- App Main Content Area -->
+    <main class="app-main">
+      
+      <!-- Topbar Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 class="page-title">My Achievements</h1>
+        </div>
+
+        <div class="header-right">
+          <a href="add-achievement.html" class="btn btn-primary">+ Submit New Achievement</a>
+        </div>
+      </header>
+
+      <!-- Page Body Content -->
+      <div class="page-content">
+        <div class="content-container">
+
+          <!-- Filter Toolbar Card -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: 1rem 1.5rem;">
+              <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: center;">
+                <div>
+                  <label class="form-label" style="font-size: 0.75rem;">Category</label>
+                  <select class="form-control">
+                    <option value="">All Categories</option>
+                    <option value="PUBLICATION">Research Publication</option>
+                    <option value="PATENT">Patent / Intellectual Property</option>
+                    <option value="RESEARCH_GRANT">Research Grant</option>
+                    <option value="WORKSHOP_FDP">Workshop / FDP</option>
+                    <option value="AWARD">Award / Recognition</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.75rem;">Status</label>
+                  <select class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="form-label" style="font-size: 0.75rem;">Academic Year</label>
+                  <select class="form-control">
+                    <option value="">All Years</option>
+                    <option value="2025-2026">2025-2026</option>
+                    <option value="2024-2025">2024-2025</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Achievements List Table Card -->
+          <div class="card">
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Title & Details</th>
+                      <th>Category</th>
+                      <th>Academic Year</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td data-label="Title & Details">
+                        <div class="table-title-cell">Deep Learning in Healthcare Systems</div>
+                        <div class="table-subtext">IEEE Transactions on Medical Imaging</div>
+                      </td>
+                      <td data-label="Category">Research Publication</td>
+                      <td data-label="Academic Year">2025-2026</td>
+                      <td data-label="Date">10 May 2025</td>
+                      <td data-label="Status">
+                        <span class="badge badge-pending">
+                          <span class="badge-dot"></span> PENDING
+                        </span>
+                      </td>
+                      <td data-label="Actions">
+                        <div class="action-btn-group">
+                          <a href="#" class="btn btn-outline btn-sm">Edit</a>
+                          <a href="#" class="btn btn-danger btn-sm">Delete</a>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td data-label="Title & Details">
+                        <div class="table-title-cell">AI in Medical Image Segmentation</div>
+                        <div class="table-subtext">Springer Nature Journal</div>
+                      </td>
+                      <td data-label="Category">Research Publication</td>
+                      <td data-label="Academic Year">2025-2026</td>
+                      <td data-label="Date">15 Jun 2025</td>
+                      <td data-label="Status">
+                        <span class="badge badge-approved">
+                          <span class="badge-dot"></span> APPROVED
+                        </span>
+                      </td>
+                      <td data-label="Actions">
+                        <div class="action-btn-group">
+                          <a href="#" class="btn btn-outline btn-sm">View Details</a>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="../js/config.js"></script>
+  <script src="../js/common.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | NIET Faculty Achievement Portal</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+</head>
+<body style="background-color: var(--bg-main); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1.5rem;">
+
+  <div class="card" style="width: 100%; max-width: 440px; box-shadow: var(--shadow-lg);">
+    <div class="card-header" style="flex-direction: column; text-align: center; gap: 0.5rem; padding: 2rem 1.5rem 1rem;">
+      <span class="niet-brand-badge" style="font-size: 1rem; padding: 0.35rem 0.75rem;">NIET NOIDA</span>
+      <h2 class="card-title" style="font-size: 1.25rem;">Institutional Login</h2>
+      <p style="font-size: 0.875rem; color: var(--text-secondary);">Faculty & Administration Portal</p>
+    </div>
+
+    <div class="card-body">
+      <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+        
+        <div class="form-group">
+          <label class="form-label" for="loginEmail">
+            Employee ID / Email Address <span class="required-star">*</span>
+          </label>
+          <input type="text" id="loginEmail" class="form-control" placeholder="e.g. EMP001 or faculty@niet.co.in" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPassword">
+            Password <span class="required-star">*</span>
+          </label>
+          <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; font-size: 0.875rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; color: var(--text-secondary);">
+            <input type="checkbox" checked> Remember me
+          </label>
+          <a href="#" style="font-size: 0.875rem;">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">
+          Sign In to Portal
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
