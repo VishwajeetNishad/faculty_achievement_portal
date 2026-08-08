@@ -18,7 +18,7 @@
 
   <div class="app-wrapper">
 
-    <!-- Admin Sidebar Drawer -->
+    <!-- Admin Sidebar -->
     <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
       <div class="sidebar-header">
         <span class="niet-brand-badge" style="background-color: #DC2626; color: #FFF;">ADMIN</span>
@@ -68,7 +68,7 @@
           <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
             <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="page-title">Institutional Verification Queue</h1>
+          <h1 class="page-title">Faculty Achievement Verification Queue</h1>
         </div>
       </header>
 
@@ -77,18 +77,18 @@
 
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Pending Submissions for Review</h2>
+              <h2 class="card-title">Pending Verification Queue</h2>
             </div>
             <div class="card-body" style="padding: 0;">
               <div class="table-responsive">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Faculty Member</th>
+                      <th>Faculty & Dept</th>
                       <th>Title & Category</th>
                       <th>Submitted Date</th>
                       <th>Status</th>
-                      <th>Verification Action</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody id="adminQueueTableBody">
@@ -110,20 +110,22 @@
   <div class="modal-backdrop" id="reviewModal" aria-hidden="true" role="dialog" aria-labelledby="reviewModalTitle">
     <div class="modal-container">
       <div class="modal-header">
-        <h3 class="modal-title" id="reviewModalTitle">Verification Review</h3>
+        <h3 class="modal-title" id="reviewModalTitle">Review Faculty Achievement Record</h3>
         <button class="modal-close-btn" onclick="closeModal('reviewModal')" aria-label="Close modal">&times;</button>
       </div>
       <div class="modal-body">
-        <div id="reviewModalContent"></div>
-        <div class="form-group" style="margin-top: 1rem;">
-          <label class="form-label" for="verifyComment">Verification Remarks / Feedback</label>
-          <textarea id="verifyComment" class="form-control" placeholder="Optional review comments..."></textarea>
+        <div id="reviewModalContent" style="margin-bottom: 1.25rem;">
+          <!-- Populated dynamically -->
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="verifyComment">Verification Feedback / Rejection Reason</label>
+          <textarea id="verifyComment" class="form-control" placeholder="Provide feedback or justification for rejection..."></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline" onclick="closeModal('reviewModal')">Cancel</button>
-        <button class="btn btn-danger" id="btnRejectRecord">Reject Record</button>
-        <button class="btn btn-success" id="btnApproveRecord">Approve Record</button>
+        <button class="btn btn-danger" id="btnRejectRecord">Reject Achievement</button>
+        <button class="btn btn-primary" id="btnApproveRecord">Approve Achievement</button>
       </div>
     </div>
   </div>
@@ -131,6 +133,7 @@
   <!-- Scripts -->
   <script src="../../js/config.js"></script>
   <script src="../../js/mockData.js"></script>
+  <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
   <script src="../../js/admin.js"></script>
 </body>

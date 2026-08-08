@@ -3,6 +3,7 @@ package com.niet.facultyachievement.controller;
 import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
 import com.niet.facultyachievement.dto.AchievementUpdateRequest;
+import com.niet.facultyachievement.dto.AchievementVerificationRequest;
 import com.niet.facultyachievement.entity.AchievementStatus;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.exception.BadRequestException;
@@ -13,14 +14,15 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * REST Controller for Faculty Achievement Management.
- * Secured via Spring Security + JWT Authentication context.
+ * REST Controller for Faculty Achievement Management & Verification Workflow.
+ * Base Endpoint: /api/achievements
  */
 @RestController
 @RequestMapping("/api/achievements")
@@ -61,13 +63,13 @@ public class AchievementController {
         User currentUser = getAuthenticatedUser(authentication);
         AchievementResponse response = achievementService.getAchievementById(id);
         
-        // Ownership Check / Role Permission (Faculty A cannot read Faculty B's private achievement unless ADMIN/HOD)
         boolean isOwner = response.getUserId().equals(currentUser.getId());
-        boolean isAdminOrHod = currentUser.getRole() != null && 
-                (currentUser.getRole().getName().equalsIgnoreCase("ADMIN") || currentUser.getRole().getName().equalsIgnoreCase("HOD"));
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdminOrHod = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN") ||
+                               roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
 
         if (!isOwner && !isAdminOrHod) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new AccessDeniedException("You are not authorized to view this achievement record");
         }
 
         return ResponseEntity.ok(response);
@@ -79,13 +81,13 @@ public class AchievementController {
             @PathVariable("userId") Long userId) {
         User currentUser = getAuthenticatedUser(authentication);
         
-        // Security check: Only self, ADMIN, or HOD can list user achievements
         boolean isSelf = currentUser.getId().equals(userId);
-        boolean isAdminOrHod = currentUser.getRole() != null && 
-                (currentUser.getRole().getName().equalsIgnoreCase("ADMIN") || currentUser.getRole().getName().equalsIgnoreCase("HOD"));
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdminOrHod = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN") ||
+                               roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
 
         if (!isSelf && !isAdminOrHod) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new AccessDeniedException("You are not authorized to view achievements belonging to user id: " + userId);
         }
 
         List<AchievementResponse> responses = achievementService.getAchievementsByUser(userId);
@@ -110,13 +112,13 @@ public class AchievementController {
             @PathVariable("departmentId") Long departmentId) {
         User currentUser = getAuthenticatedUser(authentication);
         
-        // Security check: HOD can only view their own department's achievements
-        boolean isAdmin = currentUser.getRole() != null && currentUser.getRole().getName().equalsIgnoreCase("ADMIN");
-        boolean isOwnDeptHod = currentUser.getRole() != null && currentUser.getRole().getName().equalsIgnoreCase("HOD") && 
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
+        boolean isOwnDeptHod = (roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD")) && 
                 currentUser.getDepartment() != null && currentUser.getDepartment().getId().equals(departmentId);
 
         if (!isAdmin && !isOwnDeptHod) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            throw new AccessDeniedException("You are not authorized to view achievements for department id: " + departmentId);
         }
 
         List<AchievementResponse> responses = achievementService.getAchievementsByDepartment(departmentId);
@@ -140,5 +142,43 @@ public class AchievementController {
         User currentUser = getAuthenticatedUser(authentication);
         achievementService.deleteAchievement(id, currentUser.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Dedicated Achievement Verification Workflow Endpoint
+     * PATCH /api/achievements/{id}/verification
+     * Accessible by HOD (department restricted) & ADMIN
+     */
+    @PatchMapping("/{id}/verification")
+    public ResponseEntity<AchievementResponse> verifyAchievement(
+            Authentication authentication,
+            @PathVariable("id") Long id,
+            @Valid @RequestBody AchievementVerificationRequest request) {
+
+        User reviewer = getAuthenticatedUser(authentication);
+        String roleName = reviewer.getRole() != null ? reviewer.getRole().getName() : "";
+        boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
+        boolean isHod = roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
+
+        // Rule: Only HOD or ADMIN can perform verification
+        if (!isAdmin && !isHod) {
+            throw new AccessDeniedException("Faculty members are not authorized to verify achievement records");
+        }
+
+        // Fetch target achievement to evaluate HOD department scope
+        AchievementResponse target = achievementService.getAchievementById(id);
+
+        if (isHod && !isAdmin) {
+            Long targetDeptId = target.getDepartmentCode() != null && reviewer.getDepartment() != null 
+                    && reviewer.getDepartment().getCode().equalsIgnoreCase(target.getDepartmentCode())
+                    ? reviewer.getDepartment().getId() : null;
+
+            if (targetDeptId == null || !reviewer.getDepartment().getCode().equalsIgnoreCase(target.getDepartmentCode())) {
+                throw new AccessDeniedException("HOD is not authorized to verify achievements belonging to other departments");
+            }
+        }
+
+        AchievementResponse response = achievementService.verifyAchievement(id, reviewer.getId(), request);
+        return ResponseEntity.ok(response);
     }
 }

@@ -3,10 +3,12 @@ package com.niet.facultyachievement.service;
 import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
 import com.niet.facultyachievement.dto.AchievementUpdateRequest;
+import com.niet.facultyachievement.dto.AchievementVerificationRequest;
 import com.niet.facultyachievement.entity.Achievement;
 import com.niet.facultyachievement.entity.AchievementCategory;
 import com.niet.facultyachievement.entity.AchievementStatus;
 import com.niet.facultyachievement.entity.User;
+import com.niet.facultyachievement.exception.BadRequestException;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.AchievementCategoryRepository;
 import com.niet.facultyachievement.repository.AchievementRepository;
@@ -16,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -129,6 +132,35 @@ public class AchievementServiceImpl implements AchievementService {
         }
 
         achievementRepository.delete(achievement);
+    }
+
+    @Override
+    @Transactional
+    public AchievementResponse verifyAchievement(Long id, Long reviewerUserId, AchievementVerificationRequest request) {
+        Achievement achievement = achievementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Achievement not found with id: " + id));
+
+        User reviewer = userRepository.findById(reviewerUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Reviewer user not found with id: " + reviewerUserId));
+
+        // Rule 1: Controlled status transition — Only PENDING records can be verified
+        if (achievement.getStatus() != AchievementStatus.PENDING) {
+            throw new BadRequestException("Achievement has already been reviewed and is currently " + achievement.getStatus());
+        }
+
+        // Rule 2: Require review comment when status is REJECTED
+        if (request.getStatus() == AchievementStatus.REJECTED && 
+           (request.getVerificationComment() == null || request.getVerificationComment().trim().isEmpty())) {
+            throw new BadRequestException("A verification review comment is required when rejecting an achievement record");
+        }
+
+        achievement.setStatus(request.getStatus());
+        achievement.setVerificationComment(request.getVerificationComment() != null ? request.getVerificationComment().trim() : null);
+        achievement.setVerifiedBy(reviewer);
+        achievement.setVerifiedAt(LocalDateTime.now());
+
+        Achievement updated = achievementRepository.save(achievement);
+        return mapToResponse(updated);
     }
 
     private AchievementResponse mapToResponse(Achievement achievement) {

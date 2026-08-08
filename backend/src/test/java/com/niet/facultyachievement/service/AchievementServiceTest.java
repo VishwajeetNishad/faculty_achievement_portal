@@ -2,10 +2,12 @@ package com.niet.facultyachievement.service;
 
 import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
+import com.niet.facultyachievement.dto.AchievementVerificationRequest;
 import com.niet.facultyachievement.entity.Achievement;
 import com.niet.facultyachievement.entity.AchievementCategory;
 import com.niet.facultyachievement.entity.AchievementStatus;
 import com.niet.facultyachievement.entity.User;
+import com.niet.facultyachievement.exception.BadRequestException;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.AchievementCategoryRepository;
 import com.niet.facultyachievement.repository.AchievementRepository;
@@ -41,6 +43,7 @@ class AchievementServiceTest {
     private AchievementServiceImpl achievementService;
 
     private User sampleUser;
+    private User reviewerUser;
     private AchievementCategory sampleCategory;
     private Achievement sampleAchievement;
 
@@ -51,6 +54,13 @@ class AchievementServiceTest {
                 .employeeId("EMP001")
                 .fullName("Dr. Sharma")
                 .email("sharma@niet.co.in")
+                .build();
+
+        reviewerUser = User.builder()
+                .id(2L)
+                .employeeId("EMP002")
+                .fullName("Dr. Admin")
+                .email("admin@faculty.edu")
                 .build();
 
         sampleCategory = AchievementCategory.builder()
@@ -138,5 +148,39 @@ class AchievementServiceTest {
 
         assertThrows(AccessDeniedException.class, () ->
                 achievementService.deleteAchievement(100L, 999L));
+    }
+
+    @Test
+    void verifyAchievement_Approval_Success() {
+        AchievementVerificationRequest request = AchievementVerificationRequest.builder()
+                .status(AchievementStatus.APPROVED)
+                .verificationComment("Approved by reviewer")
+                .build();
+
+        when(achievementRepository.findById(100L)).thenReturn(Optional.of(sampleAchievement));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(reviewerUser));
+        when(achievementRepository.save(any(Achievement.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        AchievementResponse response = achievementService.verifyAchievement(100L, 2L, request);
+
+        assertNotNull(response);
+        assertEquals(AchievementStatus.APPROVED, response.getStatus());
+        assertEquals("Approved by reviewer", response.getVerificationComment());
+        assertEquals(2L, response.getVerifiedByUserId());
+        assertNotNull(response.getVerifiedAt());
+    }
+
+    @Test
+    void verifyAchievement_AlreadyVerified_ThrowsBadRequestException() {
+        sampleAchievement.setStatus(AchievementStatus.APPROVED);
+        AchievementVerificationRequest request = AchievementVerificationRequest.builder()
+                .status(AchievementStatus.APPROVED)
+                .build();
+
+        when(achievementRepository.findById(100L)).thenReturn(Optional.of(sampleAchievement));
+        when(userRepository.findById(2L)).thenReturn(Optional.of(reviewerUser));
+
+        assertThrows(BadRequestException.class, () ->
+                achievementService.verifyAchievement(100L, 2L, request));
     }
 }

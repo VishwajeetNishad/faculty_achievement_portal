@@ -5,6 +5,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
 import com.niet.facultyachievement.dto.AchievementUpdateRequest;
+import com.niet.facultyachievement.dto.AchievementVerificationRequest;
 import com.niet.facultyachievement.entity.AchievementStatus;
 import com.niet.facultyachievement.entity.Department;
 import com.niet.facultyachievement.entity.Role;
@@ -230,5 +231,29 @@ class AchievementControllerTest {
                 .andExpect(status().isNoContent());
 
         verify(achievementService, times(1)).deleteAchievement(1L, 1L);
+    }
+
+    @Test
+    void verifyAchievement_Success_Returns200() throws Exception {
+        AchievementVerificationRequest verifyRequest = AchievementVerificationRequest.builder()
+                .status(AchievementStatus.APPROVED)
+                .verificationComment("Approved by Admin")
+                .build();
+
+        sampleResponse.setStatus(AchievementStatus.APPROVED);
+        sampleResponse.setVerificationComment("Approved by Admin");
+
+        when(userRepository.findByEmail("admin@faculty.edu")).thenReturn(Optional.of(mockUser));
+        when(achievementService.getAchievementById(1L)).thenReturn(sampleResponse);
+        when(achievementService.verifyAchievement(eq(1L), eq(1L), any(AchievementVerificationRequest.class)))
+                .thenReturn(sampleResponse);
+
+        mockMvc.perform(patch("/api/achievements/1/verification")
+                        .principal(mockAuth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(verifyRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("APPROVED"))
+                .andExpect(jsonPath("$.verificationComment").value("Approved by Admin"));
     }
 }
