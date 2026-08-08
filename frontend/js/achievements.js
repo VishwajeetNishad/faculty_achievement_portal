@@ -1,6 +1,13 @@
 /**
  * Achievements Page & Add-Achievement Form Logic
- * Fully Client-Side Filter, Search, Modal Population, and Mock Store Mutations
+ * Integrated with Spring Boot REST API endpoints:
+ * - GET /api/achievements/user/{userId}
+ * - GET /api/achievements/{id}
+ * - GET /api/achievements/status/{status}
+ * - GET /api/achievements/department/{departmentId}
+ * - POST /api/achievements?userId=1
+ * - PUT /api/achievements/{id}?userId=1
+ * - DELETE /api/achievements/{id}?userId=1
  */
 
 let pendingDeleteId = null;
@@ -45,54 +52,90 @@ function initializeAchievementsPage() {
     });
   }
 
-  // Confirm Delete Modal Action Listener
+  // Confirm Delete Modal Action Listener (Backend API Call)
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   if (confirmDeleteBtn) {
-    confirmDeleteBtn.addEventListener('click', () => {
-      if (pendingDeleteId) {
+    confirmDeleteBtn.addEventListener('click', async () => {
+      if (!pendingDeleteId) return;
+
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = 'Deleting...';
+
+      if (CONFIG.DATA_SOURCE === "API") {
+        const res = await ApiClient.delete(`/achievements/${pendingDeleteId}?userId=${CONFIG.DEV_USER_ID}`);
+        if (res.success) {
+          showToast('Achievement deleted successfully from backend database.', 'success');
+          closeModal('deleteModal');
+          pendingDeleteId = null;
+          await renderAchievementsTable();
+        } else {
+          showToast(res.message || 'Failed to delete achievement', 'error');
+        }
+      } else {
         MockStore.deleteAchievement(pendingDeleteId);
+        showToast('Demo achievement deleted.', 'success');
         closeModal('deleteModal');
         pendingDeleteId = null;
         renderAchievementsTable();
-        showToast('Demo achievement record deleted successfully', 'success');
       }
+
+      confirmDeleteBtn.disabled = false;
+      confirmDeleteBtn.textContent = 'Confirm Delete';
     });
   }
 }
 
-function renderAchievementsTable() {
+async function renderAchievementsTable() {
   const tableBody = document.getElementById('achievementsTableBody');
   if (!tableBody) return;
 
-  const profile = MockStore.getFacultyProfile();
-  let list = MockStore.getAchievements().filter(a => a.userId === profile.id);
-
-  // Apply Search Keyword Filter
+  const selectedStatus = document.getElementById('filterStatus')?.value;
+  const selectedCat = document.getElementById('filterCategory')?.value;
+  const selectedYear = document.getElementById('filterYear')?.value;
   const keyword = (document.getElementById('searchKeyword')?.value || '').toLowerCase().trim();
+
+  let list = [];
+
+  if (CONFIG.DATA_SOURCE === "API") {
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading records from live API...</p></td></tr>`;
+
+    let res;
+    if (selectedStatus) {
+      // Backend Endpoint: GET /api/achievements/status/{status}
+      res = await ApiClient.get(`/achievements/status/${selectedStatus}`);
+    } else {
+      // Backend Endpoint: GET /api/achievements/user/{userId}
+      res = await ApiClient.get(`/achievements/user/${CONFIG.DEV_USER_ID}`);
+    }
+
+    if (res.success && Array.isArray(res.data)) {
+      list = res.data;
+    } else {
+      showToast(res.message || 'Error fetching achievements from API', 'error');
+      list = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
+    }
+  } else {
+    list = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
+    if (selectedStatus) {
+      list = list.filter(a => a.status === selectedStatus);
+    }
+  }
+
+  // Client-side Category & Keyword Filtering
+  if (selectedCat) {
+    list = list.filter(a => (a.categoryCode === selectedCat) || (a.category === selectedCat));
+  }
+
+  if (selectedYear) {
+    list = list.filter(a => a.academicYear === selectedYear);
+  }
+
   if (keyword) {
     list = list.filter(a => 
       a.title.toLowerCase().includes(keyword) || 
-      (a.journalName && a.journalName.toLowerCase().includes(keyword)) ||
-      (a.description && a.description.toLowerCase().includes(keyword))
+      (a.description && a.description.toLowerCase().includes(keyword)) ||
+      (a.categoryName && a.categoryName.toLowerCase().includes(keyword))
     );
-  }
-
-  // Apply Category Filter
-  const selectedCat = document.getElementById('filterCategory')?.value;
-  if (selectedCat) {
-    list = list.filter(a => a.category === selectedCat);
-  }
-
-  // Apply Status Filter
-  const selectedStatus = document.getElementById('filterStatus')?.value;
-  if (selectedStatus) {
-    list = list.filter(a => a.status === selectedStatus);
-  }
-
-  // Apply Year Filter
-  const selectedYear = document.getElementById('filterYear')?.value;
-  if (selectedYear) {
-    list = list.filter(a => a.academicYear === selectedYear);
   }
 
   tableBody.innerHTML = '';
@@ -112,14 +155,15 @@ function renderAchievementsTable() {
   list.forEach(item => {
     const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
     const badgeSymbol = item.status === 'APPROVED' ? '✓' : (item.status === 'REJECTED' ? '!' : '●');
+    const categoryDisplayName = item.categoryName || item.categoryLabel || item.categoryCode || 'Achievement';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td data-label="Title & Details">
         <div class="table-title-cell">${escapeHtml(item.title)}</div>
-        <div class="table-subtext">${item.journalName ? escapeHtml(item.journalName) : escapeHtml(item.categoryLabel)}</div>
+        <div class="table-subtext">${escapeHtml(categoryDisplayName)}</div>
       </td>
-      <td data-label="Category">${escapeHtml(item.categoryLabel)}</td>
+      <td data-label="Category">${escapeHtml(categoryDisplayName)}</td>
       <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
       <td data-label="Date">${formatDate(item.achievementDate)}</td>
       <td data-label="Status">
@@ -137,7 +181,7 @@ function renderAchievementsTable() {
     tableBody.appendChild(tr);
   });
 
-  // Attach dynamic row event listeners
+  // Attach dynamic row listeners
   tableBody.querySelectorAll('.view-item-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       showAchievementDetailsModal(btn.getAttribute('data-id'));
@@ -153,7 +197,7 @@ function renderAchievementsTable() {
 }
 
 /**
- * 2. Add Achievement Form & Dynamic Category Extensions Controller
+ * 2. Add Achievement Form & Backend POST /api/achievements Controller
  */
 function initializeAddAchievementForm() {
   const categorySelect = document.getElementById('categorySelect');
@@ -164,14 +208,11 @@ function initializeAddAchievementForm() {
     categorySelect.addEventListener('change', (e) => {
       const selectedCategory = e.target.value;
 
-      // Hide all dynamic extension fieldsets
       extensionSections.forEach(section => {
         section.style.display = 'none';
-        // Disable inner inputs so they are not submitted when inactive
         section.querySelectorAll('input, select, textarea').forEach(input => input.disabled = true);
       });
 
-      // Enable and show target category section
       if (selectedCategory) {
         const targetSection = document.getElementById(`section-${selectedCategory.toLowerCase()}`);
         if (targetSection) {
@@ -183,55 +224,118 @@ function initializeAddAchievementForm() {
   }
 
   if (form) {
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const category = categorySelect.value;
+      const categoryVal = categorySelect.value;
       const title = document.getElementById('achievementTitle').value;
       const date = document.getElementById('achievementDate').value;
       const academicYear = document.getElementById('academicYear').value;
+      const description = document.getElementById('description')?.value || '';
+      const proofUrl = document.getElementById('proofUrl')?.value || '';
 
-      if (!FormValidator.validateRequired(category) || !FormValidator.validateRequired(title) || !FormValidator.validateDate(date)) {
+      if (!FormValidator.validateRequired(categoryVal) || !FormValidator.validateRequired(title) || !FormValidator.validateDate(date)) {
         showToast('Please fill out all required fields marked with *', 'error');
         return;
       }
 
-      const categoryLabelMap = {
-        publication: "Research Publication",
-        patent: "Patent / Intellectual Property",
-        research_grant: "Research Grant",
-        workshop_fdp: "Workshop / FDP",
-        award: "Award / Recognition"
+      // Map Frontend Category string to Backend AchievementCategory ID
+      // Category #1: PUBLICATION, Category #2: PATENT, Category #3: RESEARCH_GRANT, Category #4: WORKSHOP_FDP, Category #5: AWARD
+      const categoryIdMap = {
+        publication: 1,
+        patent: 2,
+        research_grant: 3,
+        workshop_fdp: 4,
+        award: 5
       };
 
-      const newRecord = {
-        category: category.toUpperCase(),
-        categoryLabel: categoryLabelMap[category] || category,
+      const categoryId = categoryIdMap[categoryVal] || 1;
+
+      // Construct Backend AchievementCreateRequest DTO payload
+      const requestPayload = {
+        categoryId: categoryId,
         title: title,
+        description: description,
         achievementDate: date,
         academicYear: academicYear,
-        description: document.getElementById('description')?.value || '',
-        proofDocumentUrl: document.getElementById('proofUrl')?.value || ''
+        proofDocumentUrl: proofUrl || null
       };
 
-      // Extract Category Specific Fields
-      if (category === 'publication') {
-        newRecord.journalName = document.getElementById('journalName')?.value || '';
-        newRecord.indexing = document.getElementById('indexing')?.value || 'SCI';
-        newRecord.impactFactor = document.getElementById('impactFactor')?.value || 0;
-        newRecord.doi = document.getElementById('doi')?.value || '';
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting to Server...';
       }
 
-      // Add to Demo Client Store
-      MockStore.addAchievement(newRecord);
+      if (CONFIG.DATA_SOURCE === "API") {
+        // Backend Endpoint: POST /api/achievements?userId=1
+        const res = await ApiClient.post(`/achievements?userId=${CONFIG.DEV_USER_ID}`, requestPayload);
 
-      showToast('Demo submission completed! Achievement added to demo state.', 'success');
-      form.reset();
-      
-      setTimeout(() => {
-        window.location.href = 'achievements.html';
-      }, 1200);
+        if (res.success) {
+          showToast('Achievement created successfully in backend MySQL database!', 'success');
+          form.reset();
+          setTimeout(() => {
+            window.location.href = 'achievements.html';
+          }, 1200);
+        } else {
+          showToast(res.message || 'Failed to create achievement record.', 'error');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Achievement Record';
+          }
+        }
+      } else {
+        MockStore.addAchievement({
+          category: categoryVal.toUpperCase(),
+          categoryLabel: categoryVal,
+          title: title,
+          achievementDate: date,
+          academicYear: academicYear,
+          description: description,
+          proofDocumentUrl: proofUrl
+        });
+        showToast('Demo submission completed.', 'success');
+        form.reset();
+        setTimeout(() => {
+          window.location.href = 'achievements.html';
+        }, 1000);
+      }
     });
+  }
+}
+
+async function showAchievementDetailsModal(id) {
+  let item = null;
+
+  if (CONFIG.DATA_SOURCE === "API") {
+    // Backend Endpoint: GET /api/achievements/{id}
+    const res = await ApiClient.get(`/achievements/${id}`);
+    if (res.success && res.data) {
+      item = res.data;
+    }
+  }
+
+  if (!item) {
+    item = MockStore.getAchievementById(id);
+  }
+
+  if (!item) {
+    showToast('Achievement details not found', 'error');
+    return;
+  }
+
+  const modalBody = document.getElementById('viewModalContent');
+  if (modalBody) {
+    modalBody.innerHTML = `
+      <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryLabel)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
+      ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
+      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">View Supporting Certificate</a></p>` : ''}
+    `;
+    openModal('viewModal');
   }
 }
 
@@ -244,25 +348,4 @@ function formatDate(dateStr) {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function showAchievementDetailsModal(id) {
-  const item = MockStore.getAchievementById(id);
-  if (!item) return;
-
-  const modalBody = document.getElementById('viewModalContent');
-  if (modalBody) {
-    modalBody.innerHTML = `
-      <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryLabel)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
-      ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
-      ${item.journalName ? `<p style="margin-bottom: 0.5rem;"><strong>Journal/Publisher:</strong> ${escapeHtml(item.journalName)}</p>` : ''}
-      ${item.doi ? `<p style="margin-bottom: 0.5rem;"><strong>DOI:</strong> ${escapeHtml(item.doi)}</p>` : ''}
-      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">View Supporting Certificate</a></p>` : ''}
-    `;
-    openModal('viewModal');
-  }
 }

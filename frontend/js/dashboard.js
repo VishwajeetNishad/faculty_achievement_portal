@@ -1,22 +1,41 @@
 /**
- * Faculty Dashboard Logic — Dynamic Stat Calculation & Submission Rendering from MockStore
+ * Faculty Dashboard Controller — Real API / Fallback Mock Data Integration
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   initializeDashboard();
 });
 
-function initializeDashboard() {
-  const profile = MockStore.getFacultyProfile();
-  const achievements = MockStore.getAchievements().filter(a => a.userId === profile.id);
+async function initializeDashboard() {
+  let achievements = [];
+
+  if (CONFIG.DATA_SOURCE === "API") {
+    // Show loading state
+    const tableBody = document.getElementById('recentSubmissionsBody');
+    if (tableBody) {
+      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top: 0.5rem;">Loading real achievement data from server...</p></td></tr>`;
+    }
+
+    const res = await ApiClient.get(`/achievements/user/${CONFIG.DEV_USER_ID}`);
+    if (res.success && Array.isArray(res.data)) {
+      achievements = res.data;
+    } else {
+      showToast(res.message || 'Failed to load achievements from backend API', 'error');
+      // Fallback to MockStore if backend unreachable
+      achievements = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
+    }
+  } else {
+    achievements = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
+  }
 
   // Update Welcome Banner
+  const profile = MockStore.getFacultyProfile();
   const welcomeElem = document.getElementById('dashboardWelcome');
   if (welcomeElem) {
     welcomeElem.textContent = `Welcome back, ${profile.fullName}`;
   }
 
-  // Calculate Real Statistics from Dataset
+  // Calculate Real Statistics from API Dataset
   const totalCount = achievements.length;
   const pendingCount = achievements.filter(a => a.status === 'PENDING').length;
   const approvedCount = achievements.filter(a => a.status === 'APPROVED').length;
@@ -60,7 +79,7 @@ function initializeDashboard() {
       tr.innerHTML = `
         <td data-label="Title & Category">
           <div class="table-title-cell">${escapeHtml(item.title)}</div>
-          <div class="table-subtext">${escapeHtml(item.categoryLabel)} ${item.journalName ? '&bull; ' + escapeHtml(item.journalName) : ''}</div>
+          <div class="table-subtext">${escapeHtml(item.categoryName || 'Achievement')} ${item.journalName ? '&bull; ' + escapeHtml(item.journalName) : ''}</div>
         </td>
         <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
         <td data-label="Submission Date">${formatDate(item.achievementDate)}</td>
@@ -86,6 +105,40 @@ function initializeDashboard() {
   }
 }
 
+async function showAchievementDetailsModal(id) {
+  let item = null;
+
+  if (CONFIG.DATA_SOURCE === "API") {
+    const res = await ApiClient.get(`/achievements/${id}`);
+    if (res.success && res.data) {
+      item = res.data;
+    }
+  }
+
+  if (!item) {
+    item = MockStore.getAchievementById(id);
+  }
+
+  if (!item) {
+    showToast('Achievement details not found', 'error');
+    return;
+  }
+
+  const modalBody = document.getElementById('viewModalContent');
+  if (modalBody) {
+    modalBody.innerHTML = `
+      <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryLabel)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
+      ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
+      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">View Supporting Certificate</a></p>` : ''}
+    `;
+    openModal('viewModal');
+  }
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
@@ -95,25 +148,4 @@ function formatDate(dateStr) {
 function escapeHtml(str) {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function showAchievementDetailsModal(id) {
-  const item = MockStore.getAchievementById(id);
-  if (!item) return;
-
-  const modalBody = document.getElementById('viewModalContent');
-  if (modalBody) {
-    modalBody.innerHTML = `
-      <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryLabel)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
-      ${item.description ? `<p style="margin-bottom: 0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
-      ${item.journalName ? `<p style="margin-bottom: 0.5rem;"><strong>Journal/Publisher:</strong> ${escapeHtml(item.journalName)}</p>` : ''}
-      ${item.doi ? `<p style="margin-bottom: 0.5rem;"><strong>DOI:</strong> ${escapeHtml(item.doi)}</p>` : ''}
-      ${item.proofDocumentUrl ? `<p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="${escapeHtml(item.proofDocumentUrl)}" target="_blank" rel="noopener">View Supporting Certificate</a></p>` : ''}
-    `;
-    openModal('viewModal');
-  }
 }

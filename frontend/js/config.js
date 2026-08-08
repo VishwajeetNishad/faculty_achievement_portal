@@ -1,12 +1,12 @@
 /**
- * Faculty Achievement Portal — Global Configuration & Environment Tokens
- * Note: Backend integration flags disabled for Step 9 UI architecture setup.
+ * Faculty Achievement Portal — Global Environment Configuration & API Tokens
  */
 
 const CONFIG = {
   APP_NAME: "NIET Faculty Achievement Portal",
   INSTITUTION: "Noida Institute of Engineering and Technology",
   API_BASE_URL: "http://localhost:8080/api",
-  ENABLE_REAL_API: false, // Step 9: UI Only mode (No live fetch calls)
-  DEFAULT_ROLE: "FACULTY"
+  DATA_SOURCE: "API", // Switched from "MOCK" to "API" for live Spring Boot integration
+  DEV_USER_ID: 1,     // Seed Development User ID (User #1: System Administrator / Faculty)
+  DEV_DEPT_ID: 1      // Seed Development Department ID (Dept #1: Computer Science & Engineering)
 };
