@@ -43,6 +43,24 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    /**
+     * Helper method for security verification tests: generates an expired JWT token.
+     */
+    public String generateExpiredTokenForTesting(String email, Long userId, String role, Long departmentId) {
+        Date now = new Date();
+        Date pastExpiryDate = new Date(now.getTime() - 3600000); // 1 Hour in the past
+
+        return Jwts.builder()
+                .subject(email)
+                .claim("userId", userId)
+                .claim("role", role)
+                .claim("departmentId", departmentId)
+                .issuedAt(new Date(now.getTime() - 7200000))
+                .expiration(pastExpiryDate)
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
     public String getEmailFromToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(getSigningKey())

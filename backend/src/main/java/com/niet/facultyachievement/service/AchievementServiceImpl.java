@@ -12,6 +12,7 @@ import com.niet.facultyachievement.repository.AchievementCategoryRepository;
 import com.niet.facultyachievement.repository.AchievementRepository;
 import com.niet.facultyachievement.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +101,7 @@ public class AchievementServiceImpl implements AchievementService {
                 .orElseThrow(() -> new ResourceNotFoundException("Achievement not found with id: " + id));
 
         if (!achievement.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("User with id " + userId + " does not own achievement with id " + id);
+            throw new AccessDeniedException("User with id " + userId + " does not own achievement with id " + id);
         }
 
         AchievementCategory category = categoryRepository.findById(request.getCategoryId())
@@ -124,7 +125,7 @@ public class AchievementServiceImpl implements AchievementService {
                 .orElseThrow(() -> new ResourceNotFoundException("Achievement not found with id: " + id));
 
         if (!achievement.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("User with id " + userId + " does not own achievement with id " + id);
+            throw new AccessDeniedException("User with id " + userId + " does not own achievement with id " + id);
         }
 
         achievementRepository.delete(achievement);

@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -129,5 +130,13 @@ class AchievementServiceTest {
         achievementService.deleteAchievement(100L, 1L);
 
         verify(achievementRepository, times(1)).delete(sampleAchievement);
+    }
+
+    @Test
+    void deleteAchievement_OwnershipMismatch_ThrowsAccessDeniedException() {
+        when(achievementRepository.findById(100L)).thenReturn(Optional.of(sampleAchievement));
+
+        assertThrows(AccessDeniedException.class, () ->
+                achievementService.deleteAchievement(100L, 999L));
     }
 }
