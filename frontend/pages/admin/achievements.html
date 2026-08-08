@@ -18,7 +18,7 @@
 
   <div class="app-wrapper">
 
-    <!-- Admin Sidebar -->
+    <!-- Admin Sidebar Drawer -->
     <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
       <div class="sidebar-header">
         <span class="niet-brand-badge" style="background-color: #DC2626; color: #FFF;">ADMIN</span>
@@ -33,7 +33,7 @@
         <ul class="nav-list">
           <li class="nav-item">
             <a href="dashboard.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 001 1m-6 0h6"/></svg>
               Admin Dashboard
             </a>
           </li>
@@ -77,7 +77,7 @@
 
           <div class="card">
             <div class="card-header">
-              <h2 class="card-title">Pending Submissions for Approval</h2>
+              <h2 class="card-title">Pending Submissions for Review</h2>
             </div>
             <div class="card-body" style="padding: 0;">
               <div class="table-responsive">
@@ -87,6 +87,7 @@
                       <th>Faculty Member</th>
                       <th>Title & Category</th>
                       <th>Submitted Date</th>
+                      <th>Status</th>
                       <th>Verification Action</th>
                     </tr>
                   </thead>
@@ -101,10 +102,12 @@
                         <div class="table-subtext">Research Publication</div>
                       </td>
                       <td data-label="Submitted Date">10 May 2025</td>
+                      <td data-label="Status">
+                        <span class="badge badge-pending"><span class="badge-symbol">●</span> PENDING</span>
+                      </td>
                       <td data-label="Verification Action">
                         <div class="action-btn-group">
-                          <button class="btn btn-secondary btn-sm" onclick="alert('Mock Verification Action: Approved!');">Approve</button>
-                          <button class="btn btn-danger btn-sm" onclick="alert('Mock Verification Action: Rejected!');">Reject</button>
+                          <button class="btn btn-primary btn-sm" onclick="openModal('reviewModal')">Review Record</button>
                         </div>
                       </td>
                     </tr>
@@ -119,6 +122,31 @@
 
     </main>
 
+  </div>
+
+  <!-- Accessible Review Modal Dialog -->
+  <div class="modal-backdrop" id="reviewModal" aria-hidden="true" role="dialog" aria-labelledby="reviewModalTitle">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="reviewModalTitle">Verification Review</h3>
+        <button class="modal-close-btn" onclick="closeModal('reviewModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Faculty:</strong> Dr. Sharma (EMP001 - CSE)</p>
+        <p><strong>Title:</strong> Deep Learning in Healthcare Systems</p>
+        <p><strong>Publisher:</strong> IEEE Transactions</p>
+        
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label" for="verifyComment">Verification Comment / Feedback</label>
+          <textarea id="verifyComment" class="form-control" placeholder="Optional approval or rejection remarks..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('reviewModal')">Cancel</button>
+        <button class="btn btn-danger" onclick="alert('UI Preview: Submission Rejected'); closeModal('reviewModal');">Reject Record</button>
+        <button class="btn btn-success" onclick="alert('UI Preview: Submission Approved'); closeModal('reviewModal');">Approve Record</button>
+      </div>
+    </div>
   </div>
 
   <script src="../../js/config.js"></script>

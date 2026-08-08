@@ -90,6 +90,9 @@
             <div class="card-body">
               <form onsubmit="event.preventDefault(); alert('Achievement submission UI preview recorded!'); window.location.href='achievements.html';">
                 
+                <!-- Section 1: Basic Information -->
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-bottom: 1rem;">Section 1: Basic Information</h3>
+                
                 <div class="form-grid">
                   
                   <div class="form-group">
@@ -133,21 +136,14 @@
 
                   <div class="form-group full-width">
                     <label class="form-label" for="description">
-                      Description & Details
+                      Description & Impact Summary
                     </label>
-                    <textarea id="description" class="form-control" placeholder="Provide a summary of the achievement, contributors, or institutional impact..."></textarea>
-                  </div>
-
-                  <div class="form-group full-width">
-                    <label class="form-label" for="proofUrl">
-                      Proof Document URL (Certificate / Paper Link)
-                    </label>
-                    <input type="url" id="proofUrl" class="form-control" placeholder="https://example.com/certificates/proof.pdf">
+                    <textarea id="description" class="form-control" placeholder="Provide a brief summary of the research methodology, scope, or institutional impact..."></textarea>
                   </div>
 
                 </div>
 
-                <!-- Dynamic Fieldsets for Category Details -->
+                <!-- Section 2: Category Specific Extension Fieldsets -->
                 
                 <!-- Publication Fieldset -->
                 <div class="fieldset-section" id="section-publication" style="display: none;">
@@ -177,6 +173,14 @@
                       <label class="form-label">DOI / URL</label>
                       <input type="text" class="form-control" placeholder="10.1109/TMI.2025.12345">
                     </div>
+                    <div class="form-group">
+                      <label class="form-label">ISBN / ISSN</label>
+                      <input type="text" class="form-control" placeholder="ISSN 0278-0062">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Publisher</label>
+                      <input type="text" class="form-control" placeholder="e.g. IEEE / Springer">
+                    </div>
                   </div>
                 </div>
 
@@ -192,6 +196,14 @@
                       <input type="text" class="form-control" placeholder="e.g. 202511012345">
                     </div>
                     <div class="form-group">
+                      <label class="form-label">Filing Date</label>
+                      <input type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Grant Date</label>
+                      <input type="date" class="form-control">
+                    </div>
+                    <div class="form-group">
                       <label class="form-label">Patent Status</label>
                       <select class="form-control">
                         <option value="FILED">Filed</option>
@@ -202,10 +214,54 @@
                   </div>
                 </div>
 
+                <!-- Research Grant Fieldset -->
+                <div class="fieldset-section" id="section-research_grant" style="display: none;">
+                  <h3 class="fieldset-title">
+                    <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Research Grant Specific Details
+                  </h3>
+                  <div class="form-grid">
+                    <div class="form-group">
+                      <label class="form-label">Funding Agency</label>
+                      <input type="text" class="form-control" placeholder="e.g. DST / AICTE / SERB">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Grant Amount (INR)</label>
+                      <input type="number" class="form-control" placeholder="e.g. 500000">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label">Grant Status</label>
+                      <select class="form-control">
+                        <option value="PROPOSED">Proposed</option>
+                        <option value="SANCTIONED">Sanctioned</option>
+                        <option value="COMPLETED">Completed</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Section 3: Supporting Document UI -->
+                <h3 style="font-size: 1rem; font-weight: 600; color: var(--primary-color); margin-top: 1.5rem; margin-bottom: 1rem;">Section 3: Supporting Proof Document</h3>
+                
+                <div class="form-group full-width">
+                  <label class="form-label" for="proofUrl">Proof Document Certificate / Web Link</label>
+                  <input type="url" id="proofUrl" class="form-control" placeholder="https://example.com/certificates/proof.pdf">
+                </div>
+
+                <div class="form-group full-width">
+                  <label class="form-label">Upload Proof PDF Document (UI Placeholder)</label>
+                  <div style="border: 2px dashed var(--border-color); padding: 2rem; border-radius: var(--radius-lg); text-align: center; background-color: var(--surface-hover);">
+                    <svg style="width: 40px; height: 40px; margin: 0 auto 0.5rem; color: var(--text-tertiary);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <p style="font-size: 0.875rem; color: var(--text-primary); font-weight: 500;">Click to select or drag PDF file here</p>
+                    <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">Supports PDF, PNG, JPG (Max 5MB)</p>
+                    <input type="file" style="margin-top: 1rem;" accept=".pdf,.png,.jpg">
+                  </div>
+                </div>
+
                 <!-- Form Action Buttons -->
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                   <a href="achievements.html" class="btn btn-outline">Cancel</a>
-                  <button type="submit" class="btn btn-primary btn-lg">Submit Achievement</button>
+                  <button type="submit" class="btn btn-primary btn-lg">Submit Achievement Record</button>
                 </div>
 
               </form>

@@ -1,5 +1,5 @@
 /* ====================================================================
-   Form Controls, Inputs, Fieldsets & Category Extensions
+   Form Controls, Inputs, Password Toggles & Dynamic Fieldsets
    ==================================================================== */
 
 .form-grid {
@@ -13,6 +13,7 @@
   flex-direction: column;
   gap: 0.375rem;
   margin-bottom: 1.25rem;
+  position: relative;
 }
 
 .form-group.full-width {
@@ -30,6 +31,12 @@
   margin-left: 0.2rem;
 }
 
+.form-control-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .form-control {
   width: 100%;
   padding: 0.625rem 0.875rem;
@@ -45,6 +52,32 @@
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.12);
   outline: none;
+}
+
+.form-control.is-invalid {
+  border-color: var(--status-rejected-border);
+  background-color: var(--status-rejected-bg);
+}
+
+.form-control.is-valid {
+  border-color: var(--status-approved-border);
+}
+
+/* Password Show/Hide Toggle Button */
+.password-toggle-btn {
+  position: absolute;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.password-toggle-btn:hover {
+  color: var(--text-primary);
 }
 
 textarea.form-control {
@@ -74,6 +107,7 @@ select.form-control {
   padding: 1.5rem;
   margin-top: 1.5rem;
   background-color: var(--surface-hover);
+  animation: fadeIn 0.3s ease;
 }
 
 .fieldset-title {
@@ -84,4 +118,9 @@ select.form-control {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
