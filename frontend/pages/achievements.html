@@ -123,6 +123,9 @@
                     <option value="2024-2025">2024-2025</option>
                   </select>
                 </div>
+                <div>
+                  <button type="button" id="clearFiltersBtn" class="btn btn-outline" style="width: 100%;">Clear Filters</button>
+                </div>
               </div>
             </div>
           </div>
@@ -142,47 +145,8 @@
                       <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td data-label="Title & Details">
-                        <div class="table-title-cell">Deep Learning in Healthcare Systems</div>
-                        <div class="table-subtext">IEEE Transactions on Medical Imaging</div>
-                      </td>
-                      <td data-label="Category">Research Publication</td>
-                      <td data-label="Academic Year">2025-2026</td>
-                      <td data-label="Date">10 May 2025</td>
-                      <td data-label="Status">
-                        <span class="badge badge-pending">
-                          <span class="badge-symbol">●</span> PENDING
-                        </span>
-                      </td>
-                      <td data-label="Actions">
-                        <div class="action-btn-group">
-                          <button class="btn btn-outline btn-sm" onclick="openModal('viewModal')">View</button>
-                          <a href="add-achievement.html" class="btn btn-ghost btn-sm">Edit</a>
-                          <button class="btn btn-danger btn-sm" onclick="openModal('deleteModal')">Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td data-label="Title & Details">
-                        <div class="table-title-cell">AI in Medical Image Segmentation</div>
-                        <div class="table-subtext">Springer Nature Journal</div>
-                      </td>
-                      <td data-label="Category">Research Publication</td>
-                      <td data-label="Academic Year">2025-2026</td>
-                      <td data-label="Date">15 Jun 2025</td>
-                      <td data-label="Status">
-                        <span class="badge badge-approved">
-                          <span class="badge-symbol">✓</span> APPROVED
-                        </span>
-                      </td>
-                      <td data-label="Actions">
-                        <div class="action-btn-group">
-                          <button class="btn btn-outline btn-sm" onclick="openModal('viewModal')">View Details</button>
-                        </div>
-                      </td>
-                    </tr>
+                  <tbody id="achievementsTableBody">
+                    <!-- Populated dynamically by achievements.js -->
                   </tbody>
                 </table>
               </div>
@@ -202,20 +166,15 @@
 
   </div>
 
-  <!-- Accessible UI View Details Modal Dialog -->
+  <!-- Dynamic View Modal Dialog -->
   <div class="modal-backdrop" id="viewModal" aria-hidden="true" role="dialog" aria-labelledby="viewModalTitle">
     <div class="modal-container">
       <div class="modal-header">
         <h3 class="modal-title" id="viewModalTitle">Achievement Details</h3>
         <button class="modal-close-btn" onclick="closeModal('viewModal')" aria-label="Close modal">&times;</button>
       </div>
-      <div class="modal-body">
-        <p><strong>Title:</strong> Deep Learning in Healthcare Systems</p>
-        <p><strong>Category:</strong> Research Publication</p>
-        <p><strong>Publisher:</strong> IEEE Transactions</p>
-        <p><strong>Academic Year:</strong> 2025-2026</p>
-        <p><strong>Status:</strong> <span class="badge badge-pending"><span class="badge-symbol">●</span> PENDING</span></p>
-        <p style="margin-top: 0.75rem;"><strong>Proof Link:</strong> <a href="https://example.com/cert.pdf" target="_blank" rel="noopener">https://example.com/cert.pdf</a></p>
+      <div class="modal-body" id="viewModalContent">
+        <!-- Dynamic content -->
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('viewModal')">Close</button>
@@ -235,13 +194,16 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('deleteModal')">Cancel</button>
-        <button class="btn btn-danger" onclick="alert('UI Preview: Record deletion confirmed!'); closeModal('deleteModal');">Confirm Delete</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Confirm Delete</button>
       </div>
     </div>
   </div>
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
+  <script src="../js/mockData.js"></script>
+  <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>
+  <script src="../js/achievements.js"></script>
 </body>
 </html>

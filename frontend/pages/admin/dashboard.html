@@ -86,13 +86,13 @@
         <div class="content-container">
 
           <!-- Institutional Stats -->
-          <div class="stats-grid">
+          <div class="stats-grid" id="adminStatsContainer">
             <div class="stat-card">
               <div class="stat-icon-wrapper primary">
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value">142</span>
+                <span class="stat-value" id="adminTotalFaculty">0</span>
                 <span class="stat-label">Total Faculty</span>
               </div>
             </div>
@@ -102,7 +102,7 @@
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value">18</span>
+                <span class="stat-value" id="adminPendingCount">0</span>
                 <span class="stat-label">Pending Verification</span>
               </div>
             </div>
@@ -112,7 +112,7 @@
                 <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               </div>
               <div class="stat-details">
-                <span class="stat-value">385</span>
+                <span class="stat-value" id="adminVerifiedCount">0</span>
                 <span class="stat-label">Verified Achievements</span>
               </div>
             </div>
@@ -122,7 +122,7 @@
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">Pending Verification Queue</h2>
-              <a href="achievements.html" class="btn btn-outline btn-sm">View All Queue</a>
+              <a href="achievements.html" class="btn btn-outline btn-sm">View Full Queue</a>
             </div>
 
             <div class="card-body" style="padding: 0;">
@@ -137,24 +137,8 @@
                       <th>Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    <tr>
-                      <td data-label="Faculty & Dept">
-                        <div class="table-title-cell">Dr. Sharma</div>
-                        <div class="table-subtext">CSE Department</div>
-                      </td>
-                      <td data-label="Title & Category">
-                        <div class="table-title-cell">Deep Learning in Healthcare Systems</div>
-                        <div class="table-subtext">Research Publication</div>
-                      </td>
-                      <td data-label="Submitted Date">10 May 2025</td>
-                      <td data-label="Status">
-                        <span class="badge badge-pending"><span class="badge-dot"></span> PENDING</span>
-                      </td>
-                      <td data-label="Action">
-                        <a href="achievements.html" class="btn btn-primary btn-sm">Review & Verify</a>
-                      </td>
-                    </tr>
+                  <tbody id="adminQueueTableBody">
+                    <!-- Dynamic rendering by admin.js -->
                   </tbody>
                 </table>
               </div>
@@ -168,7 +152,32 @@
 
   </div>
 
+  <!-- Review Modal Dialog -->
+  <div class="modal-backdrop" id="reviewModal" aria-hidden="true" role="dialog" aria-labelledby="reviewModalTitle">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="reviewModalTitle">Verification Review</h3>
+        <button class="modal-close-btn" onclick="closeModal('reviewModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="reviewModalContent"></div>
+        <div class="form-group" style="margin-top: 1rem;">
+          <label class="form-label" for="verifyComment">Verification Remarks / Feedback</label>
+          <textarea id="verifyComment" class="form-control" placeholder="Optional review comments..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('reviewModal')">Cancel</button>
+        <button class="btn btn-danger" id="btnRejectRecord">Reject Record</button>
+        <button class="btn btn-success" id="btnApproveRecord">Approve Record</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="../../js/config.js"></script>
+  <script src="../../js/mockData.js"></script>
   <script src="../../js/common.js"></script>
+  <script src="../../js/admin.js"></script>
 </body>
 </html>

@@ -24,12 +24,7 @@
 
     <div class="card-body">
       
-      <!-- Alert Message Placeholder -->
-      <div id="loginAlert" class="alert alert-info" style="display: none;">
-        <span>Please enter your faculty or admin credentials to sign in.</span>
-      </div>
-
-      <form onsubmit="event.preventDefault(); window.location.href='dashboard.html';">
+      <form id="loginForm">
         
         <div class="form-group">
           <label class="form-label" for="loginEmail">
@@ -71,6 +66,9 @@
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
+  <script src="../js/mockData.js"></script>
+  <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>
+  <script src="../js/login.js"></script>
 </body>
 </html>
