@@ -77,9 +77,30 @@
 
           <div class="card" style="margin-bottom: 1.25rem;">
             <div class="card-body" style="padding: 1rem 1.5rem;">
-              <div style="max-width: 320px;">
-                <label class="form-label" for="searchFaculty">Search Faculty Roster</label>
-                <input type="text" id="searchFaculty" class="form-control" placeholder="Search by name, EMP ID or email...">
+              <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+                <div style="flex: 1; min-width: 200px;">
+                  <label class="form-label" for="searchFaculty">Search Faculty</label>
+                  <input type="text" id="searchFaculty" class="form-control" placeholder="Search by name, EMP ID or email...">
+                </div>
+                <div style="min-width: 160px;">
+                  <label class="form-label" for="departmentFilter">Department</label>
+                  <select id="departmentFilter" class="form-control">
+                    <option value="">All Departments</option>
+                  </select>
+                </div>
+                <div style="min-width: 130px;">
+                  <label class="form-label" for="statusFilter">Status</label>
+                  <select id="statusFilter" class="form-control">
+                    <option value="">All Status</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                    <option value="SUSPENDED">Suspended</option>
+                  </select>
+                </div>
+              </div>
+              <div style="display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.875rem; color: #94A3B8;">
+                <span>Total: <strong id="totalFacultyCount" style="color: #E2E8F0;">0</strong></span>
+                <span>Active: <strong id="activeFacultyCount" style="color: #4ADE80;">0</strong></span>
               </div>
             </div>
           </div>
@@ -96,7 +117,7 @@
                       <th>Employee ID & Name</th>
                       <th>Email</th>
                       <th>Department</th>
-                      <th>Role</th>
+                      <th>Designation</th>
                       <th>Status</th>
                     </tr>
                   </thead>
@@ -115,9 +136,8 @@
 
   </div>
 
-  <!-- Scripts -->
   <script src="../../js/config.js"></script>
-  <script src="../../js/mockData.js"></script>
+  <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
   <script src="../../js/admin.js"></script>
 </body>

@@ -187,41 +187,125 @@ async function openProtectedProofPdf(id) {
   }
 }
 
-function initializeFacultyRoster() {
+let allFacultyData = [];
+let allDepartments = [];
+
+async function initializeFacultyRoster() {
   const tableBody = document.getElementById('facultyRosterTableBody');
   const searchInput = document.getElementById('searchFaculty');
+  const deptFilter = document.getElementById('departmentFilter');
+  const statusFilter = document.getElementById('statusFilter');
 
   if (!tableBody) return;
 
-  const renderRoster = () => {
-    let roster = MockStore.getFacultyRoster();
-    const keyword = (searchInput?.value || '').toLowerCase().trim();
+  // Show loading state
+  tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading faculty roster from database...</p></td></tr>`;
 
-    if (keyword) {
-      roster = roster.filter(f => f.name.toLowerCase().includes(keyword) || f.employeeId.toLowerCase().includes(keyword) || f.email.toLowerCase().includes(keyword));
+  // Load departments for filter dropdown
+  try {
+    const deptRes = await ApiClient.get('/departments');
+    if (deptRes.success && Array.isArray(deptRes.data)) {
+      allDepartments = deptRes.data;
+      if (deptFilter) {
+        deptFilter.innerHTML = '<option value="">All Departments</option>';
+        allDepartments.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.name;
+          opt.textContent = d.name;
+          deptFilter.appendChild(opt);
+        });
+      }
     }
+  } catch (e) {
+    console.error('Error loading departments:', e);
+  }
 
-    tableBody.innerHTML = '';
-    roster.forEach(f => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td data-label="Employee ID & Name">
-          <div class="table-title-cell">${escapeHtml(f.name)}</div>
-          <div class="table-subtext">${escapeHtml(f.employeeId)}</div>
-        </td>
-        <td data-label="Email">${escapeHtml(f.email)}</td>
-        <td data-label="Department">${escapeHtml(f.department)}</td>
-        <td data-label="Role">${escapeHtml(f.designation)}</td>
-        <td data-label="Status">
-          <span class="badge badge-approved"><span class="badge-symbol">✓</span> ${f.status}</span>
-        </td>
-      `;
-      tableBody.appendChild(tr);
-    });
-  };
+  // Load faculty roster from real API
+  try {
+    const res = await ApiClient.get('/users');
+    if (res.success && Array.isArray(res.data)) {
+      allFacultyData = res.data;
+      renderFacultyTable(allFacultyData);
 
-  renderRoster();
-  if (searchInput) searchInput.addEventListener('input', renderRoster);
+      // Update stats
+      const totalEl = document.getElementById('totalFacultyCount');
+      const activeEl = document.getElementById('activeFacultyCount');
+      if (totalEl) totalEl.textContent = allFacultyData.length;
+      if (activeEl) activeEl.textContent = allFacultyData.filter(f => f.status === 'ACTIVE').length;
+    } else if (res.status === 403) {
+      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Access Denied</div><p class="empty-state-text">You do not have admin privileges to view the faculty roster.</p></td></tr>`;
+      showToast('Admin privileges required to view faculty roster.', 'error');
+    } else {
+      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Error</div><p class="empty-state-text">${escapeHtml(res.message || 'Failed to load faculty data')}</p></td></tr>`;
+    }
+  } catch (error) {
+    console.error('Error loading faculty:', error);
+    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Connection Error</div><p class="empty-state-text">Unable to connect to the backend server.</p></td></tr>`;
+  }
+
+  // Attach search and filter event listeners
+  if (searchInput) searchInput.addEventListener('input', filterAndRenderFaculty);
+  if (deptFilter) deptFilter.addEventListener('change', filterAndRenderFaculty);
+  if (statusFilter) statusFilter.addEventListener('change', filterAndRenderFaculty);
+}
+
+function filterAndRenderFaculty() {
+  const keyword = (document.getElementById('searchFaculty')?.value || '').toLowerCase().trim();
+  const deptValue = document.getElementById('departmentFilter')?.value || '';
+  const statusValue = document.getElementById('statusFilter')?.value || '';
+
+  let filtered = allFacultyData;
+
+  if (keyword) {
+    filtered = filtered.filter(f =>
+      (f.fullName || '').toLowerCase().includes(keyword) ||
+      (f.employeeId || '').toLowerCase().includes(keyword) ||
+      (f.email || '').toLowerCase().includes(keyword)
+    );
+  }
+
+  if (deptValue) {
+    filtered = filtered.filter(f => f.departmentName === deptValue);
+  }
+
+  if (statusValue) {
+    filtered = filtered.filter(f => f.status === statusValue);
+  }
+
+  renderFacultyTable(filtered);
+}
+
+function renderFacultyTable(roster) {
+  const tableBody = document.getElementById('facultyRosterTableBody');
+  if (!tableBody) return;
+
+  tableBody.innerHTML = '';
+
+  if (roster.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">No Faculty Found</div><p class="empty-state-text">No faculty members match your search criteria.</p></td></tr>`;
+    return;
+  }
+
+  roster.forEach(f => {
+    const statusBadge = f.status === 'ACTIVE' ? 'badge-approved' :
+                        f.status === 'INACTIVE' ? 'badge-pending' : 'badge-rejected';
+    const statusSymbol = f.status === 'ACTIVE' ? '✓' : f.status === 'INACTIVE' ? '○' : '✕';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="Employee ID & Name">
+        <div class="table-title-cell">${escapeHtml(f.fullName)}</div>
+        <div class="table-subtext">${escapeHtml(f.employeeId)}</div>
+      </td>
+      <td data-label="Email">${escapeHtml(f.email)}</td>
+      <td data-label="Department">${escapeHtml(f.departmentName || '')}</td>
+      <td data-label="Designation">${escapeHtml(f.designation || '')}</td>
+      <td data-label="Status">
+        <span class="badge ${statusBadge}"><span class="badge-symbol">${statusSymbol}</span> ${f.status}</span>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
 }
 
 function formatDate(dateStr) {

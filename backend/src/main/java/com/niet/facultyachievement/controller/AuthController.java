@@ -2,7 +2,7 @@ package com.niet.facultyachievement.controller;
 
 import com.niet.facultyachievement.dto.AuthResponse;
 import com.niet.facultyachievement.dto.LoginRequest;
-import com.niet.facultyachievement.dto.UserSummaryResponse;
+import com.niet.facultyachievement.dto.UserResponse;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.repository.UserRepository;
 import com.niet.facultyachievement.security.JwtTokenProvider;
@@ -59,7 +59,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<UserSummaryResponse> getCurrentUser(Authentication authentication) {
+    public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return ResponseEntity.status(401).build();
         }
@@ -68,18 +68,7 @@ public class AuthController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
-        UserSummaryResponse response = UserSummaryResponse.builder()
-                .id(user.getId())
-                .employeeId(user.getEmployeeId())
-                .fullName(user.getFullName())
-                .email(user.getEmail())
-                .departmentCode(user.getDepartment() != null ? user.getDepartment().getCode() : null)
-                .departmentName(user.getDepartment() != null ? user.getDepartment().getName() : null)
-                .designation(user.getDesignation())
-                .role(user.getRole() != null ? user.getRole().getName() : "FACULTY")
-                .build();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(UserResponse.fromEntity(user));
     }
 
     @PostMapping("/logout")
