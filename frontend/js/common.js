@@ -1,5 +1,5 @@
 /**
- * Faculty Achievement Portal — Reusable UI Components, Toast Engine, and Modal Controllers
+ * Faculty Achievement Portal — Reusable UI Components, Toast Engine, and Authentication Session Helpers
  */
 
 // Toast Notification System
@@ -58,6 +58,21 @@ function closeModal(modalId) {
 
 // DOM Ready Event Attachments
 document.addEventListener('DOMContentLoaded', () => {
+
+  // Global Sign Out Listener
+  const signOutBtn = document.getElementById('signOutBtn') || document.querySelector('a[href*="login.html"]');
+  if (signOutBtn) {
+    signOutBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      await ApiClient.post('/auth/logout', {});
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('currentUser');
+      showToast('You have been signed out.', 'info');
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 500);
+    });
+  }
 
   // Mobile Sidebar Drawer
   const mobileToggleBtn = document.getElementById('mobileToggleBtn');

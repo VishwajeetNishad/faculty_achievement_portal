@@ -1,13 +1,12 @@
 /**
  * Achievements Page & Add-Achievement Form Logic
- * Integrated with Spring Boot REST API endpoints:
- * - GET /api/achievements/user/{userId}
+ * Connected to Authenticated Spring Boot Security Endpoints:
+ * - GET /api/achievements/me
  * - GET /api/achievements/{id}
  * - GET /api/achievements/status/{status}
- * - GET /api/achievements/department/{departmentId}
- * - POST /api/achievements?userId=1
- * - PUT /api/achievements/{id}?userId=1
- * - DELETE /api/achievements/{id}?userId=1
+ * - POST /api/achievements
+ * - PUT /api/achievements/{id}
+ * - DELETE /api/achievements/{id}
  */
 
 let pendingDeleteId = null;
@@ -32,10 +31,8 @@ function initializeAchievementsPage() {
   const yearFilter = document.getElementById('filterYear');
   const clearBtn = document.getElementById('clearFiltersBtn');
 
-  // Initial Table Render
   renderAchievementsTable();
 
-  // Attach filter change listeners
   if (searchInput) searchInput.addEventListener('input', renderAchievementsTable);
   if (categoryFilter) categoryFilter.addEventListener('change', renderAchievementsTable);
   if (statusFilter) statusFilter.addEventListener('change', renderAchievementsTable);
@@ -52,7 +49,7 @@ function initializeAchievementsPage() {
     });
   }
 
-  // Confirm Delete Modal Action Listener (Backend API Call)
+  // Delete Action Listener (Backend API Call with JWT Authorization)
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   if (confirmDeleteBtn) {
     confirmDeleteBtn.addEventListener('click', async () => {
@@ -61,22 +58,15 @@ function initializeAchievementsPage() {
       confirmDeleteBtn.disabled = true;
       confirmDeleteBtn.textContent = 'Deleting...';
 
-      if (CONFIG.DATA_SOURCE === "API") {
-        const res = await ApiClient.delete(`/achievements/${pendingDeleteId}?userId=${CONFIG.DEV_USER_ID}`);
-        if (res.success) {
-          showToast('Achievement deleted successfully from backend database.', 'success');
-          closeModal('deleteModal');
-          pendingDeleteId = null;
-          await renderAchievementsTable();
-        } else {
-          showToast(res.message || 'Failed to delete achievement', 'error');
-        }
-      } else {
-        MockStore.deleteAchievement(pendingDeleteId);
-        showToast('Demo achievement deleted.', 'success');
+      // Backend Endpoint: DELETE /api/achievements/{id}
+      const res = await ApiClient.delete(`/achievements/${pendingDeleteId}`);
+      if (res.success) {
+        showToast('Achievement deleted successfully from backend database.', 'success');
         closeModal('deleteModal');
         pendingDeleteId = null;
-        renderAchievementsTable();
+        await renderAchievementsTable();
+      } else {
+        showToast(res.message || 'Failed to delete achievement', 'error');
       }
 
       confirmDeleteBtn.disabled = false;
@@ -94,34 +84,27 @@ async function renderAchievementsTable() {
   const selectedYear = document.getElementById('filterYear')?.value;
   const keyword = (document.getElementById('searchKeyword')?.value || '').toLowerCase().trim();
 
+  tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading records from live API...</p></td></tr>`;
+
   let list = [];
+  let res;
 
-  if (CONFIG.DATA_SOURCE === "API") {
-    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading records from live API...</p></td></tr>`;
-
-    let res;
-    if (selectedStatus) {
-      // Backend Endpoint: GET /api/achievements/status/{status}
-      res = await ApiClient.get(`/achievements/status/${selectedStatus}`);
-    } else {
-      // Backend Endpoint: GET /api/achievements/user/{userId}
-      res = await ApiClient.get(`/achievements/user/${CONFIG.DEV_USER_ID}`);
-    }
-
-    if (res.success && Array.isArray(res.data)) {
-      list = res.data;
-    } else {
-      showToast(res.message || 'Error fetching achievements from API', 'error');
-      list = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
-    }
+  if (selectedStatus) {
+    // Backend Endpoint: GET /api/achievements/status/{status}
+    res = await ApiClient.get(`/achievements/status/${selectedStatus}`);
   } else {
-    list = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
-    if (selectedStatus) {
-      list = list.filter(a => a.status === selectedStatus);
-    }
+    // Authenticated User Endpoint: GET /api/achievements/me
+    res = await ApiClient.get('/achievements/me');
   }
 
-  // Client-side Category & Keyword Filtering
+  if (res.success && Array.isArray(res.data)) {
+    list = res.data;
+  } else {
+    showToast(res.message || 'Error fetching achievements from API', 'error');
+    list = [];
+  }
+
+  // Client-side Category, Year & Keyword Filtering
   if (selectedCat) {
     list = list.filter(a => (a.categoryCode === selectedCat) || (a.category === selectedCat));
   }
@@ -145,7 +128,7 @@ async function renderAchievementsTable() {
       <tr>
         <td colspan="6" class="empty-state">
           <div class="empty-state-title">No matching achievements found</div>
-          <p class="empty-state-text">Try adjusting your search criteria or clearing filters.</p>
+          <p class="empty-state-text">Try adjusting your search criteria or submitting a new record.</p>
         </td>
       </tr>
     `;
@@ -155,7 +138,7 @@ async function renderAchievementsTable() {
   list.forEach(item => {
     const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
     const badgeSymbol = item.status === 'APPROVED' ? '✓' : (item.status === 'REJECTED' ? '!' : '●');
-    const categoryDisplayName = item.categoryName || item.categoryLabel || item.categoryCode || 'Achievement';
+    const categoryDisplayName = item.categoryName || item.categoryCode || 'Achievement';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -181,7 +164,6 @@ async function renderAchievementsTable() {
     tableBody.appendChild(tr);
   });
 
-  // Attach dynamic row listeners
   tableBody.querySelectorAll('.view-item-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       showAchievementDetailsModal(btn.getAttribute('data-id'));
@@ -239,8 +221,6 @@ function initializeAddAchievementForm() {
         return;
       }
 
-      // Map Frontend Category string to Backend AchievementCategory ID
-      // Category #1: PUBLICATION, Category #2: PATENT, Category #3: RESEARCH_GRANT, Category #4: WORKSHOP_FDP, Category #5: AWARD
       const categoryIdMap = {
         publication: 1,
         patent: 2,
@@ -251,7 +231,6 @@ function initializeAddAchievementForm() {
 
       const categoryId = categoryIdMap[categoryVal] || 1;
 
-      // Construct Backend AchievementCreateRequest DTO payload
       const requestPayload = {
         categoryId: categoryId,
         title: title,
@@ -267,68 +246,40 @@ function initializeAddAchievementForm() {
         submitBtn.textContent = 'Submitting to Server...';
       }
 
-      if (CONFIG.DATA_SOURCE === "API") {
-        // Backend Endpoint: POST /api/achievements?userId=1
-        const res = await ApiClient.post(`/achievements?userId=${CONFIG.DEV_USER_ID}`, requestPayload);
+      // Backend Endpoint: POST /api/achievements (User inferred from JWT token context)
+      const res = await ApiClient.post('/achievements', requestPayload);
 
-        if (res.success) {
-          showToast('Achievement created successfully in backend MySQL database!', 'success');
-          form.reset();
-          setTimeout(() => {
-            window.location.href = 'achievements.html';
-          }, 1200);
-        } else {
-          showToast(res.message || 'Failed to create achievement record.', 'error');
-          if (submitBtn) {
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit Achievement Record';
-          }
-        }
-      } else {
-        MockStore.addAchievement({
-          category: categoryVal.toUpperCase(),
-          categoryLabel: categoryVal,
-          title: title,
-          achievementDate: date,
-          academicYear: academicYear,
-          description: description,
-          proofDocumentUrl: proofUrl
-        });
-        showToast('Demo submission completed.', 'success');
+      if (res.success) {
+        showToast('Achievement created successfully in backend MySQL database!', 'success');
         form.reset();
         setTimeout(() => {
           window.location.href = 'achievements.html';
         }, 1000);
+      } else {
+        showToast(res.message || 'Failed to create achievement record.', 'error');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit Achievement Record';
+        }
       }
     });
   }
 }
 
 async function showAchievementDetailsModal(id) {
-  let item = null;
-
-  if (CONFIG.DATA_SOURCE === "API") {
-    // Backend Endpoint: GET /api/achievements/{id}
-    const res = await ApiClient.get(`/achievements/${id}`);
-    if (res.success && res.data) {
-      item = res.data;
-    }
-  }
-
-  if (!item) {
-    item = MockStore.getAchievementById(id);
-  }
-
-  if (!item) {
-    showToast('Achievement details not found', 'error');
+  // Backend Endpoint: GET /api/achievements/{id}
+  const res = await ApiClient.get(`/achievements/${id}`);
+  if (!res.success || !res.data) {
+    showToast(res.message || 'Achievement details not found or access denied', 'error');
     return;
   }
 
+  const item = res.data;
   const modalBody = document.getElementById('viewModalContent');
   if (modalBody) {
     modalBody.innerHTML = `
       <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryLabel)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryCode)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>

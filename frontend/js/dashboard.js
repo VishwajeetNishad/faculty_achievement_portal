@@ -1,5 +1,5 @@
 /**
- * Faculty Dashboard Controller — Real API / Fallback Mock Data Integration
+ * Faculty Dashboard Controller — Integrated with Authenticated GET /api/achievements/me
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,33 +9,37 @@ document.addEventListener('DOMContentLoaded', () => {
 async function initializeDashboard() {
   let achievements = [];
 
-  if (CONFIG.DATA_SOURCE === "API") {
-    // Show loading state
-    const tableBody = document.getElementById('recentSubmissionsBody');
-    if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top: 0.5rem;">Loading real achievement data from server...</p></td></tr>`;
+  // Show loading state
+  const tableBody = document.getElementById('recentSubmissionsBody');
+  if (tableBody) {
+    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top: 0.5rem;">Loading achievement portfolio from server...</p></td></tr>`;
+  }
+
+  // 1. Fetch Current User Details from /api/auth/me
+  const userRes = await ApiClient.get('/auth/me');
+  if (userRes.success && userRes.data) {
+    const user = userRes.data;
+    const welcomeElem = document.getElementById('dashboardWelcome');
+    if (welcomeElem) {
+      welcomeElem.textContent = `Welcome back, ${user.fullName}`;
     }
 
-    const res = await ApiClient.get(`/achievements/user/${CONFIG.DEV_USER_ID}`);
-    if (res.success && Array.isArray(res.data)) {
-      achievements = res.data;
-    } else {
-      showToast(res.message || 'Failed to load achievements from backend API', 'error');
-      // Fallback to MockStore if backend unreachable
-      achievements = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
-    }
+    const userNameTag = document.querySelector('.user-name');
+    const userRoleTag = document.querySelector('.user-role-tag');
+    if (userNameTag) userNameTag.textContent = user.fullName;
+    if (userRoleTag) userRoleTag.textContent = `${user.designation} (${user.departmentCode})`;
+  }
+
+  // 2. Fetch Achievements from Authenticated Endpoint: GET /api/achievements/me
+  const res = await ApiClient.get('/achievements/me');
+  if (res.success && Array.isArray(res.data)) {
+    achievements = res.data;
   } else {
-    achievements = MockStore.getAchievements().filter(a => a.userId === CONFIG.DEV_USER_ID);
+    showToast(res.message || 'Failed to load achievements from backend API', 'error');
+    achievements = [];
   }
 
-  // Update Welcome Banner
-  const profile = MockStore.getFacultyProfile();
-  const welcomeElem = document.getElementById('dashboardWelcome');
-  if (welcomeElem) {
-    welcomeElem.textContent = `Welcome back, ${profile.fullName}`;
-  }
-
-  // Calculate Real Statistics from API Dataset
+  // Calculate Real Statistics from User Portfolio
   const totalCount = achievements.length;
   const pendingCount = achievements.filter(a => a.status === 'PENDING').length;
   const approvedCount = achievements.filter(a => a.status === 'APPROVED').length;
@@ -53,7 +57,6 @@ async function initializeDashboard() {
   if (rejectedElem) rejectedElem.textContent = rejectedCount;
 
   // Render Recent Submissions Table
-  const tableBody = document.getElementById('recentSubmissionsBody');
   if (tableBody) {
     tableBody.innerHTML = '';
     const recentItems = achievements.slice(0, 5);
@@ -79,7 +82,7 @@ async function initializeDashboard() {
       tr.innerHTML = `
         <td data-label="Title & Category">
           <div class="table-title-cell">${escapeHtml(item.title)}</div>
-          <div class="table-subtext">${escapeHtml(item.categoryName || 'Achievement')} ${item.journalName ? '&bull; ' + escapeHtml(item.journalName) : ''}</div>
+          <div class="table-subtext">${escapeHtml(item.categoryName || 'Achievement')}</div>
         </td>
         <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
         <td data-label="Submission Date">${formatDate(item.achievementDate)}</td>
@@ -95,7 +98,6 @@ async function initializeDashboard() {
       tableBody.appendChild(tr);
     });
 
-    // Unobtrusive event binding for View buttons
     tableBody.querySelectorAll('.view-details-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.getAttribute('data-id');
@@ -106,29 +108,18 @@ async function initializeDashboard() {
 }
 
 async function showAchievementDetailsModal(id) {
-  let item = null;
-
-  if (CONFIG.DATA_SOURCE === "API") {
-    const res = await ApiClient.get(`/achievements/${id}`);
-    if (res.success && res.data) {
-      item = res.data;
-    }
-  }
-
-  if (!item) {
-    item = MockStore.getAchievementById(id);
-  }
-
-  if (!item) {
-    showToast('Achievement details not found', 'error');
+  const res = await ApiClient.get(`/achievements/${id}`);
+  if (!res.success || !res.data) {
+    showToast(res.message || 'Achievement details not found', 'error');
     return;
   }
 
+  const item = res.data;
   const modalBody = document.getElementById('viewModalContent');
   if (modalBody) {
     modalBody.innerHTML = `
       <p style="margin-bottom: 0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
-      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryLabel)}</p>
+      <p style="margin-bottom: 0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryCode)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
       <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>

@@ -1,18 +1,36 @@
 /**
  * Faculty Achievement Portal — Centralized REST API Client
  * Wraps Vanilla JavaScript fetch() calls for Spring Boot backend communication.
+ * Automatically injects Bearer JWT authentication header from sessionStorage.
  */
 
 const ApiClient = (() => {
 
   const getHeaders = () => {
-    return {
+    const headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     };
+
+    const token = sessionStorage.getItem('accessToken');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    return headers;
   };
 
   const handleResponse = async (response) => {
+    // Handle 401 Unauthorized (Expired or invalid token)
+    if (response.status === 401) {
+      sessionStorage.removeItem('accessToken');
+      sessionStorage.removeItem('currentUser');
+      if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('index.html')) {
+        window.location.href = 'login.html?session=expired';
+      }
+      return { success: false, status: 401, message: 'Session expired or unauthorized. Please sign in again.' };
+    }
+
     // 204 No Content
     if (response.status === 204) {
       return { success: true, data: null };
@@ -29,7 +47,6 @@ const ApiClient = (() => {
       return { success: true, data: data };
     }
 
-    // Structured Error Response Handling
     const errorMessage = (data && data.message) 
       ? data.message 
       : (response.status === 404 ? 'Requested resource not found.' : `HTTP Error ${response.status}`);
