@@ -4,6 +4,7 @@ import com.niet.facultyachievement.dto.AchievementCreateRequest;
 import com.niet.facultyachievement.dto.AchievementResponse;
 import com.niet.facultyachievement.dto.AchievementUpdateRequest;
 import com.niet.facultyachievement.dto.AchievementVerificationRequest;
+import com.niet.facultyachievement.dto.PagedResponse;
 import com.niet.facultyachievement.entity.AchievementStatus;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.exception.BadRequestException;
@@ -13,6 +14,7 @@ import com.niet.facultyachievement.service.AchievementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -176,6 +179,110 @@ public class AchievementController {
 
         AchievementResponse response = achievementService.verifyAchievement(id, reviewer.getId(), request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/achievements/search
+     * Server-side search with dynamic filtering, sorting and pagination.
+     * Authorization scope is enforced from JWT/SecurityContext — never from request parameters.
+     * departmentId is accepted as an ADDITIONAL filter only for ADMIN scope; it cannot bypass
+     * FACULTY/HOD scope restrictions because those are derived from JWT before any filter is applied.
+     */
+    @GetMapping("/search")
+    public ResponseEntity<PagedResponse<AchievementResponse>> searchAchievements(
+            Authentication authentication,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String categoryCode,
+            @RequestParam(required = false) String academicYear,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) Long departmentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir
+    ) {
+        User currentUser = getAuthenticatedUser(authentication);
+
+        // Parse and validate status (must be enum value or null)
+        AchievementStatus statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                statusEnum = AchievementStatus.valueOf(status.toUpperCase().trim());
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Invalid status value: '" + status + "'. Allowed: PENDING, APPROVED, REJECTED");
+            }
+        }
+
+        // Cap keyword length to max 255 characters to prevent memory/regex denial of service
+        if (keyword != null && keyword.length() > 255) {
+            keyword = keyword.substring(0, 255);
+        }
+
+        // Reject negative page explicitly
+        if (page < 0) {
+            throw new BadRequestException("Page number must be 0 or greater");
+        }
+        // Size validation: must be at least 1
+        if (size <= 0) {
+            throw new BadRequestException("Page size must be at least 1");
+        }
+
+        // departmentId filter is only honoured for ADMIN users; for FACULTY/HOD the scope
+        // spec in the service already restricts data to their own records/department.
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
+        Long filterDepartmentId = isAdmin ? departmentId : null;
+
+        PagedResponse<AchievementResponse> result = achievementService.searchAchievements(
+                keyword, statusEnum, categoryId, categoryCode, academicYear,
+                fromDate, toDate, filterDepartmentId, page, size, sortBy, sortDir, currentUser);
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * GET /api/achievements/export/csv
+     * Export achievements matching the filter to a CSV file.
+     * Authorization scope is enforced from JWT/SecurityContext — never from request parameters.
+     */
+    @GetMapping("/export/csv")
+    public ResponseEntity<byte[]> exportAchievementsCsv(
+            Authentication authentication,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String categoryCode,
+            @RequestParam(required = false) String academicYear,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @RequestParam(required = false) Long departmentId
+    ) {
+        User currentUser = getAuthenticatedUser(authentication);
+
+        AchievementStatus statusEnum = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                statusEnum = AchievementStatus.valueOf(status.toUpperCase().trim());
+            } catch (IllegalArgumentException ex) {
+                throw new BadRequestException("Invalid status value: '" + status + "'. Allowed: PENDING, APPROVED, REJECTED");
+            }
+        }
+
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
+        Long filterDepartmentId = isAdmin ? departmentId : null;
+
+        byte[] csvBytes = achievementService.exportAchievementsCsv(
+                keyword, statusEnum, categoryId, categoryCode, academicYear,
+                fromDate, toDate, filterDepartmentId, currentUser);
+
+        String filename = "achievements_export_" + java.time.LocalDate.now() + ".csv";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
+                .header(HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8")
+                .body(csvBytes);
     }
 
     /**

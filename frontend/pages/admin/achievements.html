@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verification Queue | NIET Admin Portal</title>
+  <title>Achievement Search &amp; Verification | NIET Admin Portal</title>
+  <meta name="description" content="Search, filter and verify faculty achievements institution-wide at NIET Noida.">
 
   <!-- Stylesheets -->
   <link rel="stylesheet" href="../../css/variables.css">
@@ -13,6 +14,18 @@
   <link rel="stylesheet" href="../../css/forms.css">
   <link rel="stylesheet" href="../../css/tables.css">
   <link rel="stylesheet" href="../../css/responsive.css">
+  <style>
+    .search-toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 0.75rem; align-items: flex-end; }
+    .btn-row { display: flex; gap: 0.5rem; align-items: center; }
+    .pagination-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
+    .pagination-controls { display: flex; gap: 0.4rem; align-items: center; }
+    .pagination-controls button { min-width: 34px; padding: 0.3rem 0.6rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    .pagination-controls button:hover { background: #DC2626; color: #fff; }
+    .pagination-controls button.active { background: #DC2626; color: #fff; border-color: #DC2626; }
+    .pagination-controls button:disabled { opacity: 0.45; cursor: not-allowed; }
+    .pagination-info { font-size: 0.82rem; color: var(--text-muted); }
+    .admin-accent { color: #DC2626; }
+  </style>
 </head>
 <body>
 
@@ -40,7 +53,7 @@
           <li class="nav-item">
             <a href="achievements.html" class="nav-link active">
               <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-              Verification Queue
+              Achievement Search
             </a>
           </li>
           <li class="nav-item">
@@ -62,31 +75,117 @@
 
     <!-- Main Content Area -->
     <main class="app-main">
-      
+
       <header class="app-header">
         <div class="header-left">
           <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
             <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="page-title">Faculty Achievement Verification Queue</h1>
+          <h1 class="page-title">Institution-Wide Achievement Search</h1>
         </div>
       </header>
 
       <div class="page-content">
         <div class="content-container">
 
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">Pending Verification Queue</h2>
+          <!-- Search & Filter Toolbar -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: 1.25rem 1.5rem;">
+              <div class="search-toolbar">
+                <!-- Keyword -->
+                <div>
+                  <label class="form-label" for="adminSearchKeyword">Keyword</label>
+                  <input type="text" id="adminSearchKeyword" class="form-control" placeholder="Title or description..." autocomplete="off">
+                </div>
+
+                <!-- Status -->
+                <div>
+                  <label class="form-label" for="adminFilterStatus">Status</label>
+                  <select id="adminFilterStatus" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING">Pending</option>
+                    <option value="APPROVED">Approved</option>
+                    <option value="REJECTED">Rejected</option>
+                  </select>
+                </div>
+
+                <!-- Category -->
+                <div>
+                  <label class="form-label" for="adminFilterCategory">Category</label>
+                  <select id="adminFilterCategory" class="form-control">
+                    <option value="">All Categories</option>
+                  </select>
+                </div>
+
+                <!-- Department (ADMIN only — full institutional scope) -->
+                <div>
+                  <label class="form-label" for="adminFilterDept">Department</label>
+                  <select id="adminFilterDept" class="form-control">
+                    <option value="">All Departments</option>
+                  </select>
+                </div>
+
+                <!-- Academic Year -->
+                <div>
+                  <label class="form-label" for="adminFilterYear">Academic Year</label>
+                  <select id="adminFilterYear" class="form-control">
+                    <option value="">All Years</option>
+                  </select>
+                </div>
+
+                <!-- Date From -->
+                <div>
+                  <label class="form-label" for="adminFilterFromDate">From Date</label>
+                  <input type="date" id="adminFilterFromDate" class="form-control">
+                </div>
+
+                <!-- Date To -->
+                <div>
+                  <label class="form-label" for="adminFilterToDate">To Date</label>
+                  <input type="date" id="adminFilterToDate" class="form-control">
+                </div>
+
+                <!-- Sort -->
+                <div>
+                  <label class="form-label" for="adminFilterSort">Sort By</label>
+                  <select id="adminFilterSort" class="form-control">
+                    <option value="createdAt_desc">Newest First</option>
+                    <option value="createdAt_asc">Oldest First</option>
+                    <option value="achievementDate_desc">Achievement Date ↓</option>
+                    <option value="achievementDate_asc">Achievement Date ↑</option>
+                    <option value="title_asc">Title A–Z</option>
+                    <option value="status_asc">Status A–Z</option>
+                  </select>
+                </div>
+
+                <!-- Buttons -->
+                <div>
+                  <label class="form-label">&nbsp;</label>
+                  <div class="btn-row">
+                    <button type="button" id="adminApplyFiltersBtn" class="btn btn-primary" style="flex:1;">Search</button>
+                    <button type="button" id="adminClearFiltersBtn" class="btn btn-outline" style="flex:1;">Clear</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export Row -->
+              <div style="display: flex; justify-content: flex-end; margin-top: 0.75rem;">
+                <button type="button" id="adminExportCsvBtn" class="btn btn-outline">⬇ Export CSV</button>
+              </div>
             </div>
+          </div>
+
+          <!-- Achievement Table -->
+          <div class="card">
             <div class="card-body" style="padding: 0;">
               <div class="table-responsive">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Faculty & Dept</th>
-                      <th>Title & Category</th>
-                      <th>Submitted Date</th>
+                      <th>Faculty &amp; Dept</th>
+                      <th>Title &amp; Category</th>
+                      <th>Academic Year</th>
+                      <th>Submitted</th>
                       <th>Status</th>
                       <th>Action</th>
                     </tr>
@@ -96,6 +195,12 @@
                   </tbody>
                 </table>
               </div>
+
+              <!-- Pagination Bar -->
+              <div class="pagination-bar" id="adminPaginationBar" style="display:none;">
+                <div class="pagination-info" id="adminPaginationInfo"></div>
+                <div class="pagination-controls" id="adminPaginationControls"></div>
+              </div>
             </div>
           </div>
 
@@ -103,7 +208,6 @@
       </div>
 
     </main>
-
   </div>
 
   <!-- Review Modal Dialog -->

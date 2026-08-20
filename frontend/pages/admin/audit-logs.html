@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Institutional Audit Logs — NIET Faculty Achievement Portal</title>
+  <link rel="stylesheet" href="../../css/main.css">
+  <link rel="stylesheet" href="../../css/layout.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="dashboard-body">
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="appSidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">NIET</div>
+        <div class="brand-text">
+          <span class="brand-title">Faculty Portal</span>
+          <span class="brand-subtitle">Control Center</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="dashboard.html" class="nav-link">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Admin Dashboard</span>
+        </a>
+        <a href="achievements.html" class="nav-link">
+          <span class="nav-icon">📜</span>
+          <span class="nav-label">Institutional Records</span>
+        </a>
+        <a href="faculty.html" class="nav-link">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Faculty Roster</span>
+        </a>
+        <a href="audit-logs.html" class="nav-link active">
+          <span class="nav-icon">🛡️</span>
+          <span class="nav-label">Audit Trail</span>
+        </a>
+        <a href="../profile.html" class="nav-link">
+          <span class="nav-icon">👤</span>
+          <span class="nav-label">My Profile</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-pill">
+          <div class="user-avatar" id="sidebarAvatar">A</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebarUserName">Administrator</div>
+            <div class="user-role" id="sidebarUserRole">ROLE_ADMIN</div>
+          </div>
+        </div>
+        <a href="#" class="btn btn-outline btn-sm w-full" id="signOutBtn" style="margin-top: 0.75rem;">Sign Out</a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Header Bar -->
+      <header class="app-header">
+        <button class="mobile-toggle" id="mobileToggleBtn" aria-label="Toggle navigation">☰</button>
+        <div class="header-title">
+          <h1>Institutional Audit Trail</h1>
+          <p class="header-subtitle">Immutable security audit logging & activity tracking system</p>
+        </div>
+        <div class="header-right">
+          <!-- Notification Bell dynamically injected by common.js -->
+          <a href="dashboard.html" class="btn btn-outline btn-sm">‹ Dashboard</a>
+        </div>
+      </header>
+
+      <div class="dashboard-container" style="padding: 1.5rem;">
+
+        <!-- Audit Search & Filter Toolbar Card -->
+        <div class="card" style="margin-bottom: 1.5rem; padding: 1.25rem;">
+          <div style="font-weight: 600; font-size: 1rem; color: #002147; margin-bottom: 0.75rem;">Audit Query & Search Toolbar</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; align-items: flex-end;">
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 500; color: #475569;">Action Event</label>
+              <select id="auditFilterAction" class="form-control" style="font-size: 0.85rem;">
+                <option value="">All Actions</option>
+                <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+                <option value="LOGIN_FAILURE">LOGIN_FAILURE</option>
+                <option value="ACHIEVEMENT_CREATED">ACHIEVEMENT_CREATED</option>
+                <option value="ACHIEVEMENT_UPDATED">ACHIEVEMENT_UPDATED</option>
+                <option value="ACHIEVEMENT_DELETED">ACHIEVEMENT_DELETED</option>
+                <option value="ACHIEVEMENT_APPROVED">ACHIEVEMENT_APPROVED</option>
+                <option value="ACHIEVEMENT_REJECTED">ACHIEVEMENT_REJECTED</option>
+                <option value="PROOF_UPLOADED">PROOF_UPLOADED</option>
+                <option value="PROOF_DELETED">PROOF_DELETED</option>
+                <option value="PROFILE_UPDATED">PROFILE_UPDATED</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 500; color: #475569;">Entity Type</label>
+              <select id="auditFilterEntity" class="form-control" style="font-size: 0.85rem;">
+                <option value="">All Entities</option>
+                <option value="ACHIEVEMENT">ACHIEVEMENT</option>
+                <option value="PROOF">PROOF</option>
+                <option value="AUTH">AUTH</option>
+                <option value="USER">USER</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 500; color: #475569;">From Date</label>
+              <input type="date" id="auditFilterFromDate" class="form-control" style="font-size: 0.85rem;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; font-weight: 500; color: #475569;">To Date</label>
+              <input type="date" id="auditFilterToDate" class="form-control" style="font-size: 0.85rem;">
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="auditApplyFiltersBtn" class="btn btn-primary" style="flex: 1; font-size: 0.85rem;">Apply Filters</button>
+              <button id="auditClearFiltersBtn" class="btn btn-outline" style="font-size: 0.85rem;">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Records Table Card -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="card-header" style="padding: 1rem 1.25rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-weight: 600; font-size: 1rem; color: #002147;">System Audit Log Records</div>
+            <span id="auditLogCountBadge" class="badge badge-approved" style="font-size: 0.8rem;">0 Records</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table" style="margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Entity &amp; ID</th>
+                  <th>Description</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody id="auditLogTableBody">
+                <tr>
+                  <td colspan="6" class="empty-state">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 0.5rem;">Loading audit records from database...</p>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Bar -->
+          <div id="auditPaginationBar" style="display: flex; justify-content: space-between; align-items: center; padding: 0.85rem 1.25rem; border-top: 1px solid var(--border-color); background: #F8FAFC;">
+            <div id="auditPaginationInfo" style="font-size: 0.85rem; color: #64748B;">Showing 0–0 of 0 results</div>
+            <div id="auditPaginationControls" class="pagination" style="margin-top: 0;"></div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="../../js/api.js"></script>
+  <script src="../../js/common.js"></script>
+  <script src="../../js/admin-audit.js"></script>
+</body>
+</html>

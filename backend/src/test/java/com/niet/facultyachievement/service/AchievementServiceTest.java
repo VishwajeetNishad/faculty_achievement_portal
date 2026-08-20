@@ -43,6 +43,12 @@ class AchievementServiceTest {
     @Mock
     private FileStorageService fileStorageService;
 
+    @Mock
+    private NotificationService notificationService;
+
+    @Mock
+    private AuditLogService auditLogService;
+
     @InjectMocks
     private AchievementServiceImpl achievementService;
 

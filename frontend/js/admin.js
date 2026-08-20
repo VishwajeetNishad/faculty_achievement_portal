@@ -1,18 +1,35 @@
 /**
- * Admin / HOD Verification Queue & Control Center Controller
+ * Admin / HOD Verification Queue, Achievement Search & Control Center Controller
  * Connected to Live Spring Boot Endpoints:
- * - GET /api/achievements/status/PENDING
- * - PATCH /api/achievements/{id}/verification
- * - GET /api/achievements/{id}/proof
+ *   GET  /api/achievements/search        (server-side search with pagination)
+ *   GET  /api/achievements/export/csv    (CSV export)
+ *   PATCH /api/achievements/{id}/verification
+ *   GET  /api/achievements/{id}/proof
+ *   GET  /api/dashboard/admin
+ *   GET  /api/users
+ *   GET  /api/departments
+ *   GET  /api/categories
  */
 
-let selectedReviewId = null;
+let selectedReviewId  = null;
+let adminCurrentPage  = 0;
+const ADMIN_PAGE_SIZE = 15;
 
 document.addEventListener('DOMContentLoaded', () => {
-  if (document.getElementById('adminQueueTableBody') || document.getElementById('adminPendingCount')) {
+  // Admin Dashboard page
+  if (document.getElementById('adminPendingCount') || document.getElementById('adminDeptComparisonBody')) {
     initializeAdminDashboard();
   }
 
+  // Admin Achievement Search page (achievements.html)
+  if (document.getElementById('adminQueueTableBody') && document.getElementById('adminSearchKeyword')) {
+    initializeAdminAchievementSearch();
+  } else if (document.getElementById('adminQueueTableBody')) {
+    // Legacy: old achievements page without search bar — load pending queue
+    initializeAdminDashboard();
+  }
+
+  // Faculty Roster page
   if (document.getElementById('facultyRosterTableBody')) {
     initializeFacultyRoster();
   }
@@ -186,7 +203,6 @@ async function renderAdminStatsAndQueue() {
     });
   });
 }
-
 async function openProtectedProofPdf(id) {
   showToast('Downloading protected PDF document...', 'info');
   const res = await ApiClient.downloadBlob(`/achievements/${id}/proof`);
@@ -198,7 +214,292 @@ async function openProtectedProofPdf(id) {
   }
 }
 
-let allFacultyData = [];
+// ─────────────────────────────────────────────────────────────────────────────
+// ADMIN ACHIEVEMENT SEARCH (achievements.html)
+// Server-side GET /api/achievements/search with full institutional scope
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function initializeAdminAchievementSearch() {
+  // Load category and department dropdowns from backend
+  await loadAdminCategoryOptions();
+  await loadAdminDepartmentOptions();
+  loadAdminYearOptions();
+
+  // Initial search
+  await runAdminSearch(0);
+
+  // Buttons
+  document.getElementById('adminApplyFiltersBtn')?.addEventListener('click', () => runAdminSearch(0));
+  document.getElementById('adminClearFiltersBtn')?.addEventListener('click', () => {
+    document.getElementById('adminSearchKeyword').value  = '';
+    document.getElementById('adminFilterStatus').value   = '';
+    document.getElementById('adminFilterCategory').value = '';
+    document.getElementById('adminFilterDept').value     = '';
+    document.getElementById('adminFilterYear').value     = '';
+    document.getElementById('adminFilterFromDate').value = '';
+    document.getElementById('adminFilterToDate').value   = '';
+    document.getElementById('adminFilterSort').value     = 'createdAt_desc';
+    runAdminSearch(0);
+    showToast('Filters cleared', 'info');
+  });
+  document.getElementById('adminSearchKeyword')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') runAdminSearch(0);
+  });
+  document.getElementById('adminExportCsvBtn')?.addEventListener('click', adminExportCsv);
+
+  // Approve / Reject modal handlers
+  document.getElementById('btnApproveRecord')?.addEventListener('click', async () => {
+    if (!selectedReviewId) return;
+    const btn = document.getElementById('btnApproveRecord');
+    btn.disabled = true; btn.textContent = 'Approving...';
+    const comment = (document.getElementById('verifyComment')?.value || '').trim() || 'Verified and approved.';
+    const res = await ApiClient.patch(`/achievements/${selectedReviewId}/verification`, { status: 'APPROVED', verificationComment: comment });
+    if (res.success) {
+      showToast('Achievement APPROVED successfully.', 'success');
+      closeModal('reviewModal');
+      selectedReviewId = null;
+      await runAdminSearch(adminCurrentPage);
+    } else {
+      showToast(res.message || 'Failed to approve', 'error');
+    }
+    btn.disabled = false; btn.textContent = 'Approve Achievement';
+  });
+
+  document.getElementById('btnRejectRecord')?.addEventListener('click', async () => {
+    if (!selectedReviewId) return;
+    const comment = (document.getElementById('verifyComment')?.value || '').trim();
+    if (!comment) { showToast('Rejection requires a comment.', 'error'); return; }
+    const btn = document.getElementById('btnRejectRecord');
+    btn.disabled = true; btn.textContent = 'Rejecting...';
+    const res = await ApiClient.patch(`/achievements/${selectedReviewId}/verification`, { status: 'REJECTED', verificationComment: comment });
+    if (res.success) {
+      showToast('Achievement REJECTED with feedback.', 'warning');
+      closeModal('reviewModal');
+      selectedReviewId = null;
+      await runAdminSearch(adminCurrentPage);
+    } else {
+      showToast(res.message || 'Failed to reject', 'error');
+    }
+    btn.disabled = false; btn.textContent = 'Reject Achievement';
+  });
+}
+
+async function runAdminSearch(page) {
+  adminCurrentPage = page;
+  const tableBody = document.getElementById('adminQueueTableBody');
+  if (!tableBody) return;
+
+  tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Searching institutional records...</p></td></tr>`;
+
+  const applyBtn = document.getElementById('adminApplyFiltersBtn');
+  if (applyBtn) { applyBtn.disabled = true; applyBtn.textContent = 'Searching...'; }
+
+  const params = buildAdminSearchParams(page);
+  const res = await ApiClient.get('/achievements/search?' + params.toString());
+
+  if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Search'; }
+
+  if (!res.success) {
+    let msg = res.message || 'Search failed';
+    if (res.status === 400) msg = 'Invalid search parameters: ' + msg;
+    if (res.status === 403) msg = 'Institutional search requires admin privileges.';
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title" style="color:var(--danger-color);">Error</div><p class="empty-state-text">${escapeHtml(msg)}</p></td></tr>`;
+    hideAdminPagination();
+    return;
+  }
+
+  const data = res.data;
+  const list = Array.isArray(data.content) ? data.content : [];
+
+  tableBody.innerHTML = '';
+
+  if (list.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">No Achievements Found</div><p class="empty-state-text">No records match the selected filters.</p></td></tr>`;
+    hideAdminPagination();
+    return;
+  }
+
+  list.forEach(item => {
+    const statusClass = (item.status || 'PENDING').toLowerCase();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td data-label="Faculty &amp; Dept">
+        <div class="table-title-cell">${escapeHtml(item.facultyName || '—')}</div>
+        <div class="table-subtext">${escapeHtml(item.departmentName || item.departmentCode || 'Faculty')}</div>
+      </td>
+      <td data-label="Title &amp; Category">
+        <div class="table-title-cell">${escapeHtml(item.title)}</div>
+        <div class="table-subtext">${escapeHtml(item.categoryName || item.categoryCode || '')}</div>
+      </td>
+      <td data-label="Academic Year">${escapeHtml(item.academicYear || '—')}</td>
+      <td data-label="Submitted">${formatDate(item.createdAt || item.achievementDate)}</td>
+      <td data-label="Status"><span class="badge badge-${statusClass}">${item.status}</span></td>
+      <td data-label="Action">
+        <button class="btn btn-primary btn-sm review-record-btn" data-id="${item.id}">Review</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+
+  tableBody.querySelectorAll('.review-record-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      selectedReviewId = btn.getAttribute('data-id');
+      const itemRes = await ApiClient.get(`/achievements/${selectedReviewId}`);
+      if (itemRes.success && itemRes.data) {
+        const item = itemRes.data;
+        const reviewContent = document.getElementById('reviewModalContent');
+        if (reviewContent) {
+          reviewContent.innerHTML = `
+            <p style="margin-bottom:0.5rem;"><strong>Faculty:</strong> ${escapeHtml(item.facultyName)} (${escapeHtml(item.departmentName || item.departmentCode)})</p>
+            <p style="margin-bottom:0.5rem;"><strong>Employee ID:</strong> ${escapeHtml(item.employeeId)}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Title:</strong> ${escapeHtml(item.title)}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Category:</strong> ${escapeHtml(item.categoryName || item.categoryCode)}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Academic Year:</strong> ${escapeHtml(item.academicYear)}</p>
+            <p style="margin-bottom:0.5rem;"><strong>Status:</strong> <span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></p>
+            <p style="margin-bottom:0.5rem;"><strong>Achievement Date:</strong> ${formatDate(item.achievementDate)}</p>
+            ${item.description ? `<p style="margin-bottom:0.5rem;"><strong>Description:</strong> ${escapeHtml(item.description)}</p>` : ''}
+            ${item.proofDocumentUrl ? `<p style="margin-top:0.75rem;"><button class="btn btn-outline btn-sm" onclick="openProtectedProofPdf(${item.id})">📄 View Proof PDF</button></p>` : '<p style="margin-top:0.5rem; color:#94A3B8;">No Proof Document Attached</p>'}
+          `;
+        }
+        document.getElementById('verifyComment').value = '';
+        openModal('reviewModal');
+      } else {
+        showToast(itemRes.message || 'Error fetching achievement details', 'error');
+      }
+    });
+  });
+
+  renderAdminPagination(data);
+}
+
+function buildAdminSearchParams(page) {
+  const keyword  = document.getElementById('adminSearchKeyword')?.value?.trim() || '';
+  const status   = document.getElementById('adminFilterStatus')?.value || '';
+  const catId    = document.getElementById('adminFilterCategory')?.value || '';
+  const deptId   = document.getElementById('adminFilterDept')?.value || '';
+  const year     = document.getElementById('adminFilterYear')?.value || '';
+  const fromDate = document.getElementById('adminFilterFromDate')?.value || '';
+  const toDate   = document.getElementById('adminFilterToDate')?.value || '';
+  const sortVal  = document.getElementById('adminFilterSort')?.value || 'createdAt_desc';
+  const [sortBy, sortDir] = sortVal.split('_');
+
+  const params = new URLSearchParams();
+  if (keyword)  params.set('keyword', keyword);
+  if (status)   params.set('status', status);
+  if (catId)    params.set('categoryId', catId);
+  // departmentId is accepted as an additional FILTER on the server;
+  // it cannot bypass ADMIN scope — auth scope is always derived from JWT first.
+  if (deptId)   params.set('departmentId', deptId);
+  if (year)     params.set('academicYear', year);
+  if (fromDate) params.set('fromDate', fromDate);
+  if (toDate)   params.set('toDate', toDate);
+  params.set('sortBy', sortBy || 'createdAt');
+  params.set('sortDir', sortDir || 'desc');
+  params.set('page', String(page));
+  params.set('size', String(ADMIN_PAGE_SIZE));
+  return params;
+}
+
+function renderAdminPagination(data) {
+  const bar      = document.getElementById('adminPaginationBar');
+  const info     = document.getElementById('adminPaginationInfo');
+  const controls = document.getElementById('adminPaginationControls');
+  if (!bar || !info || !controls) return;
+
+  const { page, size, totalElements, totalPages, first, last } = data;
+  if (totalElements === 0) { hideAdminPagination(); return; }
+
+  bar.style.display = 'flex';
+  const start = page * size + 1;
+  const end   = Math.min(page * size + size, totalElements);
+  info.textContent = `Showing ${start}–${end} of ${totalElements} results`;
+
+  controls.innerHTML = '';
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '‹ Prev'; prevBtn.disabled = first;
+  prevBtn.addEventListener('click', () => runAdminSearch(page - 1));
+  controls.appendChild(prevBtn);
+
+  const startPage = Math.max(0, page - 2);
+  const endPage   = Math.min(totalPages - 1, page + 2);
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = String(i + 1);
+    if (i === page) btn.classList.add('active');
+    btn.addEventListener('click', () => runAdminSearch(i));
+    controls.appendChild(btn);
+  }
+
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = 'Next ›'; nextBtn.disabled = last;
+  nextBtn.addEventListener('click', () => runAdminSearch(page + 1));
+  controls.appendChild(nextBtn);
+}
+
+function hideAdminPagination() {
+  const bar = document.getElementById('adminPaginationBar');
+  if (bar) bar.style.display = 'none';
+}
+
+async function loadAdminCategoryOptions() {
+  const sel = document.getElementById('adminFilterCategory');
+  if (!sel) return;
+  const res = await ApiClient.get('/categories');
+  if (res.success && Array.isArray(res.data)) {
+    res.data.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id; opt.textContent = cat.categoryName || cat.name;
+      sel.appendChild(opt);
+    });
+  } else {
+    [['1','Research Publication'],['2','Patent'],['3','Research Grant'],['4','Workshop/FDP'],['5','Award']].forEach(([v,t]) => {
+      const opt = document.createElement('option'); opt.value = v; opt.textContent = t; sel.appendChild(opt);
+    });
+  }
+}
+
+async function loadAdminDepartmentOptions() {
+  const sel = document.getElementById('adminFilterDept');
+  if (!sel) return;
+  const res = await ApiClient.get('/departments');
+  if (res.success && Array.isArray(res.data)) {
+    res.data.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d.id; opt.textContent = d.name;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+function loadAdminYearOptions() {
+  const sel = document.getElementById('adminFilterYear');
+  if (!sel) return;
+  const y = new Date().getFullYear();
+  for (let i = y; i >= y - 6; i--) {
+    const opt = document.createElement('option');
+    opt.value = `${i}-${i+1}`; opt.textContent = `${i}-${i+1}`;
+    sel.appendChild(opt);
+  }
+}
+
+async function adminExportCsv() {
+  showToast('Preparing institutional CSV export…', 'info');
+  const params = buildAdminSearchParams(0);
+  params.delete('page'); params.delete('size'); params.delete('sortBy'); params.delete('sortDir');
+  params.delete('adminDeptFilter');
+
+  const res = await ApiClient.downloadBlob('/achievements/export/csv?' + params.toString());
+  if (res.success && res.objectUrl) {
+    const a = document.createElement('a');
+    a.href = res.objectUrl;
+    a.download = 'institutional_achievements_' + new Date().toISOString().slice(0,10) + '.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    showToast('Institutional CSV exported!', 'success');
+  } else {
+    showToast(res.message || 'Export failed', 'error');
+  }
+}
+
 let allDepartments = [];
 
 async function initializeFacultyRoster() {

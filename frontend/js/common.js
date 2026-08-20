@@ -2,6 +2,16 @@
  * Faculty Achievement Portal — Reusable UI Components, Toast Engine, and Authentication Session Helpers
  */
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 // Toast Notification System
 function showToast(message, type = 'info', duration = 4000) {
   let toastContainer = document.getElementById('toastContainer');
@@ -28,7 +38,7 @@ function showToast(message, type = 'info', duration = 4000) {
     margin-bottom: 0;
     animation: slideIn 0.3s ease;
   `;
-  toast.innerHTML = `<div>${message}</div>`;
+  toast.innerHTML = `<div>${escapeHtml(message)}</div>`;
 
   toastContainer.appendChild(toast);
 
@@ -64,13 +74,18 @@ document.addEventListener('DOMContentLoaded', () => {
   if (signOutBtn) {
     signOutBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      await ApiClient.post('/auth/logout', {});
+      try {
+        await ApiClient.post('/auth/logout', {});
+      } catch (err) {
+        // Ignore network errors during logout
+      }
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('currentUser');
       showToast('You have been signed out.', 'info');
       setTimeout(() => {
-        window.location.href = 'login.html';
-      }, 500);
+        const isSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/hod/');
+        window.location.href = isSubdir ? '../login.html' : 'login.html';
+      }, 400);
     });
   }
 
@@ -135,4 +150,171 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Step 19 Notification Bell & In-App UI Setup
+  if (sessionStorage.getItem('accessToken')) {
+    initializeNotificationUI();
+  }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 19 Notification Bell UI Controller
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function initializeNotificationUI() {
+  const headerRight = document.querySelector('.header-right');
+  if (headerRight && !document.getElementById('notificationBellBtn')) {
+    const bellContainer = document.createElement('div');
+    bellContainer.style.cssText = 'position: relative; display: inline-flex; align-items: center; margin-right: 0.75rem;';
+    bellContainer.innerHTML = `
+      <button id="notificationBellBtn" class="btn btn-outline btn-sm" aria-label="Notifications" style="position: relative; display: flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem; border-radius: 20px;">
+        <svg style="width: 18px; height: 18px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+        </svg>
+        <span>Notifications</span>
+        <span id="unreadNotifBadge" class="badge badge-pending" style="display: none; background: #DC2626; color: #FFF; font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 10px;">0</span>
+      </button>
+    `;
+    headerRight.insertBefore(bellContainer, headerRight.firstChild);
+  }
+
+  // Inject Notification Modal into DOM if missing
+  if (!document.getElementById('notificationModal')) {
+    const modalHtml = `
+      <div class="modal-backdrop" id="notificationModal" aria-hidden="true" role="dialog" aria-labelledby="notifModalTitle">
+        <div class="modal-container" style="max-width: 540px;">
+          <div class="modal-header">
+            <h3 class="modal-title" id="notifModalTitle">In-App Notifications</h3>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <button class="btn btn-outline btn-sm" id="markAllReadBtn" style="font-size: 0.8rem;">Mark All Read</button>
+              <button class="modal-close-btn" onclick="closeModal('notificationModal')" aria-label="Close modal">&times;</button>
+            </div>
+          </div>
+          <div class="modal-body" style="padding: 1rem 1.25rem; max-height: 420px; overflow-y: auto;">
+            <div id="notificationListContainer">
+              <div class="spinner"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('notificationModal')">Close</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  }
+
+  // Attach Bell Click Listener
+  document.getElementById('notificationBellBtn')?.addEventListener('click', () => {
+    openModal('notificationModal');
+    loadNotificationPanelList();
+  });
+
+  // Attach Mark All Read Listener
+  document.getElementById('markAllReadBtn')?.addEventListener('click', async () => {
+    const res = await ApiClient.markAllNotificationsRead();
+    if (res.success) {
+      showToast('All notifications marked as read.', 'info');
+      await refreshUnreadBadge();
+      await loadNotificationPanelList();
+    } else {
+      showToast(res.message || 'Failed to mark notifications read', 'error');
+    }
+  });
+
+  // Initial Badge Refresh
+  await refreshUnreadBadge();
+}
+
+async function refreshUnreadBadge() {
+  const badge = document.getElementById('unreadNotifBadge');
+  if (!badge) return;
+
+  const res = await ApiClient.getUnreadNotificationCount();
+  if (res.success && res.data && typeof res.data.unreadCount !== 'undefined') {
+    const count = res.data.unreadCount;
+    if (count > 0) {
+      badge.textContent = count > 99 ? '99+' : count;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+async function loadNotificationPanelList() {
+  const container = document.getElementById('notificationListContainer');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center; padding: 1.5rem;"><div class="spinner"></div><p style="margin-top:0.5rem; font-size:0.85rem;">Loading notifications...</p></div>';
+
+  const res = await ApiClient.getNotifications(0, 15);
+  if (!res.success || !res.data) {
+    container.innerHTML = `<div class="empty-state" style="padding: 1rem;"><div class="empty-state-title">Error</div><p class="empty-state-text">${escapeHtml(res.message || 'Failed to load notifications')}</p></div>`;
+    return;
+  }
+
+  const items = Array.isArray(res.data.content) ? res.data.content : [];
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state" style="padding: 2rem 1rem;">
+        <div class="empty-state-title" style="font-size: 1.05rem; color: var(--text-muted);">No new notifications.</div>
+        <p class="empty-state-text" style="font-size: 0.85rem; margin-top: 0.25rem;">You're all caught up! Activity updates will appear here.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = '';
+  items.forEach(item => {
+    const isUnread = !item.isRead;
+    const card = document.createElement('div');
+    card.style.cssText = `
+      padding: 0.85rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      background: ${isUnread ? 'rgba(123, 31, 50, 0.04)' : 'var(--surface-card)'};
+      border: 1px solid ${isUnread ? '#7B1F32' : 'var(--border-color)'};
+      border-left: 4px solid ${isUnread ? '#7B1F32' : '#94A3B8'};
+    `;
+
+    const typeBadge = item.notificationType === 'ACHIEVEMENT_APPROVED' ? '<span class="badge badge-approved" style="font-size:0.75rem;">Approved</span>' :
+                      item.notificationType === 'ACHIEVEMENT_REJECTED' ? '<span class="badge badge-rejected" style="font-size:0.75rem;">Rejected</span>' :
+                      item.notificationType === 'VERIFICATION_REQUIRED' ? '<span class="badge badge-pending" style="font-size:0.75rem;">Action Needed</span>' :
+                      '<span class="badge" style="font-size:0.75rem; background:#E2E8F0; color:#1E293B;">Submitted</span>';
+
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <div style="font-weight: 600; font-size: 0.9rem; color: #7B1F32;">${escapeHtml(item.title)}</div>
+        <div>${typeBadge}</div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; line-height: 1.4;">${escapeHtml(item.message)}</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted);">
+        <span>${formatTimeAgo(item.createdAt)}</span>
+        ${isUnread ? `<button class="btn btn-outline btn-sm mark-single-read-btn" data-id="${item.id}" style="padding: 0.15rem 0.45rem; font-size: 0.75rem;">Mark Read</button>` : '<span style="color:#10B981;">✓ Read</span>'}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  container.querySelectorAll('.mark-single-read-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      const r = await ApiClient.markNotificationRead(id);
+      if (r.success) {
+        await refreshUnreadBadge();
+        await loadNotificationPanelList();
+      }
+    });
+  });
+}
+
+function formatTimeAgo(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  const diffMs = new Date() - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'Just now';
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}

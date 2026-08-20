@@ -27,7 +27,8 @@ const ApiClient = (() => {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('currentUser');
       if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('index.html')) {
-        window.location.href = 'login.html?session=expired';
+        const isSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/hod/');
+        window.location.href = isSubdir ? '../login.html?session=expired' : 'login.html?session=expired';
       }
       return { success: false, status: 401, message: 'Session expired or unauthorized. Please sign in again.' };
     }
@@ -72,10 +73,14 @@ const ApiClient = (() => {
   return {
     get: async (endpoint) => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint}`, {
           method: 'GET',
-          headers: getHeaders()
+          headers: getHeaders(),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         return await handleResponse(response);
       } catch (error) {
         return handleError(error);
@@ -84,11 +89,15 @@ const ApiClient = (() => {
 
     post: async (endpoint, body) => {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
         const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint}`, {
           method: 'POST',
           headers: getHeaders(),
-          body: JSON.stringify(body)
+          body: JSON.stringify(body),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         return await handleResponse(response);
       } catch (error) {
         return handleError(error);
@@ -177,6 +186,23 @@ const ApiClient = (() => {
       } catch (error) {
         return handleError(error);
       }
+    },
+
+    // Step 19 Notification Helpers
+    getNotifications: async (page = 0, size = 10) => {
+      return await ApiClient.get(`/notifications?page=${page}&size=${size}`);
+    },
+
+    getUnreadNotificationCount: async () => {
+      return await ApiClient.get('/notifications/unread-count');
+    },
+
+    markNotificationRead: async (id) => {
+      return await ApiClient.patch(`/notifications/${id}/read`);
+    },
+
+    markAllNotificationsRead: async () => {
+      return await ApiClient.patch('/notifications/read-all');
     }
   };
 

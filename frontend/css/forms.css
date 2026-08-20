@@ -1,18 +1,21 @@
 /* ====================================================================
-   Form Controls, Inputs, Password Toggles & Dynamic Fieldsets
+   Form Controls — Figma Faculty Portal Design
+   Inputs, Selects, Labels, Textareas, File Inputs, Fieldsets
    ==================================================================== */
 
+/* ─── Form Grid Layout ─── */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
 }
 
+/* ─── Form Group ─── */
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  margin-bottom: 1.25rem;
+  gap: 0.3rem;
+  margin-bottom: var(--space-4);
   position: relative;
 }
 
@@ -20,93 +23,140 @@
   grid-column: 1 / -1;
 }
 
+/* ─── Labels ─── */
 .form-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
+  line-height: 1.4;
 }
 
-.form-label .required-star {
-  color: var(--status-rejected-text);
-  margin-left: 0.2rem;
+.form-label .required-star,
+.required-field::after {
+  color: var(--color-danger);
+  margin-left: 0.15rem;
 }
 
-.form-control-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+.required-field::after {
+  content: '*';
 }
 
+/* ─── Input / Select / Textarea Controls ─── */
 .form-control {
   width: 100%;
-  padding: 0.625rem 0.875rem;
+  padding: 0.5rem 0.75rem;
   font-size: var(--font-size-sm);
   background-color: var(--surface-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  line-height: 1.5;
 }
 
+.form-control::placeholder {
+  color: var(--text-tertiary);
+}
+
+/* Focus State */
 .form-control:focus {
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 33, 71, 0.12);
+  box-shadow: 0 0 0 2.5px rgba(123, 31, 50, 0.12);
   outline: none;
 }
 
-.form-control.is-invalid {
-  border-color: var(--status-rejected-border);
-  background-color: var(--status-rejected-bg);
+/* Hover State */
+.form-control:hover:not(:focus):not(:disabled):not([readonly]) {
+  border-color: var(--text-tertiary);
 }
 
+/* Error / Invalid State */
+.form-control.is-invalid {
+  border-color: var(--status-rejected-border);
+  background-color: #FFF5F5;
+}
+
+.form-control.is-invalid:focus {
+  box-shadow: 0 0 0 2.5px rgba(220, 38, 38, 0.12);
+}
+
+/* Valid / Success State */
 .form-control.is-valid {
   border-color: var(--status-approved-border);
 }
 
-/* Password Show/Hide Toggle Button */
+.form-control.is-valid:focus {
+  box-shadow: 0 0 0 2.5px rgba(5, 150, 105, 0.12);
+}
+
+/* Disabled State */
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: var(--bg-main);
+  color: var(--text-secondary);
+  cursor: default;
+  opacity: 0.8;
+}
+
+/* ─── Password Toggle Button ─── */
+.form-control-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .password-toggle-btn {
   position: absolute;
-  right: 0.75rem;
+  right: 0.625rem;
   background: none;
   border: none;
   color: var(--text-tertiary);
   cursor: pointer;
-  padding: 0.25rem;
+  padding: 0.2rem;
   display: flex;
   align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
 }
 
 .password-toggle-btn:hover {
   color: var(--text-primary);
 }
 
+/* ─── Textarea ─── */
 textarea.form-control {
-  min-height: 100px;
+  min-height: 90px;
   resize: vertical;
 }
 
+/* ─── Select ─── */
 select.form-control {
   cursor: pointer;
+  appearance: auto;
 }
 
-.form-hint {
+/* ─── Form Helper Text ─── */
+.form-hint,
+.form-text {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .form-error {
   font-size: var(--font-size-xs);
-  color: var(--status-rejected-text);
-  margin-top: 0.25rem;
+  color: var(--color-danger);
+  margin-top: 0.2rem;
+  line-height: 1.4;
 }
 
-/* Category Extension Fieldset Sections */
+/* ─── Category Extension Fieldset Sections ─── */
 .fieldset-section {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  background-color: var(--surface-hover);
+  padding: var(--space-5);
+  margin-top: var(--space-5);
+  background-color: var(--surface-secondary);
   animation: fadeIn 0.3s ease;
 }
 
@@ -114,10 +164,34 @@ select.form-control {
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-semibold);
   color: var(--primary-color);
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
+}
+
+/* ─── File Input Styling ─── */
+input[type="file"].form-control {
+  padding: 0.4rem 0.625rem;
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+}
+
+input[type="file"].form-control::file-selector-button {
+  padding: 0.3rem 0.75rem;
+  margin-right: var(--space-3);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+input[type="file"].form-control::file-selector-button:hover {
+  background-color: var(--border-color);
 }
 
 @keyframes fadeIn {

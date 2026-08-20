@@ -36,6 +36,8 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **POST** | `/api/achievements` | Authenticated | Create a new achievement | `201 Created` |
 | **GET** | `/api/achievements/{id}` | Authenticated | Get achievement details by ID | `200 OK` / `404 Not Found` |
+| **GET** | `/api/achievements/search` | Authenticated | Server-side paginated search with dynamic filters & whitelisted sorting | `200 OK` / `400 Bad Request` |
+| **GET** | `/api/achievements/export/csv` | Authenticated | Export matching achievements to UTF-8 BOM CSV file | `200 OK` / `401 Unauthorized` |
 | **GET** | `/api/achievements/user/{userId}` | Authenticated | Get achievements for a user | `200 OK` |
 | **GET** | `/api/achievements/status/{status}` | Authenticated | Filter achievements by status | `200 OK` / `400 Bad Request` |
 | **GET** | `/api/achievements/department/{id}` | Authenticated | Filter achievements by department | `200 OK` |
@@ -47,16 +49,24 @@
 
 ---
 
-## Profile Update Specification (`PUT /api/users/me`)
-- **HTTP Method**: `PUT`
-- **Path**: `/api/users/me`
-- **Authorization**: Bearer JWT
-- **Allowed Request Body Fields**:
-```json
-{
-  "fullName": "Dr. Sharma",
-  "designation": "Associate Professor",
-  "phone": "9876543210"
-}
-```
-- **Protected Fields**: `id`, `employeeId`, `email`, `role`, `department`, `status`, `passwordHash` (server ignores any attempts to supply these).
+## Notification Endpoints Summary (Step 19)
+
+| Method | Endpoint | Access | Description | Expected Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/notifications` | Authenticated | Get paginated notifications for current user | `200 OK` / `401 Unauthorized` |
+| **GET** | `/api/notifications/unread-count` | Authenticated | Get count of unread notifications for current user | `200 OK` / `401 Unauthorized` |
+| **PATCH** | `/api/notifications/{id}/read` | Owner Only | Mark a notification as read (IDOR protected) | `200 OK` / `403 Forbidden` |
+| **PATCH** | `/api/notifications/read-all` | Authenticated | Mark all notifications for current user as read | `200 OK` / `401 Unauthorized` |
+
+---
+
+## Audit Logging Endpoints Summary (Step 20)
+
+| Method | Endpoint | Access | Description | Expected Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **GET** | `/api/audit-logs` | `ROLE_ADMIN` | Server-side paginated search for institutional audit records | `200 OK` / `403 Forbidden` |
+
+### Audit Logging Filters & Security
+- Query params: `action`, `entityType`, `actorUserId`, `fromDate`, `toDate`, `page`, `size`, `sortBy`, `sortDir`.
+- Access restricted strictly to **`ROLE_ADMIN`**. Faculty members and HODs receive `403 Forbidden`.
+- Audit logs are append-only. Passwords, hashes, JWTs, and file binary contents are NEVER recorded.

@@ -48,9 +48,11 @@ public class FileStorageServiceImpl implements FileStorageService {
             throw new BadRequestException("Only PDF files (.pdf) are permitted for achievement proof documents.");
         }
 
-        // Validate MIME type
+        // Validate MIME type if provided
         String contentType = file.getContentType();
-        if (contentType != null && !contentType.equalsIgnoreCase("application/pdf")) {
+        if (contentType != null && !contentType.isBlank() && 
+            !contentType.equalsIgnoreCase("application/pdf") && 
+            !contentType.equalsIgnoreCase("application/octet-stream")) {
             throw new BadRequestException("Invalid content type: Must be application/pdf.");
         }
 
