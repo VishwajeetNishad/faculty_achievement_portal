@@ -18,7 +18,7 @@ All 19 security hardening test scenarios covering Authentication, Authorization,
 ### Authentication & Token Management
 - **Token Mechanism**: Stateless JSON Web Tokens (JWT) passed in the `Authorization: Bearer <token>` header.
 - **Signing Algorithm**: HS256 (HMAC-SHA256).
-- **Secret Management**: Configured via the required `${JWT_SECRET}` environment variable (a 256-bit key). The production signing secret must never be committed to source control.
+- **Secret Management**: The signing key is supplied only via the required `${JWT_SECRET}` environment variable (minimum 256 bits). The application validates it at startup and fails fast if it is missing or too weak — no signing secret is hardcoded or committed to source control.
 - **Token Expiration**: Enforced at 24 hours (`86,400,000` ms) via claim expiration checking.
 - **Password Hashing**: BCrypt (`BCryptPasswordEncoder` with default strength 10). Plaintext passwords, hashes, and JWT tokens are NEVER logged or exposed in audit trails.
 

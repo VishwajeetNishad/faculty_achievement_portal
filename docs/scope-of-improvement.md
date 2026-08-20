@@ -27,6 +27,10 @@ or misrepresent the current state; **[Enhancement]** items are future work.
   any user/role.
 - **Fix**: Fail application startup when `JWT_SECRET` is missing instead of
   falling back to a built-in key. Never ship a default secret.
+- **Status (2026-08-20)**: ✅ Resolved — removed the hardcoded `DEFAULT_SECRET`
+  from `JwtTokenProvider`; the app now validates `JWT_SECRET` at startup and
+  fails fast if it is missing or under 256 bits. The previously-committed key
+  remains in git history and must be rotated.
 
 ### 1.3 HTTPS is claimed but not configured `[Security]` `[Accuracy]`
 - **Where**: Architecture diagram says "HTTPS / REST API (JWT Bearer)"; run
