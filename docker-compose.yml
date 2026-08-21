@@ -1,0 +1,116 @@
+# ====================================================================
+# Faculty Achievement Portal — full production stack.
+# Start everything with one command:   docker compose up -d
+#
+# Three "containers" (self-contained app boxes) run together on a private
+# network that the outside world cannot see:
+#   db      -> MySQL 8 database (data saved on a named volume; NOT exposed)
+#   backend -> the Spring Boot API (built from ./backend)
+#   caddy   -> web server + reverse proxy: serves the website, forwards /api
+#              to the backend, and gets a free auto-renewing HTTPS certificate.
+#
+# All secrets and site-specific values come from the .env file (copy .env.example).
+# ====================================================================
+
+services:
+
+  # ---- MySQL database -------------------------------------------------
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      # On first start the image creates this database plus a DEDICATED, non-root
+      # user with rights ONLY on this database (least privilege). The backend logs
+      # in as that user, never as root.
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?set MYSQL_ROOT_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_NAME:-faculty_achievement_db}
+      MYSQL_USER: ${DB_USERNAME:?set DB_USERNAME in .env}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      # Named volume = a disk area Docker keeps even if the container is recreated,
+      # so your data is not lost on restart/redeploy.
+      - mysql-data:/var/lib/mysql
+    # NOTE: intentionally no "ports:" — MySQL is reachable only by the other
+    # containers on the private network, never from the public internet.
+    healthcheck:
+      # Forcing TCP (-h 127.0.0.1) means this only passes AFTER MySQL has finished
+      # first-time setup and is truly ready — so the backend won't start too early.
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    networks:
+      - portal-net
+
+  # ---- Spring Boot backend API ---------------------------------------
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy   # wait until MySQL is actually ready
+    environment:
+      # --- Database connection (reach the "db" service by its name) ---
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${DB_NAME:-faculty_achievement_db}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # --- Login token signing key (must be 32+ characters) ---
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env (32+ random chars)}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      # --- CORS: the site is same-origin in production, so allow only the domain ---
+      FRONTEND_ALLOWED_ORIGINS: "https://${DOMAIN:?set DOMAIN in .env}"
+      CORS_ALLOW_LOCALHOST: "false"
+      # --- Uploaded PDF proofs: absolute path backed by the "uploads" volume ---
+      APP_FILE_STORAGE_UPLOAD_DIR: /app/uploads/achievements
+      # --- Rolling log files: written to the persistent "logs" volume ---
+      LOG_DIR: /app/logs
+      # --- First admin, created once on first boot (blank values = skip) ---
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_EMPLOYEE_ID: ${ADMIN_EMPLOYEE_ID:-EMP001}
+      ADMIN_FULL_NAME: ${ADMIN_FULL_NAME:-System Administrator}
+      ADMIN_DESIGNATION: ${ADMIN_DESIGNATION:-Administrator}
+      ADMIN_DEPARTMENT_CODE: ${ADMIN_DEPARTMENT_CODE:-CSE}
+      ADMIN_PHONE: ${ADMIN_PHONE:-}
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+    # No public "ports:" — only Caddy talks to the backend, over the private network.
+    expose:
+      - "8080"
+    networks:
+      - portal-net
+
+  # ---- Caddy web server + reverse proxy + automatic HTTPS ------------
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"     # http (Caddy redirects this to https)
+      - "443:443"   # https
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+      ACME_EMAIL: ${ACME_EMAIL:?set ACME_EMAIL in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro   # our proxy config (read-only)
+      - ./frontend:/srv:ro                     # the static website (read-only)
+      - caddy-data:/data                       # stores HTTPS certs — MUST persist
+      - caddy-config:/config
+    networks:
+      - portal-net
+
+volumes:
+  mysql-data:
+  uploads:
+  logs:
+  caddy-data:
+  caddy-config:
+
+networks:
+  portal-net:
+    driver: bridge

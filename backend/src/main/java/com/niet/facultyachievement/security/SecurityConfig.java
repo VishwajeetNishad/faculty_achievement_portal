@@ -38,6 +38,12 @@ public class SecurityConfig {
     @Value("${app.cors.allowed-origins:http://localhost:8080,http://127.0.0.1:8080,http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000}")
     private String rawAllowedOrigins;
 
+    // Dev convenience: when true, ALSO allow any localhost origin/port (e.g. a Live
+    // Server preview). Off by default so production only accepts the exact origins in
+    // app.cors.allowed-origins (FRONTEND_ALLOWED_ORIGINS).
+    @Value("${app.cors.allow-localhost:false}")
+    private boolean allowLocalhostOrigins;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -67,7 +73,7 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/health").permitAll()
+                .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/health", "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/achievements/**").authenticated()
@@ -92,8 +98,11 @@ public class SecurityConfig {
                 .collect(Collectors.toList());
 
         configuration.setAllowedOrigins(origins);
-        // Support any local IDE preview port (e.g. http://127.0.0.1:51808 or http://localhost:5500)
-        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*"));
+        // Development only: allow any local IDE preview port (e.g. http://localhost:5500).
+        // Disabled in production so only FRONTEND_ALLOWED_ORIGINS is accepted.
+        if (allowLocalhostOrigins) {
+            configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*", "http://127.0.0.1:*"));
+        }
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Accept", "X-Requested-With"));
         configuration.setAllowCredentials(true);

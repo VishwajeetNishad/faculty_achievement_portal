@@ -6,7 +6,9 @@ import com.niet.facultyachievement.dto.UserResponse;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.repository.UserRepository;
 import com.niet.facultyachievement.security.JwtTokenProvider;
+import com.niet.facultyachievement.security.LoginRateLimiter;
 import com.niet.facultyachievement.entity.AuditAction;
+import com.niet.facultyachievement.exception.TooManyAttemptsException;
 import com.niet.facultyachievement.service.AuditLogService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,10 +32,22 @@ public class AuthController {
     private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final AuditLogService auditLogService;
+    private final LoginRateLimiter loginRateLimiter;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         String clientIp = getClientIp(request);
+
+        // Brute-force guard: if this IP + account has already failed too many times,
+        // reject immediately (HTTP 429) without even checking the password.
+        if (loginRateLimiter.isBlocked(clientIp, loginRequest.getEmail())) {
+            long retryAfter = loginRateLimiter.retryAfterSeconds(clientIp, loginRequest.getEmail());
+            long minutes = Math.max(1, (retryAfter + 59) / 60); // round up to whole minutes
+            throw new TooManyAttemptsException(
+                    "Too many failed login attempts. Please try again in " + minutes + " minute(s).",
+                    retryAfter);
+        }
+
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(
@@ -43,6 +57,8 @@ public class AuthController {
                     )
             );
         } catch (AuthenticationException ex) {
+            // Count this failure toward the lockout threshold for this IP + account.
+            loginRateLimiter.recordFailure(clientIp, loginRequest.getEmail());
             // Audit failed login attempt (NO password or credential recorded!)
             auditLogService.logAction(
                     AuditAction.LOGIN_FAILURE,
@@ -54,6 +70,9 @@ public class AuthController {
             );
             throw ex;
         }
+
+        // Successful login clears any accumulated failures for this IP + account.
+        loginRateLimiter.reset(clientIp, loginRequest.getEmail());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

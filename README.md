@@ -34,7 +34,7 @@ The system replaces manual paper workflows with automated submission tracking, H
 - **Database Engine**: MySQL Server 8.0+ (`faculty_achievement_db`).
 - **Security & Tokens**: JJWT 0.12.6, BCrypt Password Hashing, Jakarta Validation.
 - **Frontend Architecture**: HTML5, Vanilla CSS3 (Custom Design Tokens), JavaScript ES6+ (Fetch API / Async-Await).
-- **Build Tool**: Apache Maven (mvnd 1.0.6).
+- **Build Tool**: Apache Maven (via the bundled Maven Wrapper — no separate install needed).
 
 ---
 
@@ -103,10 +103,11 @@ faculty-achievement-portal/
 │       │   │   └── service/        # Service Interfaces & Implementations
 │       │   └── resources/
 │       │       ├── application.properties
-│       │       └── schema.sql
+│       │       ├── logback-spring.xml     # Logging config (console + rolling file)
+│       │       └── db/migration/          # Flyway schema & seed migrations (V1, V2, ...)
 │       └── test/                    # Maven Unit & Integration Test Suites
 ├── frontend/
-│   ├── css/                         # Custom CSS Design System (main, layout, components, dashboard)
+│   ├── css/                         # Custom CSS Design System (variables, reset, layout, components, forms, tables, responsive)
 │   ├── js/                          # Frontend Controllers (api, common, achievements, admin, dashboard)
 │   └── pages/                       # User Interfaces (index, login, achievements, profile, admin/*)
 └── docs/                            # Academic & Technical Documentation Package
@@ -119,17 +120,24 @@ faculty-achievement-portal/
 ### Prerequisites
 - JDK 21+ installed and `JAVA_HOME` configured.
 - MySQL 8.0+ running on port `3306`.
-- Create database: `CREATE DATABASE faculty_achievement_db;` and execute `backend/src/main/resources/schema.sql`.
+- Create an empty database: `CREATE DATABASE faculty_achievement_db;`. You do **not** run
+  any schema script — **Flyway** creates all tables and seeds reference data (roles,
+  departments, categories) automatically on first startup.
+- Provide the required settings (`DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`, ...) via
+  environment variables, or a git-ignored `backend/src/main/resources/application-local.properties`.
 
 ### Backend Startup
+Use the bundled Maven wrapper (no separate Maven install required):
 ```bash
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run          # Windows: mvnw.cmd spring-boot:run
 ```
-The REST API server will start at `http://localhost:8080/api`.
+On first run Flyway creates and seeds the schema, then the REST API starts at `http://localhost:8080/api`.
 
 ### Frontend Launch
 Open `frontend/pages/index.html` or serve `frontend/` using any static web server (e.g. VS Code Live Server / Python `http.server`).
+
+> **Deploying live?** See [`docs/deployment.md`](docs/deployment.md) for the one-command Docker + Caddy production setup with automatic, browser-trusted HTTPS.
 
 ---
 

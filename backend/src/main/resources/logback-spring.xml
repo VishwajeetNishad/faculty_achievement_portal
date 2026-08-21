@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ====================================================================
+  Logging configuration for the Faculty Achievement Portal.
+
+  Logs go to TWO places ("appenders"):
+    CONSOLE - printed to standard output. In production this is what
+              "docker compose logs backend" shows you, so it stays on.
+    FILE    - a rolling log file under ${LOG_DIR}. In production LOG_DIR
+              points at a mounted volume (/app/logs), so the logs survive
+              container restarts/redeploys and can be included in backups.
+
+  "Rolling" = the file rotates automatically so it can never fill the disk:
+  a new file each day and whenever the current one passes 10 MB, old files
+  are gzip-compressed, ~14 days are kept, and the total is capped at 200 MB.
+
+  Spring picks up this file (logback-spring.xml) automatically. During tests
+  a console-only logback-test.xml takes precedence, so tests write no files.
+  ====================================================================
+-->
+<configuration>
+
+    <!-- Directory for log files. Overridable via the LOG_DIR environment variable;
+         defaults to a local "logs" folder for development. docker-compose sets
+         LOG_DIR=/app/logs (a persistent volume). -->
+    <property name="LOG_DIR" value="${LOG_DIR:-logs}"/>
+    <property name="LOG_FILE" value="${LOG_DIR}/faculty-portal.log"/>
+
+    <!-- Timestamp | level | thread | logger | message -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- %d = daily rollover, %i = index when a single day exceeds maxFileSize.
+                 The .gz suffix makes logback compress rolled files to save disk. -->
+            <fileNamePattern>${LOG_DIR}/faculty-portal.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>14</maxHistory>
+            <totalSizeCap>200MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Our own code logs at INFO by default; raise/lower with LOG_LEVEL_APP if needed. -->
+    <logger name="com.niet.facultyachievement" level="${LOG_LEVEL_APP:-INFO}"/>
+
+    <root level="${LOG_LEVEL_ROOT:-INFO}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

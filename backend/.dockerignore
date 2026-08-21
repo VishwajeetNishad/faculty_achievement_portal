@@ -1,0 +1,28 @@
+# Keep the Docker build context small and NEVER bake secrets or local artifacts
+# into the image. Paths are relative to the backend/ build context.
+
+# Build output (the jar is rebuilt inside the image)
+target/
+
+# Local secrets / developer overrides — MUST NOT be copied into the image
+**/application-local.properties
+**/application-local.yml
+
+# Runtime data that must never be baked in
+uploads/
+logs/
+*.log
+
+# The Maven wrapper is unused inside the image (the build stage already has Maven)
+.mvn/
+mvnw
+mvnw.cmd
+
+# VCS / IDE / OS cruft
+.git/
+.gitignore
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
