@@ -15,12 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.niet.facultyachievement.entity.AuditAction;
+import com.niet.facultyachievement.service.AuditLogService;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
+    private final AuditLogService auditLogService;
 
     /**
      * PUT /api/users/me — Faculty self-profile update.
@@ -49,6 +53,17 @@ public class UserController {
         }
 
         User saved = userRepository.save(user);
+
+        // Audit profile update
+        auditLogService.logAction(
+                AuditAction.PROFILE_UPDATED,
+                "USER",
+                saved.getId(),
+                "Faculty member updated profile information",
+                saved,
+                null
+        );
+
         return ResponseEntity.ok(UserResponse.fromEntity(saved));
     }
 

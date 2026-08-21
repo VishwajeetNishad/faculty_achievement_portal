@@ -1,123 +1,178 @@
-# Faculty Achievement Portal
+# Faculty Achievement Portal — NIET
 
-## Institution
-**NIET – Noida Institute of Engineering and Technology**
-
----
-
-## Description
-A comprehensive web-based application designed to record, track, manage, verify, and report academic achievements, research publications, patents, research grants, workshops/FDPs, and awards of faculty members.
+**Institution**: Noida Institute of Engineering and Technology (NIET)  
+**Project Status**: Production-Ready / Final College Submission Package  
+**Architecture**: Spring Boot 3.3.4 (Java 21) + MySQL 8.0 + Vanilla HTML5/CSS3/JavaScript  
+**Test Coverage**: **169 / 169 System Test Scenarios Passed (100%)**
 
 ---
 
-## Tech Stack
-- **Backend Framework**: Java 21 LTS, Spring Boot 3.3.4, Maven
-- **Database**: MySQL 8.0 Relational Database (`faculty_achievement_db`)
-- **ORM**: Spring Data JPA / Hibernate (`spring.jpa.hibernate.ddl-auto=validate`)
-- **Architecture**: Layered RESTful Architecture (Controller -> Service -> Repository -> Entity -> MySQL)
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript (To be connected)
+## 1. Project Overview
+
+The **Faculty Achievement Portal** is a centralized, role-based web application developed for **Noida Institute of Engineering and Technology (NIET)**. It streamlines the digital submission, departmental verification, institutional analytics, secure document management, and compliance reporting of faculty achievements (Journal Publications, Patents, Research Grants, Workshops/FDPs, and Awards).
+
+The system replaces manual paper workflows with automated submission tracking, HOD/Admin verification workflows, real-time event notifications, append-only security audit logging, and role-restricted CSV report generation.
 
 ---
 
-## Project Structure
-```text
-faculty-achievement-portal/
-├── backend/                  # Spring Boot 3.3.4 REST API
-│   ├── src/
-│   │   ├── main/java/com/niet/facultyachievement/
-│   │   │   ├── FacultyAchievementApplication.java
-│   │   │   ├── controller/
-│   │   │   │   └── AchievementController.java
-│   │   │   ├── service/
-│   │   │   │   ├── AchievementService.java
-│   │   │   │   └── AchievementServiceImpl.java
-│   │   │   ├── repository/
-│   │   │   │   ├── AchievementRepository.java
-│   │   │   │   ├── UserRepository.java
-│   │   │   │   ├── DepartmentRepository.java
-│   │   │   │   ├── AchievementCategoryRepository.java
-│   │   │   │   └── [Specialized Extension Repositories...]
-│   │   │   ├── dto/
-│   │   │   │   ├── AchievementCreateRequest.java
-│   │   │   │   ├── AchievementUpdateRequest.java
-│   │   │   │   ├── AchievementResponse.java
-│   │   │   │   └── ErrorResponse.java
-│   │   │   ├── entity/
-│   │   │   │   └── [10 Entities + 10 Enums]
-│   │   │   └── exception/
-│   │   │       ├── ResourceNotFoundException.java
-│   │   │       ├── BadRequestException.java
-│   │   │       └── GlobalExceptionHandler.java
-│   │   └── test/java/com/niet/facultyachievement/
-│   │       ├── controller/AchievementControllerTest.java
-│   │       └── service/AchievementServiceTest.java
-│   └── pom.xml
-├── docs/                     # Documentation & Database Schema DDL
-│   ├── schema.sql            # MySQL DDL Script (10 Normalized Tables)
-│   ├── seed.sql              # Database Seed Data Script
-│   ├── database-design.md    # ER Diagram & Data Dictionary Specification
-│   ├── api.md                # REST API Specification Document
-│   └── api-test-report.md    # Step 8 Verification & Testing Report
-├── .gitignore                # Git ignored files configuration
-└── README.md                 # Project progress log & documentation
+## 2. Key Modules & Features
+
+- **Authentication & Security**: JWT authentication (HS256, 24h expiry), BCrypt password hashing, role-based access control (FACULTY, HOD, ADMIN), and IDOR/BOLA protection.
+- **Faculty Self-Service Portal**: Submit achievements across 5 categories, upload PDF proof certificates with deep magic-byte validation (`%PDF-`), track review status, and receive real-time notifications.
+- **HOD Verification Workflow**: Department-scoped dashboard, review pending achievements, inspect PDF proof certificates, approve or reject with comments, and track department analytics.
+- **Admin Control Center**: Institution-wide statistics, active faculty roster management, cross-department verification, audit trail inspection, and CSV report export.
+- **Search, Filtering & Pagination**: Multi-criterion backend filtering (keyword, status, category, date range, department), whitelisted sorting, and server-side pagination (max 100 per page).
+- **Secure File Storage**: PDF file validation, 10 MB size limit, random UUID filename generation (path traversal protection), and protected streaming downloads.
+- **Real-Time Notification System**: Event-triggered in-app alerts for submissions, review requests, approvals, and rejections with unread badge counters.
+- **Immutable Security Audit Trail**: Append-only audit logging of authentication attempts (`LOGIN_SUCCESS`, `LOGIN_FAILURE`), achievement CRUD, proof uploads, and profile updates.
+
+---
+
+## 3. Technology Stack
+
+- **Backend Framework**: Java 21 LTS, Spring Boot 3.3.4, Spring Security, Spring Data JPA, Hibernate.
+- **Database Engine**: MySQL Server 8.0+ (`faculty_achievement_db`).
+- **Security & Tokens**: JJWT 0.12.6, BCrypt Password Hashing, Jakarta Validation.
+- **Frontend Architecture**: HTML5, Vanilla CSS3 (Custom Design Tokens), JavaScript ES6+ (Fetch API / Async-Await).
+- **Build Tool**: Apache Maven (mvnd 1.0.6).
+
+---
+
+## 4. System Architecture
+
+```
+                         USERS (Faculty / HOD / Admin)
+                                       |
+                                       v
+               +-----------------------------------------------+
+               |   HTML5 / CSS3 / Vanilla JavaScript Frontend  |
+               +-----------------------+-----------------------+
+                                       |
+                                       | HTTPS / REST API (JWT Bearer)
+                                       v
+               +-----------------------------------------------+
+               |       Spring Boot 3.3.4 REST Application      |
+               +-----------------------+-----------------------+
+                                       |
+          +----------------------------+----------------------------+
+          |                            |                            |
+          v                            v                            v
+  Spring Security              Service Layer               File Storage Service
+(JWT / BCrypt RBAC)                    |                    (uploads/achievements)
+          |                            v                            |
+          |                   JPA Repositories                      |
+          |                            |                            |
+          +----------------------------+----------------------------+
+                                       |
+                                       v
+                             MySQL 8.0 Database
+               (users, achievements, notifications, audit_logs)
 ```
 
 ---
 
-## 📌 Complete Development Log (Steps 1 – 8)
+## 5. User Roles & Authorization Matrix
 
-### Step 1 — Project Structure & Environment Setup
-- Established root project layout (`backend/`, `frontend/`, `docs/`).
-- Installed Eclipse Temurin OpenJDK 21 LTS (`jdk-21.0.12.8-hotspot`) and configured `JAVA_HOME`.
-- Configured `.gitignore` to protect sensitive local developer files, credentials, and build outputs.
-- Initialized local Git repository on branch `main` and linked remote `https://github.com/VishwajeetNishad/faculty_achievement_portal.git`.
+| Action / Capability | Faculty | HOD | Admin | Enforcement Mechanism |
+| :--- | :---: | :---: | :---: | :--- |
+| **Submit & Manage Own Achievements** | ✓ | ✓ | ✓ | SecurityContext user identity check |
+| **Upload / Delete Proof PDF** | Owner | Owner | Owner | Owner authorization check |
+| **Download Proof Certificate** | Owner | Dept | All | IDOR check: Owner, Admin, or Dept HOD |
+| **Department Achievements Review** | ✗ | Dept | All | `ROLE_HOD` / `ROLE_ADMIN` authorization |
+| **Institutional Faculty Roster** | ✗ | ✗ | All | `hasRole('ADMIN')` on `/api/users` |
+| **Institutional Audit Trail** | ✗ | ✗ | All | `hasAnyAuthority('ROLE_ADMIN')` on `/api/audit-logs` |
 
-### Step 2 — Relational Database Architecture
-- Designed normalized 10-table relational schema (`faculty_achievement_db`).
-- Authored DDL script [`docs/schema.sql`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/schema.sql) defining tables (`departments`, `roles`, `users`, `achievement_categories`, `achievements`, `publications`, `patents`, `research_grants`, `workshops_fdps`, `awards`).
-- Authored seed data script [`docs/seed.sql`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/seed.sql).
-- Documented data dictionary and entity-relationship specifications in [`docs/database-design.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/database-design.md).
+---
 
-### Step 3 — MySQL Database Implementation
-- Executed DDL and DML scripts in MySQL Workbench on local MySQL 8.0 server (`MySQL80` service running on port 3306).
-- Verified primary keys, foreign key constraints, default timestamps, and indexes.
+## 6. Project Structure
 
-### Step 4 — Spring Boot + MySQL Connection Setup
-- Created Spring Boot 3.3.4 project under package `com.niet.facultyachievement`.
-- Configured `pom.xml` with dependencies (`spring-boot-starter-web`, `spring-boot-starter-data-jpa`, `spring-boot-starter-validation`, `mysql-connector-j`, `lombok`).
-- Configured `application.properties` with database connection string and enforced `spring.jpa.hibernate.ddl-auto=validate`.
-- Successfully verified zero-error backend startup and HikariCP connection pool initialization.
+```
+faculty-achievement-portal/
+├── backend/
+│   ├── pom.xml
+│   └── src/
+│       ├── main/
+│       │   ├── java/com/niet/facultyachievement/
+│       │   │   ├── config/          # Spring Security & App Beans
+│       │   │   ├── controller/      # Auth, Achievement, User, Dashboard, Notification, Audit Controllers
+│       │   │   ├── dto/             # Request & Response Data Transfer Objects
+│       │   │   ├── entity/          # JPA Entities (User, Achievement, Notification, AuditLog, etc.)
+│       │   │   ├── exception/       # Global Exception Handler & Custom Errors
+│       │   │   ├── repository/     # Spring Data JPA Repositories & Specifications
+│       │   │   ├── security/       # JWT Provider & Custom UserDetailsService
+│       │   │   └── service/        # Service Interfaces & Implementations
+│       │   └── resources/
+│       │       ├── application.properties
+│       │       └── schema.sql
+│       └── test/                    # Maven Unit & Integration Test Suites
+├── frontend/
+│   ├── css/                         # Custom CSS Design System (main, layout, components, dashboard)
+│   ├── js/                          # Frontend Controllers (api, common, achievements, admin, dashboard)
+│   └── pages/                       # User Interfaces (index, login, achievements, profile, admin/*)
+└── docs/                            # Academic & Technical Documentation Package
+```
 
-### Step 5 — Java Entity & Enum JPA Mapping
-- Mapped all 10 MySQL database tables 1-to-1 to JPA Java Entities (`Department`, `Role`, `User`, `AchievementCategory`, `Achievement`, `Publication`, `Patent`, `ResearchGrant`, `WorkshopFdp`, `Award`).
-- Mapped 10 Java Enums matching MySQL `ENUM` types 100% (`UserStatus`, `AchievementStatus`, `PublicationType`, `PublicationIndexing`, `PatentStatus`, `ProjectType`, `GrantStatus`, `EventType`, `EventRole`, `AwardLevel`).
-- Established `@ManyToOne` and `@OneToOne(mappedBy = ...)` bidirectional relationships using `FetchType.LAZY` to prevent N+1 queries.
+---
 
-### Step 6 — Repository, Service, DTO & Validation Layer
-- Created 10 Spring Data JPA Repository interfaces (`AchievementRepository`, `UserRepository`, `DepartmentRepository`, etc.) extending `JpaRepository<Entity, Long>`.
-- Created DTO payload classes (`AchievementCreateRequest`, `AchievementUpdateRequest`, `AchievementResponse`, `ErrorResponse`).
-- Implemented Jakarta Bean Validation (`@NotNull`, `@NotBlank`, `@Size`, `@PastOrPresent`) on request DTOs.
-- Created `AchievementService` interface and `AchievementServiceImpl` class handling business logic, status control (`PENDING`), and DTO transformations.
-- Created custom exceptions (`ResourceNotFoundException`, `BadRequestException`).
-- Created unit tests (`AchievementServiceTest`) passing 5/5 tests cleanly.
+## 7. How to Run Locally
 
-### Step 7 — REST Controller Layer & API Endpoint Exposure
-- Implemented `AchievementController` (`@RestController`, `@RequestMapping("/api/achievements")`) exposing 7 endpoints:
-  - `POST /api/achievements`
-  - `GET /api/achievements/{id}`
-  - `GET /api/achievements/user/{userId}`
-  - `GET /api/achievements/status/{status}`
-  - `GET /api/achievements/department/{departmentId}`
-  - `PUT /api/achievements/{id}`
-  - `DELETE /api/achievements/{id}`
-- Created `GlobalExceptionHandler` (`@RestControllerAdvice`) producing uniform JSON error payloads.
-- Created REST API documentation [`docs/api.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/api.md).
-- Created MockMvc integration tests (`AchievementControllerTest`) passing 10/10 tests cleanly.
+### Prerequisites
+- JDK 21+ installed and `JAVA_HOME` configured.
+- MySQL 8.0+ running on port `3306`.
+- Create database: `CREATE DATABASE faculty_achievement_db;` and execute `backend/src/main/resources/schema.sql`.
 
-### Step 8 — Backend API Testing & Persistence Verification
-- Verified live server startup on port 8080 and database connectivity.
-- Executed 15/15 automated unit and controller MockMvc tests (`BUILD SUCCESS`).
-- Executed 11/11 live HTTP end-to-end integration tests covering creation, retrieval, filtering, updates, deletion, validation errors, 404 handling, invalid enum handling, and ownership checks (100% PASS).
-- Executed direct MySQL SQL query confirming persistence, timestamp generation, and safe record deletion in `faculty_achievement_db`.
-- Generated comprehensive test verification report [`docs/api-test-report.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/api-test-report.md).
-- All changes committed and pushed to GitHub `main` branch (`Everything up-to-date`).
+### Backend Startup
+```bash
+cd backend
+mvn spring-boot:run
+```
+The REST API server will start at `http://localhost:8080/api`.
+
+### Frontend Launch
+Open `frontend/pages/index.html` or serve `frontend/` using any static web server (e.g. VS Code Live Server / Python `http.server`).
+
+---
+
+## 8. Environment Variables
+
+| Variable | Description | Default Fallback |
+| :--- | :--- | :--- |
+| `DB_HOST` | MySQL Host | `localhost` |
+| `DB_PORT` | MySQL Port | `3306` |
+| `DB_NAME` | Database Name | `faculty_achievement_db` |
+| `DB_USERNAME` | DB Username | `root` |
+| `DB_PASSWORD` | DB Password | _(required — no default)_ |
+| `JWT_SECRET` | 256-bit Signing Secret | _(required — no default)_ |
+| `APP_FILE_STORAGE_UPLOAD_DIR` | PDF Upload Path | `uploads/achievements` |
+| `FRONTEND_ALLOWED_ORIGINS` | CORS Whitelist | `http://localhost:8080,http://localhost:3000` |
+
+---
+
+## 9. Verification & Test Suite Summary
+
+- **Backend Unit Tests**: 28 / 28 PASSED
+- **Security Hardening Suite**: 19 / 19 PASSED
+- **Master E2E Integration Suite**: 21 / 21 PASSED
+- **Step 17–20 Integration Suites**: 101 / 101 PASSED
+- **TOTAL**: **169 / 169 PASSED (0 Failures)**
+
+---
+
+## 10. Documentation Index
+
+Detailed documentation files are available in the [`docs/`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/) directory:
+
+1. [`docs/abstract.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/abstract.md): Academic Project Abstract
+2. [`docs/problem-statement.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/problem-statement.md): Problem Statement & Objectives
+3. [`docs/SRS.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/SRS.md): Software Requirements Specification
+4. [`docs/architecture.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/architecture.md): System Architecture & Diagrams
+5. [`docs/database.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/database.md): Relational Database Schema Documentation
+6. [`docs/er-diagram.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/er-diagram.md): Entity-Relationship Specification
+7. [`docs/security.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/security.md): Application Security & Threat Defense Guide
+8. [`docs/api.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/api.md): Complete REST API Specification
+9. [`docs/testing.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/testing.md): System Integration & E2E Testing Report
+10. [`docs/test-cases.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/test-cases.md): Comprehensive Test Case Matrix
+11. [`docs/deployment.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/deployment.md): Production Deployment & Environment Setup Guide
+12. [`docs/user-manual.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/user-manual.md): User Manual & Operating Guide
+13. [`docs/presentation-outline.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/presentation-outline.md): 14-Slide Final Project PPT Outline
+14. [`docs/viva-questions.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/viva-questions.md): 40 Technical Viva Preparation Questions & Answers

@@ -101,11 +101,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex, HttpServletRequest request) {
 
+        // Log root cause for server diagnostic inspection without exposing details to client
+        System.err.println("Unhandled Application Error at " + request.getRequestURI() + ": " + ex.getMessage());
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .error(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase())
-                .message(ex.getMessage() != null ? ex.getMessage() : "An unexpected error occurred on the server.")
+                .message("An unexpected internal error occurred. Please try again or contact the system administrator.")
                 .path(request.getRequestURI())
                 .build();
 

@@ -3,142 +3,411 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Faculty Profile | NIET Faculty Achievement Portal</title>
+  <title>My Profile | NIET Faculty Achievement Portal</title>
 
-  <!-- Stylesheets -->
+  <!-- Fonts & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/reset.css">
   <link rel="stylesheet" href="../css/layout.css">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/forms.css">
   <link rel="stylesheet" href="../css/responsive.css">
+
+  <style>
+    /* Profile 2-Column Layout (Pages 23 & 24 Matching) */
+    .profile-layout-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      align-items: flex-start;
+    }
+    .profile-avatar-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      box-shadow: var(--shadow-xs);
+    }
+    .profile-big-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: #FFF;
+      font-size: 1.6rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3);
+    }
+    .profile-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+    .profile-designation {
+      font-size: 0.825rem;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+    .profile-dept {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .profile-emp-code {
+      font-size: 0.725rem;
+      color: var(--text-tertiary);
+      margin: 0.5rem 0 1rem;
+      font-family: monospace;
+    }
+    .profile-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      background-color: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+
+    .profile-info-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .profile-info-row {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      align-items: center;
+      font-size: 0.825rem;
+    }
+    .profile-info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--text-secondary);
+    }
+    .info-value {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    @media (max-width: 900px) {
+      .profile-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <div class="app-wrapper">
 
-    <!-- App Sidebar -->
+    <!-- ─── Dark Navy Sidebar ─── -->
     <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
-        <span class="niet-brand-badge">NIET</span>
-        <div class="sidebar-brand-title">
-          Faculty Portal
-          <span>NIET Noida</span>
+        <div class="sidebar-brand-group">
+          <div class="brand-circle-logo">N</div>
+          <div class="sidebar-brand-title">
+            NIET
+            <span>ACHIEVEMENT PORTAL</span>
+          </div>
         </div>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+          <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Main Navigation</div>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <a href="dashboard.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="achievements.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              My Achievements
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="add-achievement.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-              Add Achievement
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="profile.html" class="nav-link active">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              My Profile
-            </a>
-          </li>
-        </ul>
+        <div>
+          <div class="nav-section-title">MAIN MENU</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                  </svg>
+                  <span>Dashboard</span>
+                </div>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="add-achievement.html" class="nav-link">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                  </svg>
+                  <span>Add Achievement</span>
+                </div>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="achievements.html" class="nav-link">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <span>My Achievements</span>
+                </div>
+                <span class="nav-badge-count" id="sidebarAchievementCount">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="profile.html" class="nav-link active">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                  <span>My Profile</span>
+                </div>
+                <svg class="nav-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Support Navigation Link -->
+        <div class="sidebar-support-nav">
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="#" class="nav-link" onclick="openModal('helpSupportModal'); return false;">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>Help &amp; Support</span>
+                </div>
+              </a>
+            </li>
+          </ul>
+        </div>
       </nav>
 
+      <!-- Sidebar Bottom Faculty Card with Support & Logout -->
       <div class="sidebar-footer">
-        <a href="login.html" class="nav-link" style="color: #FCA5A5;">
-          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Sign Out
-        </a>
+        <div class="sidebar-user-widget">
+          <div class="sidebar-user-info">
+            <div class="sidebar-avatar" id="sidebarAvatar">ST</div>
+            <div class="sidebar-user-text">
+              <span class="sidebar-user-name" id="sidebarUserName">Dr. Faculty</span>
+              <span class="sidebar-user-role" id="sidebarUserRole">Assoc. Prof. &bull; CSE</span>
+            </div>
+          </div>
+          <div class="sidebar-footer-actions">
+            <button class="sidebar-action-icon-btn" onclick="openModal('helpSupportModal')" title="Help & Support" aria-label="Help & Support">
+              <svg style="width: 17px; height: 17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </button>
+            <button class="sidebar-action-icon-btn logout" id="signOutBtn" title="Sign Out" aria-label="Sign Out">
+              <svg style="width: 17px; height: 17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </aside>
 
-    <!-- App Main Content Area -->
+    <!-- ─── Main Content ─── -->
     <main class="app-main">
       
+      <!-- Topbar Header -->
       <header class="app-header">
         <div class="header-left">
           <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
-            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
-          <h1 class="page-title">Faculty Profile</h1>
+          <div class="page-title-group">
+            <h1 class="page-title">My Profile</h1>
+            <p class="page-subtitle">Manage personal and academic details</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <a href="add-achievement.html" class="btn-header-cta">
+            <span style="font-size: 1.1rem; line-height: 1;">+</span>
+            <span class="btn-text-full">New Achievement</span>
+            <span class="btn-text-short">New</span>
+          </a>
+          <button class="header-notif-btn" id="notificationBellBtn" aria-label="Notifications" onclick="showToast('You have 2 unread notifications', 'info')">
+            <svg style="width: 17px; height: 17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span class="notif-badge-bubble" id="unreadNotifBadge">2</span>
+          </button>
+          <div class="header-user-badge" onclick="window.location.href='profile.html'">
+            <div class="header-user-avatar" id="headerAvatar">ST</div>
+            <svg class="header-chevron-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
         </div>
       </header>
 
+      <!-- Content Area -->
       <div class="page-content">
         <div class="content-container">
 
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">Personal & Academic Details</h2>
-              <button type="button" id="editProfileBtn" class="btn btn-outline btn-sm">Edit Profile</button>
+          <!-- Profile 2-Column Split Layout (Pages 23 & 24 Design) -->
+          <div class="profile-layout-grid">
+            
+            <!-- Left Profile Avatar & Identity Card -->
+            <div class="profile-avatar-card">
+              <div class="profile-big-avatar" id="profileBigAvatar">ST</div>
+              <h2 class="profile-name" id="profileDisplayName">Dr. Security Test</h2>
+              <div class="profile-designation" id="profileDisplayDesignation">Associate Professor</div>
+              <div class="profile-dept" id="profileDisplayDept">Computer Science &amp; Engineering</div>
+              <div class="profile-emp-code" id="profileDisplayEmpId">NIET-CSE-2018-042</div>
+              <div>
+                <span class="profile-status-pill">&#8226; Active</span>
+              </div>
             </div>
-            <div class="card-body">
-              <form id="profileForm">
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label class="form-label" for="profileName">Full Name</label>
-                    <input type="text" id="profileName" class="form-control profile-editable" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileEmpId">Employee ID</label>
-                    <input type="text" id="profileEmpId" class="form-control" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileEmail">Email Address</label>
-                    <input type="email" id="profileEmail" class="form-control" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileDepartment">Department</label>
-                    <input type="text" id="profileDepartment" class="form-control" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileDesignation">Designation</label>
-                    <input type="text" id="profileDesignation" class="form-control profile-editable" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profilePhone">Phone</label>
-                    <input type="tel" id="profilePhone" class="form-control profile-editable" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileRole">Institutional Role</label>
-                    <input type="text" id="profileRole" class="form-control" readonly>
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label" for="profileStatus">Account Status</label>
-                    <input type="text" id="profileStatus" class="form-control" readonly>
+
+            <!-- Right Profile Information Section -->
+            <div>
+              
+              <!-- 1. Personal Information Card -->
+              <div class="profile-info-card">
+                <div class="card-header">
+                  <h3 class="card-title">Personal Information</h3>
+                  <div>
+                    <button id="editProfileBtn" class="btn btn-outline btn-sm">Edit Profile</button>
+                    <button id="saveProfileBtn" class="btn btn-primary btn-sm" style="display: none;">Save Changes</button>
+                    <button id="cancelEditBtn" class="btn btn-ghost btn-sm" style="display: none;">Cancel</button>
                   </div>
                 </div>
 
-                <div id="profileActionGroup" style="display: none; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
-                  <button type="button" id="cancelProfileBtn" class="btn btn-outline">Cancel</button>
-                  <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Profile Changes</button>
+                <div class="card-body" style="padding: 0;">
+                  <form id="profileForm">
+                    
+                    <div class="profile-info-row">
+                      <span class="info-label">Full Name</span>
+                      <div class="info-value">
+                        <span id="viewFullName">Dr. Security Test</span>
+                        <input type="text" id="editFullName" class="form-control form-control-sm" style="display: none;">
+                      </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                      <span class="info-label">Email <small style="color: var(--text-tertiary);">(read-only)</small></span>
+                      <div class="info-value">
+                        <span id="viewEmail">faculty2@niet.co.in</span>
+                      </div>
+                    </div>
+
+                    <div class="profile-info-row">
+                      <span class="info-label">Phone</span>
+                      <div class="info-value">
+                        <span id="viewPhone">+91 98765 43210</span>
+                        <input type="text" id="editPhone" class="form-control form-control-sm" style="display: none;" placeholder="+91 98765 43210">
+                      </div>
+                    </div>
+
+                  </form>
                 </div>
-              </form>
+              </div>
+
+              <!-- 2. Academic Information Card -->
+              <div class="profile-info-card">
+                <div class="card-header">
+                  <h3 class="card-title">Academic Information</h3>
+                </div>
+                <div class="card-body" style="padding: 0;">
+                  
+                  <div class="profile-info-row">
+                    <span class="info-label">Employee ID</span>
+                    <span class="info-value" id="viewEmpCode">NIET-CSE-2018-042</span>
+                  </div>
+
+                  <div class="profile-info-row">
+                    <span class="info-label">Designation</span>
+                    <span class="info-value" id="viewDesignation">Associate Professor</span>
+                  </div>
+
+                  <div class="profile-info-row">
+                    <span class="info-label">Department</span>
+                    <span class="info-value" id="viewDepartment">Computer Science &amp; Engineering</span>
+                  </div>
+
+                  <div class="profile-info-row">
+                    <span class="info-label">Role</span>
+                    <span class="info-value">Faculty</span>
+                  </div>
+
+                  <div class="profile-info-row">
+                    <span class="info-label">Account Status</span>
+                    <span class="info-value" style="color: #059669; font-weight: 600;">Active</span>
+                  </div>
+
+                </div>
+              </div>
+
             </div>
+
           </div>
 
         </div>
       </div>
 
+      <!-- Institutional Footer -->
+      <footer class="app-footer">
+        <div>&copy; 2026 Noida Institute of Engineering and Technology (NIET). All rights reserved.</div>
+        <div>Faculty Achievement Portal v2.0</div>
+      </footer>
+
     </main>
 
   </div>
 
+  <!-- ─── Modal: Help & Support ─── -->
+  <div class="modal-backdrop" id="helpSupportModal" aria-hidden="true">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Help &amp; Institutional Support</h3>
+        <button class="modal-close-btn" onclick="closeModal('helpSupportModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.8rem;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem;">✉</span>
+            <div>
+              <div style="font-weight: 600; color: var(--text-primary);">Email Support</div>
+              <div style="color: var(--text-secondary);"><a href="mailto:support@niet.co.in" style="color: var(--primary-color);">support@niet.co.in</a></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem;">📞</span>
+            <div>
+              <div style="font-weight: 600; color: var(--text-primary);">Helpline Extension</div>
+              <div style="color: var(--text-secondary);">Ext. 4022 / +91 (0120) 232-8131</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('helpSupportModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="../js/config.js"></script>
+  <script src="../js/mockData.js"></script>
   <script src="../js/api.js"></script>
+  <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>
   <script src="../js/profile.js"></script>
 </body>

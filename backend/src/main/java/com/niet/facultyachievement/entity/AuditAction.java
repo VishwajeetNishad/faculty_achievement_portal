@@ -1,0 +1,14 @@
+package com.niet.facultyachievement.entity;
+
+public enum AuditAction {
+    LOGIN_SUCCESS,
+    LOGIN_FAILURE,
+    ACHIEVEMENT_CREATED,
+    ACHIEVEMENT_UPDATED,
+    ACHIEVEMENT_DELETED,
+    ACHIEVEMENT_APPROVED,
+    ACHIEVEMENT_REJECTED,
+    PROOF_UPLOADED,
+    PROOF_DELETED,
+    PROFILE_UPDATED
+}

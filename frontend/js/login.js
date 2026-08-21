@@ -27,8 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const usernameVal = document.getElementById('username').value.trim();
-      const passwordVal = passwordInput.value;
+      const usernameInput = document.getElementById('loginEmail') || document.getElementById('username');
+      const passwordInput = document.getElementById('loginPassword') || document.getElementById('password');
+
+      const usernameVal = usernameInput ? usernameInput.value.trim() : '';
+      const passwordVal = passwordInput ? passwordInput.value : '';
 
       if (!FormValidator.validateRequired(usernameVal)) {
         showToast('Please enter your Email or Employee ID', 'error');
@@ -46,31 +49,42 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.textContent = 'Authenticating...';
       }
 
-      // Execute Real Authentication API Request
-      const res = await ApiClient.post('/auth/login', {
-        email: usernameVal,
-        password: passwordVal
-      });
+      try {
+        // Execute Real Authentication API Request
+        const res = await ApiClient.post('/auth/login', {
+          email: usernameVal,
+          password: passwordVal
+        });
 
-      if (res.success && res.data && res.data.accessToken) {
-        // Store JWT token and User Info in sessionStorage
-        sessionStorage.setItem('accessToken', res.data.accessToken);
-        sessionStorage.setItem('currentUser', JSON.stringify(res.data));
+        if (res && res.success && res.data && res.data.accessToken) {
+          // Store JWT token and User Info in sessionStorage
+          sessionStorage.setItem('accessToken', res.data.accessToken);
+          sessionStorage.setItem('currentUser', JSON.stringify(res.data));
 
-        showToast(`Welcome back, ${res.data.fullName || 'User'}!`, 'success');
+          showToast(`Welcome back, ${res.data.fullName || 'User'}!`, 'success');
 
-        setTimeout(() => {
-          if (res.data.role === 'ROLE_ADMIN' || res.data.role === 'ADMIN') {
-            window.location.href = 'admin/dashboard.html';
-          } else {
-            window.location.href = 'dashboard.html';
+          setTimeout(() => {
+            if (res.data.role === 'ROLE_ADMIN' || res.data.role === 'ADMIN') {
+              window.location.href = 'admin/dashboard.html';
+            } else if (res.data.role === 'ROLE_HOD' || res.data.role === 'HOD') {
+              window.location.href = 'hod/dashboard.html';
+            } else {
+              window.location.href = 'dashboard.html';
+            }
+          }, 800);
+        } else {
+          showToast((res && res.message) || 'Invalid email/employee ID or password', 'error');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Sign In to Portal';
           }
-        }, 800);
-      } else {
-        showToast(res.message || 'Invalid email/employee ID or password', 'error');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        showToast('Login request failed. Ensure backend server is running.', 'error');
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Sign In';
+          submitBtn.textContent = 'Sign In to Portal';
         }
       }
     });

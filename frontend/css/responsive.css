@@ -1,18 +1,44 @@
 /* ====================================================================
-   Responsive Breakpoints & Mobile Adaptations (320px to 1920px)
+   Responsive Breakpoints — Figma Faculty Portal Design
+   320px → 1920px Adaptive Shell
    ==================================================================== */
 
-/* Tablet & Mobile Breakpoint (<= 1024px) */
-@media (max-width: 1024px) {
-  :root {
-    --sidebar-width: 240px;
+/* ─── Large Desktop (≤ 1440px) ─── */
+@media (max-width: 1440px) {
+  .content-container {
+    max-width: 1200px;
   }
 }
 
-/* Mobile Breakpoint (<= 768px) */
+/* ─── Standard Desktop (≤ 1280px) ─── */
+@media (max-width: 1280px) {
+  .content-container {
+    max-width: 100%;
+  }
+}
+
+/* ─── Tablet Landscape (≤ 1024px) ─── */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+
+  .page-content {
+    padding: var(--space-5);
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ─── Tablet Portrait / Mobile (≤ 768px) ─── */
 @media (max-width: 768px) {
+  /* Sidebar becomes off-canvas drawer */
   .app-sidebar {
     transform: translateX(-100%);
+    width: 260px;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.15);
   }
 
   .app-sidebar.active {
@@ -27,28 +53,33 @@
     display: flex;
   }
 
+  /* Reduce header padding */
+  .app-header {
+    padding: 0 var(--space-4);
+  }
+
+  /* Hide user details text on mobile, keep avatar */
   .user-details {
     display: none;
   }
 
+  /* Stack stats vertically */
   .stats-grid {
     grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
+  /* Reduce page padding */
   .page-content {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
-  .app-header {
-    padding: 0 1rem;
-  }
-
-  /* Table Mobile Transformation to Cards */
-  .data-table, 
-  .data-table thead, 
-  .data-table tbody, 
-  .data-table th, 
-  .data-table td, 
+  /* ─── Table: Card Transformation ─── */
+  .data-table,
+  .data-table thead,
+  .data-table tbody,
+  .data-table th,
+  .data-table td,
   .data-table tr {
     display: block;
   }
@@ -61,17 +92,18 @@
     background: var(--surface-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    margin-bottom: 1rem;
-    padding: 1rem;
-    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-3);
+    padding: var(--space-3);
+    box-shadow: var(--shadow-xs);
   }
 
   .data-table td {
     border: none;
-    padding: 0.375rem 0;
+    padding: 0.3rem 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: var(--font-size-sm);
   }
 
   .data-table td::before {
@@ -79,20 +111,115 @@
     font-weight: var(--font-weight-semibold);
     color: var(--text-secondary);
     font-size: var(--font-size-xs);
+    margin-right: var(--space-3);
+    flex-shrink: 0;
+  }
+
+  /* Form grid to single column */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal full-width on mobile */
+  .modal-backdrop {
+    padding: var(--space-4);
+    align-items: flex-end;
+  }
+
+  .modal-container {
+    max-width: 100%;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  /* Footer stacks on mobile */
+  .app-footer {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
   }
 }
 
-/* Small Mobile Breakpoint (<= 480px) */
+/* ─── Small Mobile (≤ 480px) ─── */
 @media (max-width: 480px) {
   .page-title {
     font-size: var(--font-size-lg);
   }
 
+  .page-content {
+    padding: var(--space-3);
+  }
+
+  .card-header {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .card-body {
+    padding: var(--space-4);
+  }
+
+  /* Buttons full width on very small screens */
   .btn {
     width: 100%;
   }
 
-  .form-grid {
-    grid-template-columns: 1fr;
+  .stat-card {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ─── Micro Mobile (≤ 390px) ─── */
+@media (max-width: 390px) {
+  .app-header {
+    padding: 0 var(--space-3);
+  }
+
+  .page-content {
+    padding: var(--space-2);
+  }
+
+  .page-title {
+    font-size: var(--font-size-base);
+  }
+
+  .sidebar-header {
+    padding: 0 var(--space-3);
+  }
+}
+
+/* ─── Ultra Small (≤ 320px) ─── */
+@media (max-width: 320px) {
+  :root {
+    --font-size-base: 0.8125rem;
+    --font-size-sm: 0.75rem;
+    --font-size-xs: 0.6875rem;
+  }
+
+  .page-content {
+    padding: var(--space-2);
+  }
+
+  .btn {
+    padding: 0.4rem 0.75rem;
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ─── Print Styles ─── */
+@media print {
+  .app-sidebar,
+  .app-header,
+  .app-footer,
+  .mobile-toggle-btn,
+  .btn,
+  .modal-backdrop {
+    display: none !important;
+  }
+
+  .app-main {
+    margin-left: 0;
+  }
+
+  .page-content {
+    padding: 0;
   }
 }

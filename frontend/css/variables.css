@@ -1,79 +1,121 @@
 /* ====================================================================
-   Faculty Achievement Portal — NIET Institutional Design System Tokens
+   Faculty Achievement Portal — Design Tokens (Matching PDF 42-Screen Design)
+   Deep Navy Sidebar (#0F172A) + Crimson Red Primary (#E11D48)
    ==================================================================== */
 
 :root {
-  /* Institutional Brand Colors (NIET Noida Identity) */
-  --primary-color: #002147;       /* Deep NIET Navy Blue */
-  --primary-hover: #001530;       /* Darker Navy for Hover States */
-  --primary-light: #EBF1F8;       /* Very Light Navy Tint for Active Items */
-  
-  --secondary-color: #F2A900;     /* NIET Accent Gold */
-  --secondary-hover: #D99600;     /* Darker Gold */
-  --secondary-light: #FFF8E6;     /* Gold Tint */
+  /* ─── Primary Brand Colors (Crimson Red #E11D48) ─── */
+  --primary-color: #E11D48;        /* Crimson Red Primary */
+  --primary-hover: #BE123C;        /* Darker Red */
+  --primary-dark: #9F1239;         /* Deep Red */
+  --primary-light: rgba(225, 29, 72, 0.08); /* Light Red Tint */
+  --primary-muted: #FDA4AF;        /* Muted Rose */
 
-  /* Neutral Surface & Background Colors */
-  --bg-main: #F4F7FA;             /* App Background Slate Light */
-  --surface-card: #FFFFFF;        /* Card & Panel Surface White */
-  --surface-hover: #F8FAFC;       /* Hover Row / Surface */
-  --border-color: #E2E8F0;        /* Subtle Border Gray */
-  --border-focus: #002147;        /* Focus Border */
+  /* ─── Sidebar Brand Theme (Dark Navy #0B1120 / #0F172A) ─── */
+  --sidebar-bg: #0B1120;
+  --sidebar-border: #1E293B;
+  --sidebar-text: #94A3B8;
+  --sidebar-text-active: #FFFFFF;
+  --sidebar-active-bg: #E11D48;
 
-  /* Text & Typography Colors */
-  --text-primary: #0F172A;        /* Dark Slate Text */
-  --text-secondary: #475569;      /* Muted Slate Subtext */
-  --text-tertiary: #94A3B8;       /* Disabled / Placeholder Text */
-  --text-inverse: #FFFFFF;        /* Text on Dark Backgrounds */
+  /* ─── Secondary / Accent Colors ─── */
+  --secondary-color: #F59E0B;      /* Amber / Gold */
+  --secondary-hover: #D97706;
+  --secondary-light: #FEF3C7;
 
-  /* Status & Indicator Colors */
-  --status-pending-bg: #FEF3C7;   /* Amber Tint */
-  --status-pending-text: #92400E; /* Dark Amber */
-  --status-pending-border: #FCD34D;
+  /* ─── Neutral Surface & Background Colors ─── */
+  --bg-main: #F8FAFC;              /* Main Slate Light Background */
+  --surface-card: #FFFFFF;         /* Pure White Card Surfaces */
+  --surface-hover: #F1F5F9;        /* Hover Surfaces */
+  --surface-secondary: #F8FAFC;    /* Secondary Table Header / Subsurfaces */
+  --border-color: #E2E8F0;        /* Crisp Grey Borders */
+  --border-light: #F1F5F9;        /* Extra Light Border */
+  --border-focus: #E11D48;        /* Crimson Focus Ring */
 
-  --status-approved-bg: #D1FAE5;  /* Emerald Tint */
-  --status-approved-text: #065F46;/* Dark Emerald */
-  --status-approved-border: #6EE7B7;
+  /* ─── Text & Typography Colors ─── */
+  --text-primary: #0F172A;         /* Slate Dark Text */
+  --text-secondary: #64748B;       /* Slate Muted Text */
+  --text-tertiary: #94A3B8;        /* Disabled / Placeholder Text */
+  --text-inverse: #FFFFFF;         /* White Text */
+  --text-muted: #64748B;
 
-  --status-rejected-bg: #FEE2E2;  /* Rose Tint */
-  --status-rejected-text: #991B1B;/* Dark Crimson */
-  --status-rejected-border: #FCA5A5;
+  /* ─── Status & Indicator Colors ─── */
+  --status-pending-bg: #FEF3C7;    /* Warm Amber Tint */
+  --status-pending-text: #B45309;  /* Dark Amber */
+  --status-pending-border: #FDE68A;
+  --status-pending-dot: #F59E0B;
 
-  /* Typography Rules */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  --font-size-xs: 0.75rem;     /* 12px */
-  --font-size-sm: 0.875rem;    /* 14px */
-  --font-size-base: 1rem;      /* 16px */
-  --font-size-lg: 1.125rem;    /* 18px */
-  --font-size-xl: 1.25rem;     /* 20px */
-  --font-size-2xl: 1.5rem;     /* 24px */
-  --font-size-3xl: 1.875rem;   /* 30px */
+  --status-approved-bg: #D1FAE5;   /* Fresh Emerald Tint */
+  --status-approved-text: #047857; /* Dark Emerald */
+  --status-approved-border: #A7F3D0;
+  --status-approved-dot: #10B981;
+
+  --status-rejected-bg: #FEE2E2;   /* Rose Tint */
+  --status-rejected-text: #B91C1C; /* Dark Crimson */
+  --status-rejected-border: #FECACA;
+  --status-rejected-dot: #EF4444;
+
+  /* ─── Semantic Colors ─── */
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
+  --color-info: #0284C7;
+  --color-info-light: #E0F2FE;
+
+  /* ─── Typography Scale ─── */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-xs: 0.75rem;        /* 12px */
+  --font-size-sm: 0.8125rem;      /* 13px */
+  --font-size-base: 0.875rem;     /* 14px */
+  --font-size-md: 0.9375rem;      /* 15px */
+  --font-size-lg: 1rem;           /* 16px */
+  --font-size-xl: 1.125rem;       /* 18px */
+  --font-size-2xl: 1.35rem;       /* 21.6px */
+  --font-size-3xl: 1.75rem;       /* 28px */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
 
-  /* Elevation & Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.08), 0 1px 2px 0 rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -1px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -2px rgba(15, 23, 42, 0.05);
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
 
-  /* Border Radii */
-  --radius-xs: 0.25rem;  /* 4px */
-  --radius-sm: 0.375rem; /* 6px */
-  --radius-md: 0.5rem;   /* 8px */
-  --radius-lg: 0.75rem;  /* 12px */
-  --radius-xl: 1rem;     /* 16px */
+  /* ─── Elevation & Shadows ─── */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.03);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+
+  /* ─── Border Radii ─── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Layout Dimensions */
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
-  --header-height: 70px;
-  --container-max-width: 1280px;
+  /* ─── Layout Dimensions ─── */
+  --sidebar-width: 240px;
+  --header-height: 64px;
+  --container-max-width: 1240px;
 
-  /* Transitions */
+  /* ─── Spacing Scale ─── */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+
+  /* ─── Transitions ─── */
   --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
+  --transition-normal: 0.2s ease;
 }

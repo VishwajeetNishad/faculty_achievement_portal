@@ -14,6 +14,8 @@ USE `faculty_achievement_db`;
 -- Disable foreign key checks for clean recreation script
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `audit_logs`;
+DROP TABLE IF EXISTS `notifications`;
 DROP TABLE IF EXISTS `awards`;
 DROP TABLE IF EXISTS `workshops_fdps`;
 DROP TABLE IF EXISTS `research_grants`;
@@ -183,6 +185,41 @@ CREATE TABLE `awards` (
     `award_level` ENUM('NATIONAL', 'INTERNATIONAL', 'STATE', 'INSTITUTIONAL') NOT NULL,
     CONSTRAINT `fk_awards_achievement` FOREIGN KEY (`achievement_id`) REFERENCES `achievements` (`id`) ON DELETE CASCADE,
     INDEX `idx_awards_level` (`award_level`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Notifications Table (Step 19)
+CREATE TABLE `notifications` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `recipient_id` BIGINT NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `message` TEXT NOT NULL,
+    `notification_type` VARCHAR(50) NOT NULL,
+    `achievement_id` BIGINT NULL,
+    `is_read` BOOLEAN NOT NULL DEFAULT FALSE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_notifications_recipient` FOREIGN KEY (`recipient_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_notifications_achievement` FOREIGN KEY (`achievement_id`) REFERENCES `achievements` (`id`) ON DELETE SET NULL,
+    INDEX `idx_notifications_recipient` (`recipient_id`),
+    INDEX `idx_notifications_recipient_read` (`recipient_id`, `is_read`),
+    INDEX `idx_notifications_created` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Audit Logs Table (Step 20)
+CREATE TABLE `audit_logs` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `actor_user_id` BIGINT NULL,
+    `actor_email` VARCHAR(100) NULL,
+    `action` VARCHAR(50) NOT NULL,
+    `entity_type` VARCHAR(50) NOT NULL,
+    `entity_id` BIGINT NULL,
+    `description` VARCHAR(500) NULL,
+    `ip_address` VARCHAR(45) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_audit_logs_actor` FOREIGN KEY (`actor_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+    INDEX `idx_audit_logs_actor` (`actor_user_id`),
+    INDEX `idx_audit_logs_action` (`action`),
+    INDEX `idx_audit_logs_entity` (`entity_type`, `entity_id`),
+    INDEX `idx_audit_logs_created` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================================================
