@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="assets/niet-logo.png">
   <title>NIET Faculty Achievement Portal | Noida Institute of Engineering and Technology</title>
   
   <!-- Inter Font -->
@@ -78,6 +79,24 @@
       justify-content: center;
       font-weight: 800;
       font-size: 1.1rem;
+    }
+
+    /* Official NIET logo on a white panel (dark-text logo on dark surfaces) */
+    .niet-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      border-radius: 8px;
+      padding: 5px 9px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      flex-shrink: 0;
+    }
+
+    .niet-logo-badge img {
+      display: block;
+      height: 30px;
+      width: auto;
     }
 
     .brand-text {
@@ -683,11 +702,10 @@
   <!-- ─── Top Navbar ─── -->
   <nav class="landing-nav">
     <div class="nav-brand">
-      <div class="brand-logo-circle">N</div>
-      <div class="brand-text">
-        <span class="brand-name">NIET</span>
-        <span class="brand-tag">Achievement Portal</span>
-      </div>
+      <span class="niet-logo-badge">
+        <img src="assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+      </span>
+      <span class="brand-tag">Achievement Portal</span>
     </div>
 
     <ul class="nav-links">
@@ -955,11 +973,9 @@
     <div class="footer-container">
       
       <div class="footer-logo">
-        <div class="brand-logo-circle">N</div>
-        <div class="brand-text" style="text-align: left;">
-          <span class="brand-name">NIET</span>
-          <span class="brand-tag">Achievement Portal</span>
-        </div>
+        <span class="niet-logo-badge">
+          <img src="assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
       </div>
 
       <h2 class="footer-heading">Noida Institute of Engineering &amp; Technology</h2>

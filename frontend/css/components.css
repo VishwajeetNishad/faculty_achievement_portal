@@ -262,3 +262,177 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ====================================================================
+   Base Component Styles — completing the shared design system.
+   These class names were referenced by dashboard, table, toast and
+   header markup across the app but had no base rules (only their
+   responsive overrides lived in responsive.css), so the components
+   rendered unstyled. Everything below is built from the design tokens
+   in variables.css.
+   ==================================================================== */
+
+/* ─── KPI Stat Cards & Metric Grid ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: 1.25rem 1.5rem;
+}
+
+.stat-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.stat-icon-wrapper.primary { background-color: var(--primary-light);        color: var(--primary-color); }
+.stat-icon-wrapper.warning { background-color: var(--color-warning-light);  color: var(--secondary-hover); }
+.stat-icon-wrapper.success { background-color: var(--color-success-light);  color: var(--color-success); }
+.stat-icon-wrapper.danger  { background-color: var(--color-danger-light);   color: var(--color-danger); }
+
+.stat-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+/* ─── Base Badge Pill (colour variants defined higher up) ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.badge-symbol {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* ─── Alerts / Toasts ─── */
+.alert {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.alert-success { background-color: var(--color-success-light); color: var(--status-approved-text); border-color: var(--status-approved-border); }
+.alert-danger  { background-color: var(--color-danger-light);  color: var(--status-rejected-text); border-color: var(--status-rejected-border); }
+.alert-warning { background-color: var(--color-warning-light); color: var(--status-pending-text);  border-color: var(--status-pending-border); }
+.alert-info    { background-color: var(--color-info-light);    color: #075985;                      border-color: #BAE6FD; }
+
+/* ─── Header User Widget ─── */
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-role-tag {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* ─── Empty & Loading States ─── */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.empty-state {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-title {
+  display: block;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.empty-state-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* ─── Utility ─── */
+.w-full { width: 100%; }

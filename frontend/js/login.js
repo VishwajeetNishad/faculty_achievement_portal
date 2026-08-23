@@ -61,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
           sessionStorage.setItem('accessToken', res.data.accessToken);
           sessionStorage.setItem('currentUser', JSON.stringify(res.data));
 
+          // Drop any permission list cached for a previously signed-in user, so
+          // the new user never sees buttons belonging to someone else. The real
+          // list is fetched from /api/auth/me on the next page load.
+          sessionStorage.removeItem('currentPermissions');
+
           showToast(`Welcome back, ${res.data.fullName || 'User'}!`, 'success');
 
           setTimeout(() => {

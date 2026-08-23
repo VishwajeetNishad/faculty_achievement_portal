@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
-  <title>Dashboard | NIET HOD Portal</title>
+  <title>HOD Profile | NIET HOD Portal</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -71,86 +71,78 @@
       </header>
 
       <div class="hod-content">
-        <div class="hod-container">
+        <div class="hod-container hod-container-narrow">
 
-          <!-- Greeting -->
+          <!-- Page head -->
           <div class="hod-greeting">
             <div>
-              <h1 class="hod-page-title" id="hodGreeting">Welcome back</h1>
-              <p class="hod-page-sub" id="hodGreetingSub">Here’s what’s happening across your department today.</p>
-            </div>
-            <a href="verification-queue.html" class="hod-btn hod-btn-primary" id="hodReviewPendingBtn">
-              <span class="material-symbols-outlined">fact_check</span> Review Pending
-            </a>
-          </div>
-
-          <!-- KPIs -->
-          <div class="hod-grid hod-kpi-grid" style="margin-bottom:24px;">
-            <div class="hod-kpi">
-              <div class="hod-kpi-top"><div class="hod-kpi-icon tertiary"><span class="material-symbols-outlined">groups</span></div></div>
-              <p class="hod-kpi-label">Total Faculty</p>
-              <p class="hod-kpi-value" id="hodFacultyCount">—</p>
-            </div>
-            <div class="hod-kpi">
-              <div class="hod-kpi-top"><div class="hod-kpi-icon primary"><span class="material-symbols-outlined">workspace_premium</span></div></div>
-              <p class="hod-kpi-label">Total Achievements</p>
-              <p class="hod-kpi-value" id="hodTotalAchievements">—</p>
-            </div>
-            <div class="hod-kpi">
-              <div class="hod-kpi-top"><div class="hod-kpi-icon pending"><span class="material-symbols-outlined">schedule</span></div></div>
-              <p class="hod-kpi-label">Pending Verification</p>
-              <p class="hod-kpi-value pending" id="hodPendingCount">—</p>
-            </div>
-            <div class="hod-kpi">
-              <div class="hod-kpi-top"><div class="hod-kpi-icon approved"><span class="material-symbols-outlined">check_circle</span></div></div>
-              <p class="hod-kpi-label">Approved</p>
-              <p class="hod-kpi-value approved" id="hodApprovedCount">—</p>
+              <h1 class="hod-page-title">HOD Profile</h1>
+              <p class="hod-page-sub">Manage your personal details.</p>
             </div>
           </div>
 
-          <!-- Distribution -->
-          <div class="hod-grid hod-grid-2" style="margin-bottom:24px;">
-            <div class="hod-card">
-              <div class="hod-card-header"><h3 class="hod-card-title">Category Breakdown</h3></div>
-              <div class="hod-card-pad" id="hodCategoryContainer">
-                <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
-              </div>
-            </div>
-            <div class="hod-card">
-              <div class="hod-card-header"><h3 class="hod-card-title">Academic Year Distribution</h3></div>
-              <div class="hod-card-pad" id="hodYearContainer">
-                <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
+          <!-- Identity card -->
+          <div class="hod-card" style="margin-bottom:24px;">
+            <div class="hod-card-pad hod-profile-id">
+              <div class="hod-profile-avatar" id="hodPfAvatar">HD</div>
+              <div class="hod-profile-id-text">
+                <h2 class="hod-page-title" style="margin:0;" id="hodPfHeaderName">—</h2>
+                <p class="hod-page-sub" style="margin:0;" id="hodPfHeaderRole">Head of Department</p>
               </div>
             </div>
           </div>
 
-          <!-- Recent submissions -->
-          <div class="hod-card">
+          <!-- Editable form -->
+          <form class="hod-card" id="hodProfileForm" novalidate>
             <div class="hod-card-header">
               <div>
-                <h3 class="hod-card-title">Recent Submissions</h3>
-                <p class="hod-card-sub">Latest achievements submitted across your department</p>
+                <h3 class="hod-card-title">Account Information</h3>
+                <p class="hod-card-sub">Employee ID, email, role and department are managed by administration and can't be changed here.</p>
               </div>
-              <a href="verification-queue.html" class="hod-btn hod-btn-outline hod-btn-sm"><span class="material-symbols-outlined">fact_check</span> View queue</a>
             </div>
-            <div class="hod-table-wrap">
-              <table class="hod-table reflow">
-                <thead>
-                  <tr>
-                    <th>Faculty</th>
-                    <th>Achievement</th>
-                    <th>Category</th>
-                    <th>Date</th>
-                    <th>Status</th>
-                    <th class="hod-th-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="hodRecentTableBody">
-                  <tr><td colspan="6"><div style="padding:32px 0;"><div class="hod-spinner"></div></div></td></tr>
-                </tbody>
-              </table>
+            <div class="hod-card-pad">
+              <div class="hod-form-grid">
+                <div class="hod-field">
+                  <label class="hod-label">Employee ID</label>
+                  <div class="hod-readonly" id="hodPfEmpId">—</div>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-label">Email</label>
+                  <div class="hod-readonly" id="hodPfEmail">—</div>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-label">Role</label>
+                  <div class="hod-readonly" id="hodPfRole">—</div>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-label">Department</label>
+                  <div class="hod-readonly" id="hodPfDept">—</div>
+                </div>
+
+                <div class="hod-field">
+                  <label class="hod-label" for="hodPfName">Full Name</label>
+                  <input type="text" id="hodPfName" class="hod-input" maxlength="100" autocomplete="name">
+                  <small class="hod-field-error" id="hodPfNameErr"></small>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-label" for="hodPfPhone">Phone</label>
+                  <input type="tel" id="hodPfPhone" class="hod-input" maxlength="20" autocomplete="tel" placeholder="e.g. +91 98765 43210">
+                  <small class="hod-field-error" id="hodPfPhoneErr"></small>
+                </div>
+                <div class="hod-field hod-field-full">
+                  <label class="hod-label" for="hodPfDesignation">Designation</label>
+                  <input type="text" id="hodPfDesignation" class="hod-input" maxlength="100" placeholder="e.g. Professor & Head">
+                  <small class="hod-field-error" id="hodPfDesignationErr"></small>
+                </div>
+              </div>
+
+              <div class="hod-form-actions">
+                <button type="submit" class="hod-btn hod-btn-primary" id="hodPfSave">
+                  <span class="material-symbols-outlined">save</span> Save changes
+                </button>
+              </div>
             </div>
-          </div>
+          </form>
 
         </div>
       </div>
@@ -162,6 +154,6 @@
   <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
   <script src="../../js/hod-common.js"></script>
-  <script src="../../js/hod.js"></script>
+  <script src="../../js/hod-profile.js"></script>
 </body>
 </html>

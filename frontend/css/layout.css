@@ -77,6 +77,27 @@
   margin-top: 1px;
 }
 
+/* ─── Official NIET Logo Badge ───
+   The real logo uses dark text on a transparent background, so on the dark navy
+   sidebar it needs a white panel behind it to stay legible. Reused verbatim on
+   the login and landing pages (see their inline styles) for one consistent mark. */
+.niet-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  padding: 4px 7px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.niet-logo-badge img {
+  display: block;
+  height: 28px;
+  width: auto;
+}
+
 .sidebar-close-btn {
   display: none;
   background: none;

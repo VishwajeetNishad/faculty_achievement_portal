@@ -1,149 +1,126 @@
 /**
- * HOD Dashboard Controller — Live API Integration with /api/dashboard/hod
+ * HOD Dashboard controller — GET /dashboard/hod (department-scoped server-side).
+ * Identity + role guard come from hod-common.js (window.HOD.ready).
  */
 
-document.addEventListener('DOMContentLoaded', () => {
-  initializeHodDashboard();
-});
+document.addEventListener('DOMContentLoaded', initHodDashboard);
 
-async function initializeHodDashboard() {
-  const tableBody = document.getElementById('hodRecentTableBody');
-  if (tableBody) {
-    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top: 0.5rem;">Loading department analytics...</p></td></tr>`;
-  }
+async function initHodDashboard() {
+  const me = await window.HOD.ready;
+  if (!me) return; // guard (non-HOD / load error) already rendered by hod-common.js
 
-  // 1. Fetch Current HOD Profile Details
-  const userRes = await ApiClient.get('/auth/me');
-  if (userRes.success && userRes.data) {
-    const user = userRes.data;
-    const nameElem = document.getElementById('hodUserName');
-    const deptTag = document.getElementById('hodDeptTag');
-    const deptBadge = document.getElementById('hodDeptBadge');
+  // Greeting
+  const greetEl = document.getElementById('hodGreeting');
+  if (greetEl) greetEl.textContent = `${hodGreetingText()}, ${me.fullName || 'Professor'}.`;
 
-    if (nameElem) nameElem.textContent = user.fullName;
-    if (deptTag) deptTag.textContent = `${user.departmentName || 'Department'} (${user.departmentCode || 'HOD'})`;
-    if (deptBadge) deptBadge.textContent = user.departmentCode || 'HOD';
-  }
+  await loadHodDashboardData();
+}
 
-  // 2. Fetch HOD Department Analytics: GET /api/dashboard/hod
+function hodGreetingText() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good morning';
+  if (h < 17) return 'Good afternoon';
+  return 'Good evening';
+}
+
+async function loadHodDashboardData() {
   const res = await ApiClient.get('/dashboard/hod');
 
-  if (res.success && res.data) {
-    const data = res.data;
-
-    // Header title update
-    const titleElem = document.getElementById('hodHeaderTitle');
-    if (titleElem) titleElem.textContent = `${data.departmentName} Department Analytics`;
-
-    // Update Stat Widgets
-    const facultyCountElem = document.getElementById('hodFacultyCount');
-    const pendingElem = document.getElementById('hodPendingCount');
-    const approvedElem = document.getElementById('hodApprovedCount');
-    const rejectedElem = document.getElementById('hodRejectedCount');
-
-    if (facultyCountElem) facultyCountElem.textContent = data.facultyCount;
-    if (pendingElem) pendingElem.textContent = data.pendingCount;
-    if (approvedElem) approvedElem.textContent = data.approvedCount;
-    if (rejectedElem) rejectedElem.textContent = data.rejectedCount;
-
-    // Render Category Distribution
-    renderDistributionBars('hodCategoryContainer', data.categoryDistribution, data.totalAchievements, '#0284C7');
-
-    // Render Academic Year Distribution
-    renderDistributionBars('hodYearContainer', data.academicYearDistribution, data.totalAchievements, '#F2A900');
-
-    // Render Recent Department Submissions
-    renderRecentSubmissions(data.recentSubmissions || []);
-  } else if (res.status === 403) {
-    showToast('Access denied. HOD privileges required.', 'error');
-    if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Access Denied</div><p class="empty-state-text">You do not have HOD privileges to view department analytics.</p></td></tr>`;
-    }
-  } else {
-    showToast(res.message || 'Failed to load department analytics', 'error');
-    if (tableBody) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Error Loading Analytics</div><p class="empty-state-text">${escapeHtml(res.message || 'Unable to fetch analytics')}</p></td></tr>`;
-    }
-  }
-}
-
-function renderDistributionBars(containerId, distMap, total, barColor) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
-  if (!distMap || Object.keys(distMap).length === 0) {
-    container.innerHTML = `<div class="empty-state" style="padding: 1rem;"><p class="empty-state-text">No data recorded for this department.</p></div>`;
+  if (!res.success) {
+    const msg = res.status === 403
+      ? 'You do not have HOD privileges to view department analytics.'
+      : (res.message || 'Unable to load department analytics.');
+    const tb = document.getElementById('hodRecentTableBody');
+    if (tb) tb.innerHTML = `<tr><td colspan="6"><div class="hod-state"><span class="material-symbols-outlined">error</span><div class="hod-state-title">${res.status === 403 ? 'Access denied' : 'Something went wrong'}</div><p class="hod-state-text">${escapeHtml(msg)}</p></div></td></tr>`;
+    ['hodFacultyCount', 'hodTotalAchievements', 'hodPendingCount', 'hodApprovedCount'].forEach((id) => {
+      const el = document.getElementById(id); if (el) el.textContent = '—';
+    });
     return;
   }
 
-  let html = '<div style="display: flex; flex-direction: column; gap: 0.85rem;">';
-  for (const [key, count] of Object.entries(distMap)) {
-    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+  const d = res.data;
+
+  setText('hodFacultyCount', d.facultyCount);
+  setText('hodTotalAchievements', d.totalAchievements);
+  setText('hodPendingCount', d.pendingCount);
+  setText('hodApprovedCount', d.approvedCount);
+
+  // "Review Pending (N)" call to action
+  const btn = document.getElementById('hodReviewPendingBtn');
+  if (btn) {
+    const n = d.pendingCount || 0;
+    btn.innerHTML = n > 0
+      ? `<span class="material-symbols-outlined">fact_check</span> Review Pending (${n})`
+      : `<span class="material-symbols-outlined">check_circle</span> All caught up`;
+  }
+
+  hodRenderBars('hodCategoryContainer', d.categoryDistribution, d.totalAchievements);
+  hodRenderBars('hodYearContainer', d.academicYearDistribution, d.totalAchievements);
+  hodRenderRecent(d.recentSubmissions || []);
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = (value === null || value === undefined) ? '—' : value;
+}
+
+function hodRenderBars(containerId, distMap, total) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+
+  const entries = distMap ? Object.entries(distMap) : [];
+  if (!entries.length) {
+    c.innerHTML = `<div class="hod-state" style="padding:20px 8px;"><span class="material-symbols-outlined">bar_chart</span><p class="hod-state-text">No data recorded yet.</p></div>`;
+    return;
+  }
+
+  entries.sort((a, b) => b[1] - a[1]);
+  let html = '<div class="hod-bars">';
+  for (const [key, count] of entries) {
+    const pct = total > 0 ? Math.round((count / total) * 100) : 0;
     html += `
       <div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.25rem;">
-          <span style="color: #1E293B;">${escapeHtml(key)}</span>
-          <span style="color: #64748B;">${count} (${percentage}%)</span>
-        </div>
-        <div style="width: 100%; height: 8px; background-color: #E2E8F0; border-radius: 4px; overflow: hidden;">
-          <div style="width: ${percentage}%; height: 100%; background-color: ${barColor}; border-radius: 4px; transition: width 0.4s ease;"></div>
-        </div>
-      </div>
-    `;
+        <div class="hod-bar-row-top"><span>${escapeHtml(key)}</span><span class="hod-muted">${count} · ${pct}%</span></div>
+        <div class="hod-bar-track"><div class="hod-bar-fill" style="width:${pct}%;"></div></div>
+      </div>`;
   }
   html += '</div>';
-
-  container.innerHTML = html;
+  c.innerHTML = html;
 }
 
-function renderRecentSubmissions(items) {
-  const tableBody = document.getElementById('hodRecentTableBody');
-  if (!tableBody) return;
+function hodRenderRecent(items) {
+  const tb = document.getElementById('hodRecentTableBody');
+  if (!tb) return;
 
-  tableBody.innerHTML = '';
-
-  if (items.length === 0) {
-    tableBody.innerHTML = `
-      <tr>
-        <td colspan="5" class="empty-state">
-          <div class="empty-state-title">No department submissions found</div>
-          <p class="empty-state-text">Faculty members in your department have not submitted achievements yet.</p>
-        </td>
-      </tr>
-    `;
+  if (!items.length) {
+    tb.innerHTML = `<tr><td colspan="6"><div class="hod-state"><span class="material-symbols-outlined">inbox</span><div class="hod-state-title">No submissions yet</div><p class="hod-state-text">Achievements submitted by your department will appear here.</p></div></td></tr>`;
     return;
   }
 
-  items.forEach(item => {
-    const badgeClass = item.status === 'APPROVED' ? 'badge-approved' : (item.status === 'REJECTED' ? 'badge-rejected' : 'badge-pending');
-    const badgeSymbol = item.status === 'APPROVED' ? '✓' : (item.status === 'REJECTED' ? '!' : '●');
-
+  tb.innerHTML = '';
+  items.forEach((item) => {
+    const isPending = String(item.status).toUpperCase() === 'PENDING';
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Faculty & Title">
-        <div class="table-title-cell">${escapeHtml(item.title)}</div>
-        <div class="table-subtext">${escapeHtml(item.facultyName)} (${escapeHtml(item.employeeId)})</div>
+      <td data-label="Faculty">
+        <div class="hod-faculty-cell">
+          <div class="hod-cell-avatar">${hodInitials(item.facultyName)}</div>
+          <div>
+            <div class="hod-cell-title">${escapeHtml(item.facultyName || '—')}</div>
+            <div class="hod-cell-sub">${escapeHtml(item.employeeId || '')}</div>
+          </div>
+        </div>
       </td>
-      <td data-label="Category">${escapeHtml(item.categoryName || 'Achievement')}</td>
-      <td data-label="Academic Year">${escapeHtml(item.academicYear)}</td>
-      <td data-label="Submission Date">${formatDate(item.achievementDate)}</td>
-      <td data-label="Status">
-        <span class="badge ${badgeClass}">
-          <span class="badge-symbol">${badgeSymbol}</span> ${item.status}
-        </span>
-      </td>
-    `;
-    tableBody.appendChild(tr);
+      <td data-label="Achievement"><div class="hod-cell-truncate" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '—')}</div></td>
+      <td data-label="Category">${hodCategoryChip(item.categoryName, item.categoryCode)}</td>
+      <td data-label="Date">${hodFormatDate(item.achievementDate)}</td>
+      <td data-label="Status">${hodStatusBadge(item.status)}</td>
+      <td data-label="Action" class="hod-td-right">
+        <button class="hod-btn hod-btn-outline hod-btn-sm" data-id="${item.id}">
+          <span class="material-symbols-outlined">${isPending ? 'rate_review' : 'visibility'}</span>${isPending ? 'Review' : 'View'}
+        </button>
+      </td>`;
+    tb.appendChild(tr);
+    tr.querySelector('button[data-id]').addEventListener('click', () => openHodReviewModal(item.id, loadHodDashboardData));
   });
-}
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
