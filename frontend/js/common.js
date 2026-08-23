@@ -66,6 +66,88 @@ function closeModal(modalId) {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Permission helpers — FOR SHOWING AND HIDING UI ONLY, NEVER FOR SECURITY
+//
+// The signed-in user's permission codes come from GET /api/auth/me. They let us
+// hide buttons a user cannot use, so the interface does not offer actions that
+// would only fail with "Access denied".
+//
+// This is NOT a security boundary. Anything in the browser can be edited by the
+// person using it — someone could set CURRENT_PERMISSIONS to every code in the
+// console. It would change nothing: the backend re-checks the real permission,
+// read fresh from the database, on every single request. Hiding a button is a
+// courtesy; the server is what actually says no.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PERMISSIONS_STORAGE_KEY = 'currentPermissions';
+
+let permissionsLoadPromise = null;
+
+window.CURRENT_PERMISSIONS = (() => {
+  try {
+    const stored = JSON.parse(sessionStorage.getItem(PERMISSIONS_STORAGE_KEY) || '[]');
+    return Array.isArray(stored) ? stored : [];
+  } catch (e) {
+    return [];
+  }
+})();
+
+/**
+ * True if the signed-in user holds this permission code.
+ * Administrators receive all codes from the backend, so no special case here.
+ */
+function can(permissionCode) {
+  return Array.isArray(window.CURRENT_PERMISSIONS)
+    && window.CURRENT_PERMISSIONS.indexOf(permissionCode) !== -1;
+}
+
+/**
+ * Refreshes the cached permission list from the backend.
+ *
+ * <p>The cached copy is read synchronously above so `can()` works the instant a
+ * page script runs. This call then brings it up to date, which matters because
+ * an administrator can grant or revoke a permission at any time — the backend
+ * honours the change immediately, and this keeps the buttons in step.
+ *
+ * Pages that must have accurate permissions before their first render should
+ * `await ensurePermissionsLoaded()` before drawing.
+ */
+async function ensurePermissionsLoaded() {
+  if (!sessionStorage.getItem('accessToken')) {
+    window.CURRENT_PERMISSIONS = [];
+    return window.CURRENT_PERMISSIONS;
+  }
+
+  // Several scripts on a page may ask for this at once. Sharing one in-flight
+  // request means /auth/me is called only once per page load.
+  if (!permissionsLoadPromise) {
+    permissionsLoadPromise = ApiClient.get('/auth/me').then(res => {
+      if (res.success && res.data && Array.isArray(res.data.permissions)) {
+        window.CURRENT_PERMISSIONS = res.data.permissions;
+        sessionStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(res.data.permissions));
+      }
+      return window.CURRENT_PERMISSIONS;
+    });
+  }
+
+  return permissionsLoadPromise;
+}
+
+/**
+ * Hides every element carrying data-requires-permission="CODE" that the current
+ * user does not hold. Lets a page declare its gating in HTML instead of JS.
+ */
+function applyPermissionVisibility(root) {
+  const scope = root || document;
+  scope.querySelectorAll('[data-requires-permission]').forEach(el => {
+    const required = el.getAttribute('data-requires-permission');
+    if (required && !can(required)) {
+      el.style.display = 'none';
+    }
+  });
+}
+
 // DOM Ready Event Attachments
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -81,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('currentUser');
+      sessionStorage.removeItem(PERMISSIONS_STORAGE_KEY);
+      window.CURRENT_PERMISSIONS = [];
       showToast('You have been signed out.', 'info');
       setTimeout(() => {
         const isSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/hod/');
@@ -153,6 +237,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Step 19 Notification Bell & In-App UI Setup
   if (sessionStorage.getItem('accessToken')) {
     initializeNotificationUI();
+
+    // Refresh the cached permission list, then hide anything the user cannot
+    // use. Runs in the background so it never delays the page.
+    ensurePermissionsLoaded()
+      .then(() => applyPermissionVisibility())
+      .catch(() => { /* offline or backend down — leave the cached list in place */ });
   }
 });
 

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AccountStatusUserDetailsChecker;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -54,6 +55,21 @@ public class SecurityConfig {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
+
+        // Account-status checks ("is this account still enabled?") normally run
+        // BEFORE the password is verified. That would let anyone discover which
+        // accounts are deactivated just by trying random passwords, because a
+        // deactivated account answers differently from an active one.
+        //
+        // Moving the status check to AFTER the password check closes that leak:
+        // a wrong password always produces the same generic "invalid
+        // credentials" error, and only a caller who has proved they own the
+        // account is told that it has been deactivated.
+        authProvider.setPreAuthenticationChecks(userDetails -> {
+            // Intentionally empty — status is checked post-authentication below.
+        });
+        authProvider.setPostAuthenticationChecks(new AccountStatusUserDetailsChecker());
+
         return authProvider;
     }
 

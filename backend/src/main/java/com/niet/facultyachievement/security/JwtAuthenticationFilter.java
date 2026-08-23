@@ -33,6 +33,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String email = tokenProvider.getEmailFromToken(jwt);
 
                 UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+
+                // A token stays valid until it expires, but an account can be
+                // deactivated at any moment. Re-checking isEnabled() here means
+                // switching a user to INACTIVE or SUSPENDED locks them out on
+                // their very next request, instead of leaving their existing
+                // token working until it expires. Leaving the security context
+                // empty makes the request anonymous, so it is rejected exactly
+                // like a request with no token at all.
+                if (!userDetails.isEnabled()) {
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities()
                 );

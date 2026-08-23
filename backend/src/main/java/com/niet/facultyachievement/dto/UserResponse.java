@@ -1,9 +1,12 @@
 package com.niet.facultyachievement.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.niet.facultyachievement.entity.User;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,6 +29,19 @@ public class UserResponse {
     private LocalDateTime updatedAt;
 
     /**
+     * The permission codes this user holds. Only populated by
+     * {@code GET /api/auth/me}, so the frontend can hide buttons the user
+     * cannot use. Left null everywhere else, in which case it is omitted from
+     * the JSON entirely.
+     *
+     * <p>This is a convenience for the interface only. The browser can freely
+     * edit this list, so it must never be treated as an authorisation decision
+     * — the backend re-checks every permission on every request.
+     */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<String> permissions;
+
+    /**
      * Safe factory method — NEVER includes passwordHash.
      */
     public static UserResponse fromEntity(User user) {
@@ -44,5 +60,19 @@ public class UserResponse {
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     * Same as {@link #fromEntity(User)} but also reports the user's permissions.
+     *
+     * <p>A separate overload rather than a change to the method above, so the
+     * many existing callers (admin roster, HOD department list, profile update)
+     * keep returning exactly the same JSON as before. Only
+     * {@code GET /api/auth/me} uses this version.
+     */
+    public static UserResponse fromEntity(User user, Collection<String> permissionCodes) {
+        UserResponse response = fromEntity(user);
+        response.setPermissions(permissionCodes == null ? List.of() : List.copyOf(permissionCodes));
+        return response;
     }
 }

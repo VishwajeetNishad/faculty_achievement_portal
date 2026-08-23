@@ -501,6 +501,10 @@ async function adminExportCsv() {
 }
 
 let allDepartments = [];
+// Declared up front so the search and filter boxes still work when the roster
+// itself failed to load (for example a 403). Without this the variable only
+// exists after a successful fetch, and typing in the search box throws.
+let allFacultyData = [];
 
 async function initializeFacultyRoster() {
   const tableBody = document.getElementById('facultyRosterTableBody');
@@ -511,7 +515,13 @@ async function initializeFacultyRoster() {
   if (!tableBody) return;
 
   // Show loading state
-  tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading faculty roster from database...</p></td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading faculty roster from database...</p></td></tr>`;
+
+  // The Actions column asks can('MANAGE_PERMISSIONS'), so make sure the real
+  // permission list has arrived before the rows are drawn.
+  if (typeof ensurePermissionsLoaded === 'function') {
+    try { await ensurePermissionsLoaded(); } catch (e) { /* fall back to the cached list */ }
+  }
 
   // Load departments for filter dropdown
   try {
@@ -545,14 +555,14 @@ async function initializeFacultyRoster() {
       if (totalEl) totalEl.textContent = allFacultyData.length;
       if (activeEl) activeEl.textContent = allFacultyData.filter(f => f.status === 'ACTIVE').length;
     } else if (res.status === 403) {
-      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Access Denied</div><p class="empty-state-text">You do not have admin privileges to view the faculty roster.</p></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">Access Denied</div><p class="empty-state-text">You do not have admin privileges to view the faculty roster.</p></td></tr>`;
       showToast('Admin privileges required to view faculty roster.', 'error');
     } else {
-      tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Error</div><p class="empty-state-text">${escapeHtml(res.message || 'Failed to load faculty data')}</p></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">Error</div><p class="empty-state-text">${escapeHtml(res.message || 'Failed to load faculty data')}</p></td></tr>`;
     }
   } catch (error) {
     console.error('Error loading faculty:', error);
-    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Connection Error</div><p class="empty-state-text">Unable to connect to the backend server.</p></td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">Connection Error</div><p class="empty-state-text">Unable to connect to the backend server.</p></td></tr>`;
   }
 
   // Attach search and filter event listeners
@@ -594,7 +604,7 @@ function renderFacultyTable(roster) {
   tableBody.innerHTML = '';
 
   if (roster.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">No Faculty Found</div><p class="empty-state-text">No faculty members match your search criteria.</p></td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title">No Faculty Found</div><p class="empty-state-text">No faculty members match your search criteria.</p></td></tr>`;
     return;
   }
 
@@ -602,6 +612,14 @@ function renderFacultyTable(roster) {
     const statusBadge = f.status === 'ACTIVE' ? 'badge-approved' :
                         f.status === 'INACTIVE' ? 'badge-pending' : 'badge-rejected';
     const statusSymbol = f.status === 'ACTIVE' ? '✓' : f.status === 'INACTIVE' ? '○' : '✕';
+
+    // "Manage Permissions" is only offered to someone who can actually use it.
+    // Hiding it is a courtesy — the page itself and the API behind it both
+    // re-check MANAGE_PERMISSIONS server-side on every request.
+    const canManagePermissions = typeof can === 'function' ? can('MANAGE_PERMISSIONS') : false;
+    const permissionsAction = canManagePermissions
+      ? `<a class="btn btn-outline btn-sm" href="user-permissions.html?userId=${encodeURIComponent(f.id)}">Manage Permissions</a>`
+      : '<span class="table-subtext">—</span>';
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -615,6 +633,7 @@ function renderFacultyTable(roster) {
       <td data-label="Status">
         <span class="badge ${statusBadge}"><span class="badge-symbol">${statusSymbol}</span> ${f.status}</span>
       </td>
+      <td data-label="Actions">${permissionsAction}</td>
     `;
     tableBody.appendChild(tr);
   });

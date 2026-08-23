@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Manage Permissions | NIET Admin Portal</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/layout.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+
+  <style>
+    /* Scoped to this page so no other screen's styling can be affected. */
+    .permission-group {
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1rem 1.15rem 1.15rem;
+      margin-bottom: 1rem;
+      background: var(--surface-secondary);
+    }
+
+    .permission-group-title {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-secondary);
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .permission-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 0.6rem;
+    }
+
+    .permission-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.65rem;
+      padding: 0.7rem 0.85rem;
+      background: var(--surface-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .permission-item:hover {
+      border-color: var(--primary-muted);
+      background: var(--primary-light);
+    }
+
+    .permission-item.is-locked,
+    .permission-item.is-locked:hover {
+      cursor: not-allowed;
+      background: var(--surface-hover);
+      border-color: var(--border-color);
+      opacity: 0.85;
+    }
+
+    .permission-item input[type="checkbox"] {
+      width: 17px;
+      height: 17px;
+      margin-top: 0.1rem;
+      flex-shrink: 0;
+      accent-color: var(--primary-color);
+      cursor: inherit;
+    }
+
+    .permission-item-text {
+      min-width: 0;
+    }
+
+    .permission-code {
+      display: block;
+      font-size: var(--font-size-base);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+
+    .permission-desc {
+      display: block;
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      line-height: 1.45;
+      margin-top: 0.15rem;
+    }
+
+    .permission-restricted-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: var(--font-weight-bold);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: var(--status-rejected-text);
+      background: var(--status-rejected-bg);
+      border: 1px solid var(--status-rejected-border);
+      border-radius: 4px;
+      padding: 0.05rem 0.3rem;
+      margin-left: 0.35rem;
+      vertical-align: 1px;
+    }
+
+    .permission-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      justify-content: flex-end;
+      padding-top: 0.35rem;
+    }
+
+    .selected-user-card {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      .permission-actions {
+        justify-content: stretch;
+      }
+      .permission-actions .btn {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- Admin Sidebar -->
+    <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
+      <div class="sidebar-header">
+        <span class="niet-logo-badge">
+          <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <div class="sidebar-brand-title">
+          Admin Console
+          <span>Control Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Administration</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Admin Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="achievements.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Verification Queue
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="faculty.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              Faculty Roster
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="user-permissions.html" class="nav-link active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              User Permissions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="audit-logs.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              Audit Trail
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../login.html" class="nav-link" style="color: #FCA5A5;">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 class="page-title">Manage User Permissions</h1>
+        </div>
+        <div class="header-right">
+          <a href="faculty.html" class="btn btn-outline btn-sm">&larr; Back to Roster</a>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-container">
+
+          <!-- Explanation: roles vs permissions -->
+          <div class="alert alert-info" style="margin-bottom: 1.25rem;">
+            <div>
+              <strong>How this works.</strong> Every account keeps its role &mdash; Faculty, Head of Department
+              or Administrator. Permissions are <em>extra abilities</em> added on top of a role, so you can let
+              one specific Head of Department create faculty accounts without making them an administrator.
+              Removing a permission takes effect immediately; the person does not need to sign in again.
+            </div>
+          </div>
+
+          <!-- Step 1: choose the user -->
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-header">
+              <h2 class="card-title">1. Select a User</h2>
+            </div>
+            <div class="card-body">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="userSelect">User Account</label>
+                <select id="userSelect" class="form-control">
+                  <option value="">Loading users…</option>
+                </select>
+                <span class="form-hint">Administrators are listed but cannot be edited &mdash; they already hold every permission.</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: the selected user's details -->
+          <div class="card" id="selectedUserCard" style="margin-bottom: 1.25rem; display: none;">
+            <div class="card-body">
+              <div class="selected-user-card">
+                <div class="avatar-circle" id="selectedUserAvatar" aria-hidden="true">--</div>
+                <div style="flex: 1; min-width: 200px;">
+                  <div style="font-size: var(--font-size-xl); font-weight: var(--font-weight-bold); color: var(--text-primary);" id="selectedUserName">&mdash;</div>
+                  <div style="font-size: var(--font-size-base); color: var(--text-secondary); margin-top: 0.15rem;" id="selectedUserMeta">&mdash;</div>
+                </div>
+                <div id="selectedUserRoleBadge"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: the permission checkboxes -->
+          <div class="card" id="permissionCard" style="display: none;">
+            <div class="card-header">
+              <h2 class="card-title">2. Manage Permissions</h2>
+              <span style="font-size: var(--font-size-sm); color: var(--text-secondary);" id="permissionCountLabel"></span>
+            </div>
+            <div class="card-body">
+
+              <div id="permissionNotice"></div>
+
+              <div id="permissionGroupsContainer">
+                <div style="text-align: center; padding: 2rem;">
+                  <div class="spinner"></div>
+                  <p style="margin-top: 0.5rem; font-size: var(--font-size-base); color: var(--text-secondary);">Loading permission catalogue…</p>
+                </div>
+              </div>
+
+              <div class="permission-actions" id="permissionActions" style="display: none;">
+                <button type="button" class="btn btn-outline" id="resetPermissionsBtn">Reset Changes</button>
+                <button type="button" class="btn btn-primary" id="savePermissionsBtn">Save Permissions</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Shown when the page is opened without a user selected -->
+          <div class="card" id="emptyStateCard">
+            <div class="card-body">
+              <div class="empty-state" style="padding: 2.5rem 1rem;">
+                <div class="empty-state-title">No user selected</div>
+                <p class="empty-state-text">Pick a user above to view and change what they are allowed to do.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script src="../../js/api.js"></script>
+  <script src="../../js/common.js"></script>
+  <script src="../../js/admin-permissions.js"></script>
+</body>
+</html>

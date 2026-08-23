@@ -5,6 +5,7 @@ import com.niet.facultyachievement.dto.UserResponse;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.UserRepository;
+import com.niet.facultyachievement.security.Permissions;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -68,10 +69,19 @@ public class UserController {
     }
 
     /**
-     * GET /api/users — Admin-only: full institutional faculty roster.
+     * GET /api/users — full institutional roster.
+     *
+     * <p>Administrators keep the access they have always had. The
+     * MANAGE_PERMISSIONS authority is accepted as well, because choosing whose
+     * permissions to change is impossible without being able to list users —
+     * the ability is inherent to the permission, not extra reach.
+     *
+     * <p>Note this is an ADDITION, not a replacement: the original
+     * {@code hasRole('ADMIN')} clause is untouched, so no existing behaviour
+     * changes. {@code UserResponse} never includes a password hash.
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('" + Permissions.MANAGE_PERMISSIONS + "')")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         List<UserResponse> users = userRepository.findAll().stream()
                 .map(UserResponse::fromEntity)
@@ -80,10 +90,11 @@ public class UserController {
     }
 
     /**
-     * GET /api/users/{id} — Admin-only: view single faculty detail.
+     * GET /api/users/{id} — view a single user's detail.
+     * Same additive rule as the roster above.
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('" + Permissions.MANAGE_PERMISSIONS + "')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
