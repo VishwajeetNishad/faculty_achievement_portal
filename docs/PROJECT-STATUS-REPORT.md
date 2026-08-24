@@ -519,8 +519,12 @@ been opened, exactly as instructed.
 
 1. **Refresh tokens.** Right now when the token expires you are logged out mid-work. A
    refresh token would renew it silently in the background.
-2. **Rate limiting on login.** There is nothing stopping thousands of password guesses.
-   Add attempt limits and temporary lockout.
+2. **Distributed login rate limiting.** Basic protection is already built and working —
+   `security/LoginRateLimiter.java` allows 5 failed attempts per 15 minutes for each
+   IP + account pair, then locks that pair out for 15 minutes and returns HTTP 429.
+   The limit is held in memory inside one running server, so if the portal is ever run as
+   two or more copies behind a load balancer, each copy would count separately. At that
+   point move the counter into a shared store such as Redis.
 3. **Store files outside the project folder.** Uploads currently live in a local directory.
    For production use a dedicated volume or object storage (S3/MinIO), and add virus scanning.
 4. **Add database indexes** on the columns used for filtering — `status`, `department_id`,

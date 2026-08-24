@@ -123,9 +123,17 @@ async function ensurePermissionsLoaded() {
   // request means /auth/me is called only once per page load.
   if (!permissionsLoadPromise) {
     permissionsLoadPromise = ApiClient.get('/auth/me').then(res => {
-      if (res.success && res.data && Array.isArray(res.data.permissions)) {
-        window.CURRENT_PERMISSIONS = res.data.permissions;
-        sessionStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(res.data.permissions));
+      if (res.success && res.data) {
+        // Keep the whole profile, not just the permission list. The header
+        // identity widget needs the real name, role and department, and asking
+        // /auth/me a second time for information we already have would be waste.
+        window.CURRENT_USER_PROFILE = res.data;
+        applyIdentityWidget();
+
+        if (Array.isArray(res.data.permissions)) {
+          window.CURRENT_PERMISSIONS = res.data.permissions;
+          sessionStorage.setItem(PERMISSIONS_STORAGE_KEY, JSON.stringify(res.data.permissions));
+        }
       }
       return window.CURRENT_PERMISSIONS;
     });
@@ -135,14 +143,72 @@ async function ensurePermissionsLoaded() {
 }
 
 /**
+ * Fills the header identity widget from the signed-in user's real profile.
+ *
+ * <p>A page marks its widget up with data-identity="name" / "role" / "initials"
+ * and leaves the text blank. Nothing is hardcoded: if the profile has not
+ * arrived yet the widget simply stays empty rather than showing an invented
+ * name that belongs to nobody.
+ */
+function applyIdentityWidget(root) {
+  const me = window.CURRENT_USER_PROFILE;
+  if (!me) return;
+
+  const scope = root || document;
+  const roleLabel = ROLE_DISPLAY_NAME[String(me.role || '').toUpperCase()] || me.role || '';
+  const department = me.departmentCode ? ` · ${me.departmentCode}` : '';
+
+  scope.querySelectorAll('[data-identity]').forEach(el => {
+    switch (el.getAttribute('data-identity')) {
+      case 'name':     el.textContent = me.fullName || me.email || ''; break;
+      case 'role':     el.textContent = roleLabel + department; break;
+      case 'initials': el.textContent = initialsFrom(me.fullName || me.email); break;
+      case 'email':    el.textContent = me.email || ''; break;
+    }
+  });
+}
+
+/** Role names as a person would say them, not as the database stores them. */
+const ROLE_DISPLAY_NAME = {
+  ROLE_ADMIN: 'Administrator',
+  ADMIN: 'Administrator',
+  ROLE_HOD: 'Head of Department',
+  HOD: 'Head of Department',
+  ROLE_FACULTY: 'Faculty',
+  FACULTY: 'Faculty'
+};
+
+/** "Rajesh Kumar" → "RK". Falls back to the first letter for a single word. */
+function initialsFrom(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+}
+
+/**
  * Hides every element carrying data-requires-permission="CODE" that the current
  * user does not hold. Lets a page declare its gating in HTML instead of JS.
+ *
+ * <p>Several codes may be listed, separated by commas, and the element is shown
+ * when the user holds ANY of them — for example the "Add User" button is useful
+ * to somebody who can create only Heads of Department, not just to somebody who
+ * can create Faculty.
+ *
+ * <p>This is presentation only. Hiding a button stops it being offered by
+ * mistake; it does not stop anybody reaching the endpoint, which is why the
+ * backend re-checks the permission from the database on every request.
  */
 function applyPermissionVisibility(root) {
   const scope = root || document;
   scope.querySelectorAll('[data-requires-permission]').forEach(el => {
     const required = el.getAttribute('data-requires-permission');
-    if (required && !can(required)) {
+    if (!required) return;
+
+    const codes = required.split(',').map(c => c.trim()).filter(Boolean);
+    const allowed = codes.some(code => can(code));
+
+    if (!allowed) {
       el.style.display = 'none';
     }
   });
@@ -165,6 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem(PERMISSIONS_STORAGE_KEY);
       window.CURRENT_PERMISSIONS = [];
+      window.CURRENT_USER_PROFILE = null;
       showToast('You have been signed out.', 'info');
       setTimeout(() => {
         const isSubdir = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/hod/');

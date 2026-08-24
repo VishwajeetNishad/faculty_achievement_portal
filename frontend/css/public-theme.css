@@ -1,0 +1,1749 @@
+/* ====================================================================
+   public-theme.css — the public, no-login side of the portal
+   --------------------------------------------------------------------
+   Used by:  index.html (home)
+             public/faculty.html          (directory)
+             public/faculty-profile.html  (one faculty member)
+             public/achievements.html     (achievement gallery)
+
+   This file deliberately does NOT reuse layout.css. Those styles are
+   built around the signed-in app shell (fixed sidebar, sticky app
+   header, content container) and a visitor has none of that. What it
+   DOES reuse is variables.css, which is nothing but :root tokens — so
+   every colour, radius, shadow and font size here is character-for-
+   character the same as the Faculty, HOD and Admin screens.
+
+   Palette (unchanged from the rest of the portal, matches niet.co.in):
+     · NIET red      --primary-color  #E11D48
+     · Deep navy     --sidebar-bg     #0B1120
+     · Gold accent   --secondary-color #F59E0B
+   ==================================================================== */
+
+/* ─── Base ─── */
+body.public-body {
+  font-family: var(--font-family);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.public-body a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* The browser's own [hidden] rule lives in the user-agent stylesheet, and
+   ANY author rule outranks it — so `display: grid` on .pub-profile-grid
+   was keeping that grid on screen even after JavaScript set hidden=true,
+   leaving loading skeletons visible underneath an error message. This
+   restates the rule at author level so hidden means hidden everywhere on
+   the public pages. !important is deliberate: the whole point is to beat
+   whatever display value the element's own class sets. */
+.public-body [hidden] {
+  display: none !important;
+}
+
+/* Every band of the page lines its content up on the same grid. */
+.pub-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+}
+
+/* Skip link — keyboard users should not have to tab the whole nav. */
+.pub-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--primary-color);
+  color: var(--text-inverse);
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pub-skip-link:focus {
+  left: 0;
+}
+
+/* ====================================================================
+   NAVIGATION
+   ==================================================================== */
+.pub-nav {
+  background-color: var(--sidebar-bg);
+  border-bottom: 1px solid var(--sidebar-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.pub-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 68px;
+}
+
+/* Allowed to shrink so a narrow phone bar cannot be pushed wider than
+   the screen. The logo plate itself never shrinks; the wording gives way
+   first, and disappears entirely below 480px. */
+.pub-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/* The official logo is dark ink, so it needs a white plate on navy. */
+.niet-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: var(--radius-md);
+  padding: 5px 9px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+
+.niet-logo-badge img {
+  display: block;
+  height: 30px;
+  width: auto;
+}
+
+.pub-brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.pub-brand-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-inverse);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pub-brand-tag {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sidebar-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pub-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pub-nav-link {
+  color: var(--sidebar-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  padding: 0.4rem 0;
+  border-bottom: 2px solid transparent;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pub-nav-link:hover {
+  color: var(--text-inverse);
+}
+
+.pub-nav-link.is-active {
+  color: var(--text-inverse);
+  border-bottom-color: var(--primary-color);
+}
+
+.pub-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* The one and only way in for Faculty, HOD and Admin. */
+.pub-btn-login {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  padding: 0.55rem 1.25rem;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.pub-btn-login:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Two labels, one visible at a time — "Portal Login" on a desktop bar,
+   plain "Login" once space is tight. Swapping the text beats letting the
+   button truncate. */
+.pub-login-label-short { display: none; }
+
+.pub-nav-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--radius-sm);
+  color: var(--text-inverse);
+  padding: 0.4rem;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.pub-nav-toggle svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* ====================================================================
+   HERO
+   ==================================================================== */
+.pub-hero {
+  background: radial-gradient(circle at 82% 18%, #1E293B 0%, #0B1120 68%);
+  color: var(--text-inverse);
+  padding: 4.5rem 0 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Compact variant for the inner pages, which lead with a search bar
+   rather than a headline. */
+.pub-hero.is-compact {
+  padding: 2.75rem 0 2.5rem;
+}
+
+.pub-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  background-color: rgba(225, 29, 72, 0.15);
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  color: var(--primary-muted);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  margin-bottom: 1.35rem;
+}
+
+.pub-hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pub-hero-title {
+  font-size: 3rem;
+  font-weight: var(--font-weight-extrabold);
+  line-height: 1.14;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.15rem;
+  max-width: 20ch;
+}
+
+.pub-hero-title .accent {
+  color: var(--primary-color);
+  display: block;
+}
+
+.pub-hero.is-compact .pub-hero-title {
+  font-size: 2rem;
+  max-width: none;
+  margin-bottom: 0.5rem;
+}
+
+.pub-hero-subtitle {
+  font-size: var(--font-size-xl);
+  color: var(--sidebar-text);
+  line-height: 1.65;
+  margin: 0 0 2rem;
+  max-width: 60ch;
+}
+
+.pub-hero.is-compact .pub-hero-subtitle {
+  font-size: var(--font-size-lg);
+  margin-bottom: 1.75rem;
+}
+
+/* On an inner page the subtitle is often the last thing in the hero
+   (there is no search box below it), and its bottom margin would then
+   just add dead space above the fold. */
+.pub-hero.is-compact .pub-hero-subtitle:last-child {
+  margin-bottom: 0;
+}
+
+/* ─── Hero search — "find a teacher or an achievement" ─── */
+.pub-search {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  background: var(--surface-card);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem;
+  box-shadow: var(--shadow-xl);
+  max-width: 780px;
+}
+
+.pub-search-field {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.pub-search-field svg {
+  position: absolute;
+  left: 0.85rem;
+  width: 18px;
+  height: 18px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.pub-search-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
+  padding: 0.7rem 0.75rem 0.7rem 2.6rem;
+}
+
+.pub-search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.pub-search-select {
+  border: none;
+  outline: none;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  padding: 0 2rem 0 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  max-width: 190px;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748B' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  background-size: 15px;
+}
+
+.pub-search-btn {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  padding: 0.7rem 1.6rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--transition-fast);
+}
+
+.pub-search-btn:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Small print under the search bar. */
+.pub-hero-hint {
+  margin: 1rem 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+/* ====================================================================
+   BUTTONS (public variants)
+   ==================================================================== */
+.pub-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  padding: 0.7rem 1.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pub-btn-primary {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+}
+
+.pub-btn-primary:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
+}
+
+.pub-btn-ghost-light {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: var(--text-inverse);
+}
+
+.pub-btn-ghost-light:hover {
+  background-color: rgba(255, 255, 255, 0.13);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pub-btn-outline {
+  background-color: var(--surface-card);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.pub-btn-outline:hover {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.pub-btn-block {
+  width: 100%;
+}
+
+/* ====================================================================
+   STAT STRIP
+   ==================================================================== */
+.pub-stats {
+  background-color: var(--surface-card);
+  border-bottom: 1px solid var(--border-color);
+  padding: 2.25rem 0;
+}
+
+.pub-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.pub-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.3rem;
+  padding: 0 0.5rem;
+  border-left: 1px solid var(--border-light);
+}
+
+.pub-stat:first-child {
+  border-left: none;
+}
+
+.pub-stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+}
+
+.pub-stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.pub-stat-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.pub-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ====================================================================
+   SECTIONS
+   ==================================================================== */
+.pub-section {
+  padding: 4rem 0;
+}
+
+.pub-section.on-white {
+  background-color: var(--surface-card);
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.pub-section.is-tight {
+  padding: 2.5rem 0;
+}
+
+.pub-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.pub-section-tag {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary-color);
+  margin-bottom: 0.35rem;
+}
+
+.pub-section-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.pub-section-sub {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin: 0.4rem 0 0;
+  max-width: 68ch;
+}
+
+.pub-link-arrow {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--primary-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: gap var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pub-link-arrow:hover {
+  gap: 0.55rem;
+}
+
+/* ─── Category filter tabs ─── */
+.pub-tabs {
+  display: inline-flex;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.25rem;
+  gap: 0.15rem;
+  flex-wrap: wrap;
+}
+
+.pub-tab {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.pub-tab:hover {
+  color: var(--text-primary);
+}
+
+.pub-tab.is-active {
+  background: var(--surface-card);
+  color: var(--primary-color);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ====================================================================
+   ACHIEVEMENT CARDS
+   The 4px coloured bar down the left edge tells you the category at a
+   glance, the same convention the signed-in achievement lists use.
+   ==================================================================== */
+.pub-ach-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.pub-ach-grid.is-two-up {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.pub-ach-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--cat-color, var(--primary-color));
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.pub-ach-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+.pub-ach-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.pub-cat-chip {
+  display: inline-block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-xs);
+  background: var(--cat-bg, var(--primary-light));
+  color: var(--cat-color, var(--primary-dark));
+  white-space: nowrap;
+}
+
+.pub-ach-date {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pub-ach-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.35;
+  margin: 0 0 0.5rem;
+}
+
+.pub-ach-desc {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+  /* Keep every card the same height without clipping mid-word. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Journal / patent number / funding agency — the category-specific line. */
+.pub-ach-meta {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0 0 1rem;
+  line-height: 1.55;
+}
+
+.pub-ach-meta strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pub-ach-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-top: 1px solid var(--border-light);
+  padding-top: 0.85rem;
+  margin-top: auto;
+}
+
+.pub-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+
+.pub-avatar.is-lg {
+  width: 104px;
+  height: 104px;
+  font-size: 2.1rem;
+}
+
+.pub-avatar.is-sm {
+  width: 30px;
+  height: 30px;
+  font-size: var(--font-size-xs);
+}
+
+.pub-ach-author {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pub-ach-author-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.pub-ach-author-name:hover {
+  color: var(--primary-color);
+}
+
+.pub-ach-author-dept {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* DOI / external reference link */
+.pub-doi-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-info);
+  margin-top: 0.15rem;
+}
+
+.pub-doi-link:hover {
+  text-decoration: underline;
+}
+
+.pub-doi-link svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ====================================================================
+   FACULTY CARDS
+   ==================================================================== */
+.pub-fac-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+}
+
+.pub-fac-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--primary-color);
+  border-radius: var(--radius-md);
+  padding: 1.5rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-normal), transform var(--transition-normal);
+}
+
+.pub-fac-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-3px);
+}
+
+.pub-fac-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0.85rem 0 0.2rem;
+  line-height: 1.3;
+}
+
+.pub-fac-desig {
+  font-size: var(--font-size-base);
+  color: var(--primary-color);
+  font-weight: var(--font-weight-medium);
+}
+
+.pub-fac-dept {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+
+.pub-fac-counts {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  border-top: 1px solid var(--border-light);
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+}
+
+.pub-fac-count {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.pub-fac-count + .pub-fac-count {
+  border-left: 1px solid var(--border-light);
+}
+
+.pub-fac-count-value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.pub-fac-count-label {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: var(--font-weight-semibold);
+}
+
+.pub-fac-card .pub-btn {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* ====================================================================
+   FILTER BAR (directory + gallery pages)
+   ==================================================================== */
+.pub-filter-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+  margin-bottom: 1.5rem;
+}
+
+.pub-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+
+.pub-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.pub-field.is-grow {
+  flex: 1 1 220px;
+}
+
+.pub-field-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pub-input,
+.pub-select {
+  font-family: inherit;
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.75rem;
+  outline: none;
+  width: 100%;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.pub-input:focus,
+.pub-select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.pub-select {
+  cursor: pointer;
+  min-width: 160px;
+}
+
+.pub-result-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+}
+
+.pub-result-line strong {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ====================================================================
+   PAGINATION
+   ==================================================================== */
+.pub-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.pub-page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.6rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pub-page-btn:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.pub-page-btn.is-active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--text-inverse);
+}
+
+.pub-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pub-page-gap {
+  color: var(--text-tertiary);
+  padding: 0 0.25rem;
+  font-size: var(--font-size-sm);
+}
+
+/* ====================================================================
+   PROFILE PAGE
+   ==================================================================== */
+.pub-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  padding: 1.25rem 0;
+}
+
+.pub-breadcrumb a:hover {
+  color: var(--primary-color);
+}
+
+.pub-breadcrumb .sep {
+  color: var(--border-color);
+}
+
+.pub-breadcrumb .current {
+  color: var(--text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pub-profile-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+  padding-bottom: 4rem;
+}
+
+.pub-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+}
+
+.pub-card-pad {
+  padding: 1.5rem;
+}
+
+.pub-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pub-card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.pub-card-title svg {
+  width: 18px;
+  height: 18px;
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+/* Identity panel down the left of the profile */
+.pub-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.pub-identity-name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  margin: 1.1rem 0 0.3rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.pub-identity-desig {
+  font-size: var(--font-size-lg);
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pub-identity-dept {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+}
+
+.pub-identity-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-light);
+  margin: 1.5rem 0 1.25rem;
+}
+
+.pub-meta-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  text-align: left;
+}
+
+.pub-meta-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.pub-meta-row svg {
+  width: 17px;
+  height: 17px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pub-meta-key {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-tertiary);
+  display: block;
+}
+
+.pub-meta-val {
+  font-size: var(--font-size-base);
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+/* Three counters above the achievement list */
+.pub-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.pub-metric {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-top: 3px solid var(--metric-color, var(--primary-color));
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1rem;
+  text-align: center;
+  box-shadow: var(--shadow-xs);
+}
+
+.pub-metric svg {
+  width: 22px;
+  height: 22px;
+  color: var(--metric-color, var(--primary-color));
+  margin-bottom: 0.5rem;
+}
+
+.pub-metric-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  line-height: 1.05;
+}
+
+.pub-metric-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* Achievement rows inside the profile */
+.pub-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.pub-timeline-item {
+  background: var(--surface-secondary);
+  border-left: 3px solid var(--cat-color, var(--primary-color));
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 1rem 1.15rem;
+}
+
+.pub-timeline-top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.45rem;
+}
+
+.pub-timeline-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 0.3rem;
+  line-height: 1.35;
+}
+
+.pub-timeline-desc {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Publication citation blocks */
+.pub-cite-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 1.5rem 1.5rem;
+}
+
+.pub-cite {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pub-cite:last-child {
+  border-bottom: none;
+}
+
+.pub-cite-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 0.35rem;
+  line-height: 1.4;
+}
+
+.pub-cite-ref {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 0.4rem;
+}
+
+.pub-cite-ref em {
+  color: var(--text-primary);
+}
+
+/* ====================================================================
+   LOGIN / PORTAL ACCESS BAND
+   ==================================================================== */
+.pub-cta {
+  background: linear-gradient(135deg, #0B1120 0%, #1E293B 100%);
+  color: var(--text-inverse);
+  padding: 3.5rem 0;
+}
+
+.pub-cta-inner {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: center;
+}
+
+.pub-cta-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-extrabold);
+  margin: 0 0 0.75rem;
+  letter-spacing: -0.01em;
+}
+
+.pub-cta-text {
+  font-size: var(--font-size-lg);
+  color: var(--sidebar-text);
+  line-height: 1.65;
+  margin: 0 0 1.75rem;
+  max-width: 58ch;
+}
+
+.pub-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pub-role {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+}
+
+.pub-role-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  background: rgba(225, 29, 72, 0.16);
+  color: var(--primary-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pub-role-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.pub-role-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-inverse);
+  display: block;
+}
+
+.pub-role-desc {
+  font-size: var(--font-size-sm);
+  color: var(--sidebar-text);
+  line-height: 1.5;
+}
+
+/* ====================================================================
+   CATEGORY PILLS (what the portal tracks)
+   ==================================================================== */
+.pub-pill-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.pub-pill {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  transition: all var(--transition-fast);
+}
+
+.pub-pill:hover {
+  border-color: var(--primary-color);
+  background: var(--surface-card);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.pub-pill-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pub-pill-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.pub-pill-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  line-height: 1.35;
+}
+
+.pub-pill-count {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* ====================================================================
+   FOOTER
+   ==================================================================== */
+.pub-footer {
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 3rem 0 1.75rem;
+}
+
+.pub-footer-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap: 2.5rem;
+  padding-bottom: 2.25rem;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.pub-footer-about {
+  font-size: var(--font-size-base);
+  line-height: 1.7;
+  margin: 1rem 0 0;
+  max-width: 46ch;
+}
+
+.pub-footer-heading {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-inverse);
+  margin: 0 0 1rem;
+}
+
+.pub-footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.pub-footer-links a {
+  font-size: var(--font-size-base);
+  transition: color var(--transition-fast);
+}
+
+.pub-footer-links a:hover {
+  color: var(--text-inverse);
+}
+
+.pub-footer-bottom {
+  padding-top: 1.5rem;
+  font-size: var(--font-size-sm);
+  color: #475569;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+/* ====================================================================
+   LOADING / EMPTY / ERROR STATES
+   ==================================================================== */
+.pub-skeleton-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+}
+
+.pub-sk-line {
+  background: var(--surface-hover);
+  border-radius: var(--radius-xs);
+  height: 12px;
+  margin-bottom: 0.7rem;
+  animation: pubPulse 1.4s ease-in-out infinite;
+}
+
+.pub-sk-line.is-title { height: 18px; width: 78%; }
+.pub-sk-line.is-short { width: 45%; }
+.pub-sk-line.is-chip  { height: 20px; width: 90px; border-radius: var(--radius-xs); }
+
+.pub-sk-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-hover);
+  animation: pubPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pubPulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+.pub-state {
+  grid-column: 1 / -1;
+  background: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 3.5rem 2rem;
+  text-align: center;
+}
+
+.pub-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-hover);
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
+}
+
+.pub-state-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+.pub-state-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.pub-state-text {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.65;
+  margin: 0 auto 1.35rem;
+  max-width: 46ch;
+}
+
+.pub-state.is-error {
+  background: var(--color-danger-light);
+  border-color: var(--status-rejected-border);
+}
+
+.pub-state.is-error .pub-state-icon {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-danger);
+}
+
+.pub-state.is-error .pub-state-title {
+  color: var(--status-rejected-text);
+}
+
+.pub-state.is-error .pub-state-text {
+  color: var(--status-rejected-text);
+}
+
+/* A quiet inline notice — used for the "sample content" banner. */
+.pub-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: var(--color-info-light);
+  border: 1px solid #BAE6FD;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.1rem;
+  font-size: var(--font-size-base);
+  color: #075985;
+  line-height: 1.6;
+}
+
+.pub-notice svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.pub-notice strong {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ====================================================================
+   RESPONSIVE
+   Same breakpoint ladder as responsive.css so the public site and the
+   signed-in app reflow at exactly the same widths.
+   ==================================================================== */
+@media (max-width: 1280px) {
+  .pub-container { padding: 0 1.5rem; }
+}
+
+@media (max-width: 1024px) {
+  .pub-nav-links { gap: 1.25rem; }
+
+  .pub-hero { padding: 3.5rem 0 3rem; }
+  .pub-hero-title { font-size: 2.5rem; }
+
+  .pub-stats-grid { grid-template-columns: repeat(2, 1fr); gap: 1.75rem 1rem; }
+  .pub-stat:nth-child(3) { border-left: none; }
+
+  .pub-ach-grid,
+  .pub-ach-grid.is-two-up { grid-template-columns: repeat(2, 1fr); }
+
+  .pub-fac-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .pub-pill-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .pub-profile-grid { grid-template-columns: 1fr; }
+
+  .pub-cta-inner { grid-template-columns: 1fr; gap: 2rem; }
+
+  .pub-footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+}
+
+@media (max-width: 768px) {
+  /* Links collapse into a drawer under the bar. */
+  .pub-nav-toggle { display: inline-flex; }
+
+  .pub-nav-links {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 0.5rem 1.5rem 1rem;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .pub-nav-links.is-open { display: flex; }
+
+  .pub-nav-link {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+
+  .pub-nav-link.is-active {
+    border-bottom-color: var(--sidebar-border);
+    color: var(--primary-muted);
+  }
+
+  .pub-nav-inner { height: 60px; gap: 0.75rem; }
+  .pub-brand-name { font-size: var(--font-size-base); }
+  /* The strapline is the first thing to go — the logo already says NIET. */
+  .pub-brand-tag { display: none; }
+
+  .pub-hero { padding: 2.75rem 0 2.5rem; }
+  .pub-hero-title { font-size: 2rem; max-width: none; }
+  .pub-hero-subtitle { font-size: var(--font-size-lg); }
+  .pub-hero.is-compact .pub-hero-title { font-size: 1.6rem; }
+
+  /* The search bar becomes a stack so the input keeps a usable width. */
+  .pub-search {
+    flex-direction: column;
+    padding: 0.75rem;
+    gap: 0.6rem;
+  }
+
+  .pub-search-select { max-width: none; padding: 0.6rem 2rem 0.6rem 0.85rem; }
+  .pub-search-btn { padding: 0.7rem 1rem; }
+  .pub-search-input { padding-left: 2.5rem; }
+
+  .pub-section { padding: 2.75rem 0; }
+  .pub-section.is-tight { padding: 2rem 0; }
+  .pub-section-title { font-size: var(--font-size-xl); }
+  .pub-section-head { margin-bottom: 1.5rem; }
+
+  .pub-ach-grid,
+  .pub-ach-grid.is-two-up,
+  .pub-fac-grid { grid-template-columns: 1fr; }
+
+  .pub-pill-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .pub-metric-row { grid-template-columns: 1fr; gap: 0.75rem; }
+  .pub-metric { display: flex; align-items: center; gap: 0.85rem; text-align: left; padding: 1rem 1.15rem; }
+  .pub-metric svg { margin-bottom: 0; }
+  .pub-metric-value { font-size: var(--font-size-2xl); }
+
+  .pub-card-head { padding: 1rem 1.15rem; }
+  .pub-timeline,
+  .pub-cite-list { padding-left: 1.15rem; padding-right: 1.15rem; }
+  .pub-identity { padding: 1.75rem 1.25rem; }
+  .pub-identity-name { font-size: var(--font-size-xl); }
+
+  .pub-cta { padding: 2.5rem 0; }
+  .pub-cta-title { font-size: var(--font-size-xl); }
+
+  .pub-footer-grid { grid-template-columns: 1fr; gap: 1.75rem; }
+  .pub-footer-bottom { flex-direction: column; gap: 0.5rem; }
+
+  .pub-filter-card { padding: 1rem 1.15rem; }
+  .pub-field.is-grow { flex-basis: 100%; }
+  .pub-select { min-width: 0; }
+
+  .pub-state { padding: 2.5rem 1.25rem; }
+}
+
+@media (max-width: 480px) {
+  .pub-container { padding: 0 1rem; }
+
+  /* Logo only. Three items — wording, login button, hamburger — do not fit
+     on a phone bar, and the wording is the one the logo already conveys. */
+  .pub-brand-text { display: none; }
+  .pub-login-label-full { display: none; }
+  .pub-login-label-short { display: inline; }
+  .pub-nav-inner { gap: 0.5rem; }
+
+  .pub-hero-title { font-size: 1.7rem; }
+  .pub-hero-subtitle { font-size: var(--font-size-base); }
+
+  .pub-stats-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+  .pub-stat { border-left: none; padding: 0; }
+  .pub-stat:nth-child(n) { border-left: none; }
+
+  .pub-avatar.is-lg { width: 84px; height: 84px; font-size: 1.7rem; }
+
+  /* Full-width buttons read better than half-width ones on a phone. */
+  .pub-filter-row .pub-btn,
+  .pub-state .pub-btn { width: 100%; }
+
+  .pub-filter-row > .pub-field,
+  .pub-filter-row > .pub-btn { flex: 1 1 100%; }
+
+  .pub-ach-card { padding: 1.1rem; }
+  .pub-ach-title { font-size: var(--font-size-md); }
+
+  .pub-pill-grid { grid-template-columns: 1fr; }
+  .pub-pill { flex-direction: row; text-align: left; align-items: center; }
+}
+
+@media (max-width: 390px) {
+  .pub-btn-login { padding: 0.5rem 0.85rem; }
+  .pub-hero-title { font-size: 1.5rem; }
+  .pub-section-title { font-size: var(--font-size-lg); }
+}
+
+@media (max-width: 320px) {
+  .pub-container { padding: 0 0.75rem; }
+  .niet-logo-badge img { height: 24px; }
+  .pub-brand-name { font-size: var(--font-size-sm); }
+  .pub-btn-login { font-size: var(--font-size-sm); padding: 0.45rem 0.7rem; }
+}
+
+/* ─── Print ─── */
+@media print {
+  .pub-nav,
+  .pub-cta,
+  .pub-footer,
+  .pub-search,
+  .pub-filter-card,
+  .pub-pagination { display: none !important; }
+
+  .pub-hero { background: none; color: #000; padding: 1rem 0; }
+  .pub-ach-card,
+  .pub-card { box-shadow: none; break-inside: avoid; }
+}

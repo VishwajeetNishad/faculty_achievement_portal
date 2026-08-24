@@ -94,7 +94,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/achievements/**").authenticated()
                 .requestMatchers("/api/notifications/**").authenticated()
-                .requestMatchers("/api/audit-logs/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                // Administrators keep the access they had; an account explicitly
+                // granted VIEW_AUDIT_LOGS is allowed as well. This URL rule runs
+                // BEFORE the check inside AuditLogController, so without the
+                // permission listed here that check would never be reached and
+                // the permission would silently have no effect.
+                .requestMatchers("/api/audit-logs/**")
+                    .hasAnyAuthority("ROLE_ADMIN", "ADMIN", Permissions.VIEW_AUDIT_LOGS)
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())

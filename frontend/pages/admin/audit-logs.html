@@ -54,6 +54,12 @@
             </a>
           </li>
           <li class="nav-item">
+            <a href="departments.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              Departments
+            </a>
+          </li>
+          <li class="nav-item">
             <a href="user-permissions.html" class="nav-link">
               <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
               User Permissions
@@ -88,11 +94,12 @@
         </div>
 
         <div class="header-right">
+          <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
           <div class="user-profile-widget">
-            <div class="avatar-circle" style="background-color: #DC2626;">AD</div>
+            <div class="avatar-circle" style="background-color: #DC2626;" data-identity="initials"></div>
             <div class="user-details">
-              <span class="user-name">System Admin</span>
-              <span class="user-role-tag">Institutional Controller</span>
+              <span class="user-name" data-identity="name"></span>
+              <span class="user-role-tag" data-identity="role"></span>
             </div>
           </div>
         </div>
@@ -113,16 +120,42 @@
                 <label style="font-size: 0.8rem; font-weight: 500; color: #475569;">Action Event</label>
                 <select id="auditFilterAction" class="form-control" style="font-size: 0.85rem;">
                   <option value="">All Actions</option>
-                  <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
-                  <option value="LOGIN_FAILURE">LOGIN_FAILURE</option>
-                  <option value="ACHIEVEMENT_CREATED">ACHIEVEMENT_CREATED</option>
-                  <option value="ACHIEVEMENT_UPDATED">ACHIEVEMENT_UPDATED</option>
-                  <option value="ACHIEVEMENT_DELETED">ACHIEVEMENT_DELETED</option>
-                  <option value="ACHIEVEMENT_APPROVED">ACHIEVEMENT_APPROVED</option>
-                  <option value="ACHIEVEMENT_REJECTED">ACHIEVEMENT_REJECTED</option>
-                  <option value="PROOF_UPLOADED">PROOF_UPLOADED</option>
-                  <option value="PROOF_DELETED">PROOF_DELETED</option>
-                  <option value="PROFILE_UPDATED">PROFILE_UPDATED</option>
+                  <!-- Grouped so the list stays readable. Every value below is a
+                       real name from AuditAction.java; nothing here is invented.
+                       The SHARE_* actions exist in the enum but nothing writes
+                       them yet, so they are deliberately left out until research
+                       sharing is built. -->
+                  <optgroup label="Sign-in">
+                    <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+                    <option value="LOGIN_FAILURE">LOGIN_FAILURE</option>
+                  </optgroup>
+                  <optgroup label="Achievements">
+                    <option value="ACHIEVEMENT_CREATED">ACHIEVEMENT_CREATED</option>
+                    <option value="ACHIEVEMENT_UPDATED">ACHIEVEMENT_UPDATED</option>
+                    <option value="ACHIEVEMENT_DELETED">ACHIEVEMENT_DELETED</option>
+                    <option value="ACHIEVEMENT_APPROVED">ACHIEVEMENT_APPROVED</option>
+                    <option value="ACHIEVEMENT_REJECTED">ACHIEVEMENT_REJECTED</option>
+                    <option value="PROOF_UPLOADED">PROOF_UPLOADED</option>
+                    <option value="PROOF_DELETED">PROOF_DELETED</option>
+                  </optgroup>
+                  <optgroup label="Accounts">
+                    <option value="PROFILE_UPDATED">PROFILE_UPDATED</option>
+                    <option value="USER_CREATED">USER_CREATED</option>
+                    <option value="USER_UPDATED">USER_UPDATED</option>
+                    <option value="USER_STATUS_CHANGED">USER_STATUS_CHANGED</option>
+                    <option value="ROLE_CHANGED">ROLE_CHANGED</option>
+                    <option value="PASSWORD_RESET">PASSWORD_RESET</option>
+                  </optgroup>
+                  <optgroup label="Permissions">
+                    <option value="PERMISSION_GRANTED">PERMISSION_GRANTED</option>
+                    <option value="PERMISSION_REVOKED">PERMISSION_REVOKED</option>
+                    <option value="PERMISSIONS_UPDATED">PERMISSIONS_UPDATED</option>
+                  </optgroup>
+                  <optgroup label="Departments">
+                    <option value="DEPARTMENT_CREATED">DEPARTMENT_CREATED</option>
+                    <option value="DEPARTMENT_UPDATED">DEPARTMENT_UPDATED</option>
+                    <option value="DEPARTMENT_DELETED">DEPARTMENT_DELETED</option>
+                  </optgroup>
                 </select>
               </div>
               <div>
@@ -133,6 +166,9 @@
                   <option value="PROOF">PROOF</option>
                   <option value="AUTH">AUTH</option>
                   <option value="USER">USER</option>
+                  <!-- Permission changes are recorded against the USER they
+                       affect, so there is no separate PERMISSION entity type. -->
+                  <option value="DEPARTMENT">DEPARTMENT</option>
                 </select>
               </div>
               <div>

@@ -10,6 +10,8 @@ import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.exception.BadRequestException;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.UserRepository;
+import com.niet.facultyachievement.security.Permissions;
+import com.niet.facultyachievement.security.UserPermissionResolver;
 import com.niet.facultyachievement.service.AchievementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +40,7 @@ public class AchievementController {
 
     private final AchievementService achievementService;
     private final UserRepository userRepository;
+    private final UserPermissionResolver userPermissionResolver;
 
     private User getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
@@ -45,6 +48,17 @@ public class AchievementController {
         }
         return userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("Authenticated user record not found"));
+    }
+
+    /**
+     * True when this user has been individually granted the given permission (or
+     * is an administrator, who implicitly holds all of them).
+     *
+     * <p>Always read from the database rather than the token, so a revoked
+     * permission stops working on the user's very next request.
+     */
+    private boolean hasPermission(User user, String code) {
+        return userPermissionResolver.resolvePermissionCodes(user).contains(code);
     }
 
     @PostMapping
@@ -93,7 +107,10 @@ public class AchievementController {
         boolean isAdminOrHod = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN") ||
                                roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
 
-        if (!isSelf && !isAdminOrHod) {
+        // Added as an ALTERNATIVE to the role check above, never as a replacement:
+        // an account explicitly granted VIEW_ALL_ACHIEVEMENTS may read another
+        // person's records. Everyone else still sees only their own.
+        if (!isSelf && !isAdminOrHod && !hasPermission(currentUser, Permissions.VIEW_ALL_ACHIEVEMENTS)) {
             throw new AccessDeniedException("You are not authorized to view achievements belonging to user id: " + userId);
         }
 
@@ -101,8 +118,36 @@ public class AchievementController {
         return ResponseEntity.ok(responses);
     }
 
+    /**
+     * GET /api/achievements/status/{status} — every achievement in a given state,
+     * across the whole institution. Backs the admin verification queue.
+     *
+     * <p>SECURITY FIX: this endpoint previously had no authorization check at all,
+     * so any signed-in faculty member could list everyone's PENDING and REJECTED
+     * submissions together with the reviewers' private comments. It is now
+     * restricted to administrators, Heads of Department (who both already used it)
+     * and accounts explicitly granted VIEW_ALL_ACHIEVEMENTS.
+     *
+     * <p>No page loses anything: the only caller in the frontend is the admin
+     * dashboard. Unlike {@code /export/csv}, this endpoint never narrowed its
+     * results to the signed-in user, so what is being removed here was never
+     * legitimate access — it was a leak.
+     */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<AchievementResponse>> getAchievementsByStatus(@PathVariable("status") String status) {
+    public ResponseEntity<List<AchievementResponse>> getAchievementsByStatus(
+            Authentication authentication,
+            @PathVariable("status") String status) {
+
+        User currentUser = getAuthenticatedUser(authentication);
+        String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
+        boolean isAdminOrHod = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN")
+                || roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
+
+        if (!isAdminOrHod && !hasPermission(currentUser, Permissions.VIEW_ALL_ACHIEVEMENTS)) {
+            throw new AccessDeniedException(
+                    "You are not authorized to list all achievements. Use /api/achievements/me for your own records.");
+        }
+
         AchievementStatus achievementStatus;
         try {
             achievementStatus = AchievementStatus.valueOf(status.toUpperCase());
@@ -121,10 +166,13 @@ public class AchievementController {
         
         String roleName = currentUser.getRole() != null ? currentUser.getRole().getName() : "";
         boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
-        boolean isOwnDeptHod = (roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD")) && 
+        boolean isOwnDeptHod = (roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD")) &&
                 currentUser.getDepartment() != null && currentUser.getDepartment().getId().equals(departmentId);
 
-        if (!isAdmin && !isOwnDeptHod) {
+        // Additive: VIEW_ALL_ACHIEVEMENTS means exactly that — across departments.
+        // The HOD's own-department restriction above is untouched, so an HOD
+        // without this permission still cannot look at another department.
+        if (!isAdmin && !isOwnDeptHod && !hasPermission(currentUser, Permissions.VIEW_ALL_ACHIEVEMENTS)) {
             throw new AccessDeniedException("You are not authorized to view achievements for department id: " + departmentId);
         }
 
@@ -162,7 +210,13 @@ public class AchievementController {
         boolean isAdmin = roleName.equalsIgnoreCase("ADMIN") || roleName.equalsIgnoreCase("ROLE_ADMIN");
         boolean isHod = roleName.equalsIgnoreCase("HOD") || roleName.equalsIgnoreCase("ROLE_HOD");
 
-        if (!isAdmin && !isHod) {
+        // Additive: an account explicitly granted VERIFY_ACHIEVEMENT may review
+        // too. The department restriction below still applies to Heads of
+        // Department, and the one-shot rule plus the mandatory rejection comment
+        // are enforced in the service exactly as before.
+        boolean canVerify = hasPermission(reviewer, Permissions.VERIFY_ACHIEVEMENT);
+
+        if (!isAdmin && !isHod && !canVerify) {
             throw new AccessDeniedException("Faculty members are not authorized to verify achievement records");
         }
 
@@ -175,6 +229,15 @@ public class AchievementController {
             if (!matchesDept) {
                 throw new AccessDeniedException("HOD is not authorized to verify achievements belonging to other departments");
             }
+        }
+
+        // A reviewer acting purely on the VERIFY_ACHIEVEMENT permission — a
+        // faculty member, not an administrator or Head of Department — must not
+        // approve their own submission. This only constrains the newly possible
+        // path: administrators and HODs reach this line under exactly the same
+        // rules as before.
+        if (!isAdmin && !isHod && reviewer.getId().equals(target.getUserId())) {
+            throw new AccessDeniedException("You cannot verify your own achievement record.");
         }
 
         AchievementResponse response = achievementService.verifyAchievement(id, reviewer.getId(), request);

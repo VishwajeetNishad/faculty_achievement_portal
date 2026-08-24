@@ -3,6 +3,7 @@ package com.niet.facultyachievement.controller;
 import com.niet.facultyachievement.dto.dashboard.AdminDashboardResponse;
 import com.niet.facultyachievement.dto.dashboard.FacultyDashboardResponse;
 import com.niet.facultyachievement.dto.dashboard.HodDashboardResponse;
+import com.niet.facultyachievement.security.Permissions;
 import com.niet.facultyachievement.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -42,10 +43,17 @@ public class DashboardController {
 
     /**
      * GET /api/dashboard/admin — Institutional dashboard & department comparison analytics.
-     * Accessible strictly by ROLE_ADMIN.
+     *
+     * <p>Accessible to ROLE_ADMIN, exactly as before, and additionally to any
+     * account explicitly granted VIEW_REPORTS. This is an institution-wide
+     * report, which is precisely what that permission is for — for example a
+     * Head of Department asked to prepare a comparison across departments.
+     *
+     * <p>Purely additive: the original {@code hasRole('ADMIN')} clause is
+     * untouched, so nothing an administrator could do before has changed.
      */
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('" + Permissions.VIEW_REPORTS + "')")
     public ResponseEntity<AdminDashboardResponse> getAdminDashboard() {
         return ResponseEntity.ok(dashboardService.getAdminDashboard());
     }

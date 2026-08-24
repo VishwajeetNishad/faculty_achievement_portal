@@ -31,6 +31,11 @@ public enum AuditAction {
     USER_STATUS_CHANGED,
     ROLE_CHANGED,
 
+    // An administrator set a new password for someone who had lost theirs.
+    // Recorded as its own action so it stands out in the trail — the entry notes
+    // only that a reset happened, never the password itself.
+    PASSWORD_RESET,
+
     // Permission management
     PERMISSION_GRANTED,
     PERMISSION_REVOKED,
