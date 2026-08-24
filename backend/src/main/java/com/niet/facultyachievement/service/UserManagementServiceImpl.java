@@ -57,6 +57,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final PasswordEncoder passwordEncoder;
     private final UserPermissionResolver userPermissionResolver;
     private final AuditLogService auditLogService;
+    private final PublicSlugGenerator publicSlugGenerator;
 
     // ---------------------------------------------------------------- create
 
@@ -113,6 +114,16 @@ public class UserManagementServiceImpl implements UserManagementService {
                 .phone(isBlank(request.getPhone()) ? null : request.getPhone().trim())
                 .status(status)
                 .build();
+
+        // Public profile address (Track B). Assigned at creation so a new faculty
+        // member is reachable at /faculty/their-name-dept immediately, rather than
+        // only after the next restart when PublicSlugBackfill would catch them.
+        //
+        // A slug is given to everyone, including HODs and admins. It is not a
+        // permission to be listed: appearing on the public site still requires at
+        // least one APPROVED + PUBLIC achievement, and administrators are excluded
+        // from the public queries outright.
+        user.setPublicSlug(publicSlugGenerator.generateFor(user));
 
         User saved = userRepository.save(user);
 

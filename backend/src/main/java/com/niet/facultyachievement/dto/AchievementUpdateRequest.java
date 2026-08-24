@@ -1,5 +1,6 @@
 package com.niet.facultyachievement.dto;
 
+import com.niet.facultyachievement.entity.AchievementVisibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -35,4 +36,17 @@ public class AchievementUpdateRequest {
 
     @Size(max = 500, message = "Proof document URL cannot exceed 500 characters")
     private String proofDocumentUrl;
+
+    @Size(max = 500, message = "Keywords cannot exceed 500 characters")
+    private String keywords;
+
+    /**
+     * The new visibility, or {@code null} to leave it exactly as it is.
+     *
+     * <p>Note the difference from create: on an update, a missing value means
+     * "no change", not "make it PRIVATE". Forcing PRIVATE here would silently
+     * un-publish a faculty member's work every time an older client edited a
+     * title, which is a worse outcome than leaving the setting alone.
+     */
+    private AchievementVisibility visibility;
 }

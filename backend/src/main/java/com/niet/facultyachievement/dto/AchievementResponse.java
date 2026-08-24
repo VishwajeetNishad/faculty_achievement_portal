@@ -1,6 +1,7 @@
 package com.niet.facultyachievement.dto;
 
 import com.niet.facultyachievement.entity.AchievementStatus;
+import com.niet.facultyachievement.entity.AchievementVisibility;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -28,10 +29,24 @@ public class AchievementResponse {
 
     private String title;
     private String description;
+    private String keywords;
     private LocalDate achievementDate;
     private String academicYear;
 
     private AchievementStatus status;
+
+    /**
+     * The owner's own visibility setting.
+     *
+     * <p>Safe here and only here. This DTO is returned exclusively to
+     * authenticated callers — the owner, their HOD, or an administrator — and
+     * every one of them needs to see it: the owner to know whether their work is
+     * published, an HOD and an admin to understand what they are looking at.
+     *
+     * <p>The public side never uses this class. It has its own DTOs in
+     * {@code dto.publicview}, which is the whole reason those exist.
+     */
+    private AchievementVisibility visibility;
 
     private String verificationComment;
     private Long verifiedByUserId;
@@ -62,9 +77,11 @@ public class AchievementResponse {
                 .categoryName(category != null ? category.getCategoryName() : null)
                 .title(achievement.getTitle())
                 .description(achievement.getDescription())
+                .keywords(achievement.getKeywords())
                 .achievementDate(achievement.getAchievementDate())
                 .academicYear(achievement.getAcademicYear())
                 .status(achievement.getStatus())
+                .visibility(achievement.getVisibility())
                 .verificationComment(achievement.getVerificationComment())
                 .verifiedByUserId(verifier != null ? verifier.getId() : null)
                 .verifiedByName(verifier != null ? verifier.getFullName() : null)

@@ -75,6 +75,10 @@ services:
       ADMIN_DESIGNATION: ${ADMIN_DESIGNATION:-Administrator}
       ADMIN_DEPARTMENT_CODE: ${ADMIN_DEPARTMENT_CODE:-CSE}
       ADMIN_PHONE: ${ADMIN_PHONE:-}
+      # --- Public share links: the base address a copied link points at ---
+      # Defaults to the site's own domain, which is almost always what you want,
+      # so this needs no entry in .env unless the public site lives elsewhere.
+      SHARE_BASE_URL: ${SHARE_BASE_URL:-https://${DOMAIN}}
     volumes:
       - uploads:/app/uploads
       - logs:/app/logs

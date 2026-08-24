@@ -89,8 +89,31 @@ public class SecurityConfig {
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/auth/logout", "/api/health", "/actuator/health").permitAll()
+                // "/api/health" is deliberately NOT listed: nothing is mapped there,
+                // so whitelisting it only produced a confusing error for anyone who
+                // tried it. The health check is Actuator's, below.
+                .requestMatchers("/api/auth/login", "/api/auth/logout", "/actuator/health").permitAll()
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // The public site: the faculty directory, public profiles, the
+                // approved-and-public research gallery, and share links. No token,
+                // no session, no identity.
+                //
+                // This line MUST stay above anyRequest().authenticated() — rules
+                // are evaluated in order, and the first match wins, so a permitAll
+                // placed after the catch-all would never be reached.
+                //
+                // Everything behind it is safe to expose without a login because
+                // of decisions made elsewhere, not because of this line:
+                //   * PublicController returns only dto.publicview classes, which
+                //     have no field for a reviewer comment, an email, an employee
+                //     id or a proof URL — so those cannot be serialised even by
+                //     accident;
+                //   * every public query hard-codes status = APPROVED AND
+                //     visibility = PUBLIC as a literal, so no query parameter can
+                //     widen what a visitor sees;
+                //   * a share token is 32 random bytes, and its expiry and
+                //     revocation are re-checked by the server on every request.
+                .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/auth/me").authenticated()
                 .requestMatchers("/api/achievements/**").authenticated()
                 .requestMatchers("/api/notifications/**").authenticated()
