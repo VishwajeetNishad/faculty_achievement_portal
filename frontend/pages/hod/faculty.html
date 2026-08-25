@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Faculty Directory | NIET HOD Portal</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Stylesheets (HOD load order — skips layout.css/responsive.css; hod-theme owns the shell) -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/hod-theme.css">
+</head>
+<body class="hod-app">
+
+  <div class="hod-layout">
+
+    <!-- Sidebar -->
+    <aside class="hod-sidebar" id="hodSidebar">
+      <div class="hod-sidebar-header">
+        <div class="hod-brand">
+          <span class="hod-brand-logo"><img src="../../assets/niet-logo.png" alt="NIET"></span>
+          <div>
+            <div class="hod-brand-title" id="hodBrandTitle">Department</div>
+            <div class="hod-brand-sub" id="hodBrandSub">Faculty Achievement Portal</div>
+          </div>
+        </div>
+        <a href="verification-queue.html" class="hod-quick-btn"><span class="material-symbols-outlined">bolt</span> Quick Verify</a>
+      </div>
+
+      <nav class="hod-nav">
+        <a href="dashboard.html" class="hod-nav-link"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+        <a href="verification-queue.html" class="hod-nav-link"><span class="material-symbols-outlined">fact_check</span> Verification Queue</a>
+        <a href="achievements.html" class="hod-nav-link"><span class="material-symbols-outlined">workspace_premium</span> Department Achievements</a>
+        <a href="faculty.html" class="hod-nav-link"><span class="material-symbols-outlined">groups</span> Faculty Directory</a>
+        <a href="analytics.html" class="hod-nav-link"><span class="material-symbols-outlined">monitoring</span> Department Analytics</a>
+        <a href="audit-logs.html" class="hod-nav-link" data-perm="VIEW_AUDIT_LOGS" style="display:none;"><span class="material-symbols-outlined">receipt_long</span> Audit Logs</a>
+        <a href="reports.html" class="hod-nav-link" data-perm="VIEW_REPORTS" style="display:none;"><span class="material-symbols-outlined">assessment</span> Institution Reports</a>
+        <a href="notifications.html" class="hod-nav-link"><span class="material-symbols-outlined">notifications</span> Notifications</a>
+        <a href="profile.html" class="hod-nav-link"><span class="material-symbols-outlined">account_circle</span> HOD Profile</a>
+      </nav>
+
+      <div class="hod-sidebar-footer">
+        <a href="../login.html" class="hod-nav-link logout" id="signOutBtn"><span class="material-symbols-outlined">logout</span> Sign Out</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="hod-main">
+      <header class="hod-topbar">
+        <div class="hod-topbar-left">
+          <button class="hod-menu-toggle" id="hodMenuToggle" aria-label="Toggle navigation"><span class="material-symbols-outlined">menu</span></button>
+          <span class="hod-topbar-title">NIET Faculty Achievement Portal</span>
+        </div>
+        <div class="hod-topbar-right header-right">
+          <div class="hod-topuser">
+            <div class="hod-topuser-text">
+              <div class="hod-topuser-name" id="hodTopUserName">Head of Department</div>
+              <div class="hod-topuser-role" id="hodTopUserRole">HOD</div>
+            </div>
+            <div class="hod-avatar" id="hodTopAvatar">HD</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="hod-content">
+        <div class="hod-container">
+
+          <!-- Page head -->
+          <div class="hod-greeting">
+            <div>
+              <h1 class="hod-page-title">Faculty Directory</h1>
+              <p class="hod-page-sub">Faculty members in your department.</p>
+            </div>
+            <span class="hod-count-pill" id="hodFacultyCount"><span class="material-symbols-outlined">groups</span> — faculty</span>
+          </div>
+
+          <!-- Search -->
+          <div class="hod-card" style="margin-bottom:24px;">
+            <div class="hod-card-pad hod-filters">
+              <div class="hod-search">
+                <span class="material-symbols-outlined">search</span>
+                <input type="text" id="hodFacultySearch" placeholder="Search by name, employee ID or designation…" autocomplete="off">
+              </div>
+            </div>
+          </div>
+
+          <!-- Faculty grid -->
+          <div class="hod-faculty-grid" id="hodFacultyGrid">
+            <div class="hod-card"><div class="hod-card-pad"><div style="padding:24px 0;"><div class="hod-spinner"></div></div></div></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../../js/config.js"></script>
+  <script src="../../js/api.js"></script>
+  <script src="../../js/common.js"></script>
+  <script src="../../js/hod-common.js"></script>
+  <script src="../../js/hod-faculty.js"></script>
+</body>
+</html>

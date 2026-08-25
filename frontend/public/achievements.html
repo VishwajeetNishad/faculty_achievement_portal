@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/niet-logo.png">
+  <title>Public Achievements | NIET Faculty Achievement Portal</title>
+  <meta name="description" content="Browse verified research publications, patents, funded projects, awards and faculty development records from NIET. Open to everyone, no login required.">
+
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/public-theme.css">
+</head>
+
+<!-- data-root="../" — this page is one folder below the web root. -->
+<body class="public-body" data-root="../">
+
+  <a class="pub-skip-link" href="#main">Skip to content</a>
+
+  <header class="pub-nav">
+    <div class="pub-container pub-nav-inner">
+
+      <a class="pub-brand" href="../index.html">
+        <span class="niet-logo-badge">
+          <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <span class="pub-brand-text">
+          <span class="pub-brand-name">Faculty Achievement Portal</span>
+          <span class="pub-brand-tag">Noida Institute of Engineering &amp; Technology</span>
+        </span>
+      </a>
+
+      <nav aria-label="Main navigation">
+        <ul class="pub-nav-links" id="pubNavLinks">
+          <li><a class="pub-nav-link" href="../index.html">Home</a></li>
+          <li><a class="pub-nav-link" href="faculty.html">Faculty Directory</a></li>
+          <li><a class="pub-nav-link is-active" href="achievements.html">Achievements</a></li>
+          <li><a class="pub-nav-link" href="../index.html#about">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="pub-nav-actions">
+        <a class="pub-btn-login" href="../pages/login.html">
+          <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span class="pub-login-label-full">Portal Login</span>
+          <span class="pub-login-label-short">Login</span>
+        </a>
+
+        <button class="pub-nav-toggle" id="pubNavToggle" aria-label="Toggle navigation"
+                aria-expanded="false" aria-controls="pubNavLinks">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="pub-hero is-compact">
+      <div class="pub-container">
+        <h1 class="pub-hero-title">Public Achievements</h1>
+        <p class="pub-hero-subtitle">
+          Research publications, patents, funded projects, awards and faculty
+          development records from across NIET's six departments. Every record
+          listed here has been verified by a department head and marked public
+          by the faculty member who submitted it.
+        </p>
+      </div>
+    </section>
+
+    <section class="pub-section is-tight">
+      <div class="pub-container">
+
+        <!-- Category tabs first — this is the filter most visitors reach for,
+             so it gets to be one tap rather than a dropdown. -->
+        <div class="pub-tabs" id="achTabs" role="tablist" style="margin-bottom:1.25rem;"></div>
+
+        <form class="pub-filter-card" id="achFilterForm">
+          <div class="pub-filter-row">
+
+            <div class="pub-field is-grow">
+              <label class="pub-field-label" for="achKeyword">Search achievements</label>
+              <input class="pub-input" type="search" id="achKeyword"
+                     placeholder="Title, journal, patent number, funding agency, faculty name…"
+                     autocomplete="off">
+            </div>
+
+            <div class="pub-field">
+              <label class="pub-field-label" for="achDepartment">Department</label>
+              <select class="pub-select" id="achDepartment">
+                <option value="">All departments</option>
+              </select>
+            </div>
+
+            <div class="pub-field">
+              <label class="pub-field-label" for="achYear">Academic year</label>
+              <select class="pub-select" id="achYear">
+                <option value="">All years</option>
+              </select>
+            </div>
+
+            <div class="pub-field">
+              <label class="pub-field-label" for="achSort">Sort by</label>
+              <select class="pub-select" id="achSort">
+                <option value="recent">Most recent</option>
+                <option value="oldest">Oldest first</option>
+                <option value="title">Title (A–Z)</option>
+              </select>
+            </div>
+
+            <button class="pub-btn pub-btn-outline" type="reset" id="achResetBtn">Clear</button>
+          </div>
+        </form>
+
+        <div class="pub-result-line">
+          <span id="achResultCount">Loading…</span>
+        </div>
+
+        <div class="pub-ach-grid" id="achGrid" aria-live="polite">
+          <!-- Rendered by public-achievements.js -->
+        </div>
+
+        <nav class="pub-pagination" id="achPagination" aria-label="Achievement pages"></nav>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="pub-footer">
+    <div class="pub-container">
+      <div class="pub-footer-grid">
+        <div>
+          <span class="pub-brand">
+            <span class="niet-logo-badge">
+              <img src="../assets/niet-logo.png" alt="NIET">
+            </span>
+            <span class="pub-brand-text">
+              <span class="pub-brand-name">Faculty Achievement Portal</span>
+              <span class="pub-brand-tag">Noida Institute of Engineering &amp; Technology</span>
+            </span>
+          </span>
+          <p class="pub-footer-about">
+            A record of research and professional achievement across NIET's
+            departments. Every entry shown publicly has been submitted by the
+            faculty member it belongs to and verified by their department.
+          </p>
+        </div>
+        <div>
+          <h3 class="pub-footer-heading">Browse</h3>
+          <ul class="pub-footer-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="faculty.html">Faculty Directory</a></li>
+            <li><a href="achievements.html">All Achievements</a></li>
+            <li><a href="../index.html#categories">Categories</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="pub-footer-heading">Portal</h3>
+          <ul class="pub-footer-links">
+            <li><a href="../pages/login.html">Faculty Login</a></li>
+            <li><a href="../pages/login.html">HOD Login</a></li>
+            <li><a href="../pages/login.html">Admin Login</a></li>
+            <li><a href="../index.html#about">About this portal</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pub-footer-bottom">
+        <span>&copy; 2026 Noida Institute of Engineering &amp; Technology, Greater Noida.</span>
+        <span>Only verified, publicly marked achievements are listed here.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/public-api.js"></script>
+  <script src="../js/public-common.js"></script>
+  <script src="../js/public-achievements.js"></script>
+</body>
+</html>

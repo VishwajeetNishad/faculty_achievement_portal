@@ -1,0 +1,647 @@
+/* ============================================================================
+   HOD Portal Theme — "Academic Excellence Framework"
+   Reproduces the Google Stitch HOD design (light 280px sidebar + deep-red top
+   bar, Hanken Grotesk headings, Inter body, Material Symbols icons).
+
+   Self-contained: HOD pages load  variables.css → reset.css → components.css →
+   forms.css → tables.css → hod-theme.css  (they intentionally SKIP layout.css /
+   responsive.css, which style the navy faculty/admin shell). This file owns the
+   HOD shell + responsive behaviour and re-tints the shared components that
+   common.js injects (toast, notification bell/modal, spinner) to HOD maroon.
+   ============================================================================ */
+
+/* ─── Design tokens (copied from the Stitch tailwind.config / DESIGN.md) ─── */
+:root {
+  --hod-primary:            #a50019;   /* NIET deep red — top bar, active nav, primary actions */
+  --hod-primary-container:  #cf1427;   /* hover */
+  --hod-primary-dark:       #8f0015;
+  --hod-primary-fixed:      #ffdad7;   /* active-nav tint */
+  --hod-on-primary:         #ffffff;
+  --hod-secondary:          #b22b1d;
+  --hod-secondary-container:#fe624e;
+  --hod-tertiary:           #00567b;   /* blue chips */
+  --hod-tertiary-container: #006f9e;
+  --hod-tertiary-fixed:     #c8e6ff;
+
+  --hod-surface:            #fbf9f8;   /* cards / sidebar */
+  --hod-surface-muted:      #F9FAFB;   /* page background (Level 0) */
+  --hod-surface-low:        #f5f3f3;   /* sidebar + table headers */
+  --hod-surface-high:       #eae8e7;
+  --hod-surface-lowest:     #ffffff;
+
+  --hod-on-surface:         #1b1c1c;
+  --hod-on-surface-variant: #5c3f3d;
+  --hod-border:             #E5E7EB;
+  --hod-outline:            #916f6c;
+
+  --hod-approved:           #15803D;
+  --hod-approved-bg:        #dcfce7;
+  --hod-pending:            #B45309;
+  --hod-pending-bg:         #fef3c7;
+  --hod-rejected:           #BE123C;
+  --hod-rejected-bg:        #ffe4e6;
+  --hod-error:              #ba1a1a;
+
+  --hod-radius-card:  12px;
+  --hod-radius-btn:   8px;
+  --hod-radius-chip:  6px;
+  --hod-shadow-sm:    0 2px 4px rgba(0,0,0,0.05);
+  --hod-shadow-md:    0 8px 20px rgba(0,0,0,0.10);
+  --hod-sidebar-w:    280px;
+  --hod-topbar-h:     64px;
+  --hod-gap:          24px;
+
+  --hod-font-head: 'Hanken Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --hod-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ─── Re-tint the shared components injected by common.js / components.css ─── */
+body.hod-app {
+  --primary-color: var(--hod-primary);
+  --primary-hover: var(--hod-primary-container);
+  --primary-dark:  var(--hod-primary-dark);
+  --primary-light: rgba(165, 0, 25, 0.08);
+  --border-focus:  var(--hod-primary);
+
+  margin: 0;
+  background: var(--hod-surface-muted);
+  color: var(--hod-on-surface);
+  font-family: var(--hod-font-body);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Material Symbols base sizing (font itself is loaded per-page via Google Fonts) */
+.hod-app .material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-size: 20px;
+  line-height: 1;
+  vertical-align: middle;
+  user-select: none;
+}
+.hod-app .material-symbols-outlined.fill { font-variation-settings: 'FILL' 1; }
+
+/* ─── Typography helpers ─── */
+.hod-display     { font-family: var(--hod-font-head); font-size: 24px; line-height: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0; }
+.hod-headline-lg { font-family: var(--hod-font-head); font-size: 20px; line-height: 28px; font-weight: 600; margin: 0; }
+.hod-headline-md { font-family: var(--hod-font-head); font-size: 18px; line-height: 24px; font-weight: 600; margin: 0; }
+.hod-body-lg     { font-size: 16px; line-height: 24px; }
+.hod-label       { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+.hod-muted       { color: var(--hod-on-surface-variant); }
+
+/* ============================================================================
+   SHELL — layout, sidebar, top bar
+   ============================================================================ */
+.hod-layout { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ── */
+.hod-sidebar {
+  width: var(--hod-sidebar-w);
+  flex-shrink: 0;
+  background: var(--hod-surface-low);
+  border-right: 1px solid var(--hod-border);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 40;
+}
+.hod-sidebar-header { padding: 0 24px; margin-bottom: 28px; }
+.hod-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.hod-brand-logo {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--hod-primary); color: var(--hod-on-primary);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hod-brand-logo img { width: 100%; height: 100%; object-fit: contain; border-radius: 50%; }
+.hod-brand-title { font-family: var(--hod-font-head); font-size: 18px; font-weight: 700; color: var(--hod-primary); line-height: 1.2; }
+.hod-brand-sub   { font-size: 12px; color: var(--hod-on-surface-variant); margin-top: 2px; }
+
+.hod-quick-btn {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--hod-primary); color: var(--hod-on-primary);
+  border: none; cursor: pointer;
+  padding: 10px 16px; border-radius: var(--hod-radius-btn);
+  font-family: var(--hod-font-body); font-size: 12px; font-weight: 700;
+  letter-spacing: 0.03em; text-transform: uppercase; text-decoration: none;
+  transition: background .15s ease;
+}
+.hod-quick-btn:hover { background: var(--hod-primary-container); }
+
+.hod-nav { flex: 1; padding: 0 16px; display: flex; flex-direction: column; gap: 4px; }
+.hod-nav-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  border-left: 4px solid transparent;
+  border-radius: 0 8px 8px 0;
+  color: var(--hod-on-surface-variant);
+  text-decoration: none;
+  font-size: 14px; font-weight: 500;
+  transition: background .15s ease, color .15s ease;
+}
+.hod-nav-link .material-symbols-outlined { font-size: 22px; }
+.hod-nav-link:hover { background: var(--hod-surface-high); color: var(--hod-primary); }
+.hod-nav-link.active {
+  color: var(--hod-primary);
+  background: var(--hod-primary-fixed);
+  border-left-color: var(--hod-primary);
+  font-weight: 700;
+}
+.hod-nav-link.active .material-symbols-outlined { font-variation-settings: 'FILL' 1; }
+
+.hod-sidebar-footer {
+  margin-top: auto; padding: 20px 16px 0; margin-left: 8px; margin-right: 8px;
+  border-top: 1px solid var(--hod-border);
+  display: flex; flex-direction: column; gap: 4px;
+}
+.hod-sidebar-footer .hod-nav-link { border-radius: 8px; padding: 10px 16px; border-left: none; }
+.hod-sidebar-footer .hod-nav-link.logout { color: var(--hod-error); }
+.hod-sidebar-footer .hod-nav-link.logout:hover { background: rgba(186,26,26,0.08); color: var(--hod-error); }
+
+/* ── Main column ── */
+.hod-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.hod-topbar {
+  position: sticky; top: 0; z-index: 50;
+  height: var(--hod-topbar-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 32px;
+  background: var(--hod-primary); color: var(--hod-on-primary);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.hod-topbar-left  { display: flex; align-items: center; gap: 16px; min-width: 0; }
+.hod-topbar-title { font-family: var(--hod-font-head); font-size: 22px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hod-topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.hod-menu-toggle {
+  display: none;
+  background: transparent; border: none; cursor: pointer;
+  color: var(--hod-on-primary); padding: 8px; border-radius: 50%;
+}
+.hod-menu-toggle:hover { background: rgba(255,255,255,0.15); }
+
+.hod-topuser { display: flex; align-items: center; gap: 12px; padding-left: 12px; margin-left: 4px; border-left: 1px solid rgba(255,255,255,0.25); }
+.hod-topuser-text { text-align: right; line-height: 1.2; }
+.hod-topuser-name { font-family: var(--hod-font-head); font-size: 14px; font-weight: 600; }
+.hod-topuser-role { font-size: 12px; color: rgba(255,255,255,0.8); }
+.hod-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--hod-primary-container); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.35);
+}
+
+/* Style the notification bell that common.js injects into .header-right so it
+   reads well on the deep-red bar (icon + badge only). */
+.hod-topbar .header-right { display: flex; align-items: center; gap: 8px; }
+.hod-topbar .header-right #notificationBellBtn {
+  color: #fff; background: rgba(255,255,255,0.14);
+  border: 1px solid rgba(255,255,255,0.35); border-radius: 50px;
+  padding: 0.45rem 0.7rem;
+}
+.hod-topbar .header-right #notificationBellBtn:hover { background: rgba(255,255,255,0.26); }
+.hod-topbar .header-right #notificationBellBtn > span:not([id]) { display: none; } /* hide the "Notifications" text label */
+
+/* ── Content canvas ── */
+.hod-content { flex: 1; padding: 32px; background: var(--hod-surface-muted); }
+.hod-container { max-width: 1280px; margin: 0 auto; }
+
+.hod-page-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 28px; }
+.hod-page-title { font-family: var(--hod-font-head); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--hod-on-surface); margin: 0 0 4px; }
+.hod-page-sub   { font-size: 14px; color: var(--hod-on-surface-variant); margin: 0; }
+
+/* ============================================================================
+   CARDS / KPI
+   ============================================================================ */
+.hod-card {
+  background: var(--hod-surface);
+  border: 1px solid var(--hod-border);
+  border-radius: var(--hod-radius-card);
+  box-shadow: var(--hod-shadow-sm);
+}
+.hod-card-pad { padding: 24px; }
+.hod-card-header { padding: 20px 24px; border-bottom: 1px solid var(--hod-border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.hod-card-title { font-family: var(--hod-font-head); font-size: 20px; font-weight: 600; color: var(--hod-on-surface); margin: 0; }
+.hod-card-sub   { font-size: 14px; color: var(--hod-on-surface-variant); margin: 4px 0 0; }
+
+.hod-grid { display: grid; gap: var(--hod-gap); }
+.hod-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+.hod-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.hod-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+.hod-kpi { background: var(--hod-surface); border: 1px solid var(--hod-border); border-radius: var(--hod-radius-card); box-shadow: var(--hod-shadow-sm); padding: 24px; transition: box-shadow .2s ease; }
+.hod-kpi:hover { box-shadow: var(--hod-shadow-md); }
+.hod-kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.hod-kpi-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+.hod-kpi-icon .material-symbols-outlined { font-size: 24px; }
+.hod-kpi-icon.tertiary { background: rgba(0,86,123,0.10); color: var(--hod-tertiary); }
+.hod-kpi-icon.primary  { background: rgba(165,0,25,0.10); color: var(--hod-primary); }
+.hod-kpi-icon.pending  { background: var(--hod-pending-bg); color: var(--hod-pending); }
+.hod-kpi-icon.approved { background: var(--hod-approved-bg); color: var(--hod-approved); }
+.hod-kpi-icon.rejected { background: var(--hod-rejected-bg); color: var(--hod-rejected); }
+.hod-kpi-label { font-size: 15px; color: var(--hod-on-surface-variant); margin: 0 0 4px; }
+.hod-kpi-value { font-family: var(--hod-font-head); font-size: 30px; font-weight: 700; letter-spacing: -0.02em; color: var(--hod-on-surface); margin: 0; }
+.hod-kpi-value.pending  { color: var(--hod-pending); }
+.hod-kpi-value.approved { color: var(--hod-approved); }
+.hod-kpi-value.rejected { color: var(--hod-rejected); }
+
+/* Greeting banner (dashboard) */
+.hod-greeting { position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; background: var(--hod-surface); border: 1px solid var(--hod-border); border-radius: var(--hod-radius-card); box-shadow: var(--hod-shadow-sm); padding: 24px; margin-bottom: var(--hod-gap); }
+.hod-greeting::after { content: ""; position: absolute; top: -50%; right: -10%; width: 260px; height: 260px; background: rgba(255,218,215,0.35); border-radius: 50%; filter: blur(60px); pointer-events: none; }
+.hod-greeting > * { position: relative; z-index: 1; }
+
+/* ============================================================================
+   DISTRIBUTION BARS (dashboard category / year breakdowns)
+   ============================================================================ */
+.hod-bars { display: flex; flex-direction: column; gap: 14px; }
+.hod-bar-row-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.hod-bar-track { width: 100%; height: 8px; background: var(--hod-surface-high); border-radius: 4px; overflow: hidden; }
+.hod-bar-fill  { height: 100%; border-radius: 4px; transition: width .4s ease; background: var(--hod-primary); }
+
+/* ============================================================================
+   TABLES
+   ============================================================================ */
+.hod-table-wrap { width: 100%; overflow-x: auto; }
+.hod-table { width: 100%; border-collapse: collapse; text-align: left; }
+.hod-table thead tr { background: var(--hod-surface-low); border-bottom: 1px solid var(--hod-border); }
+.hod-table th { padding: 12px 24px; font-size: 12px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--hod-on-surface-variant); white-space: nowrap; }
+.hod-table td { padding: 16px 24px; font-size: 14px; color: var(--hod-on-surface); vertical-align: middle; }
+.hod-table tbody tr { border-bottom: 1px solid var(--hod-border); transition: background .15s ease; }
+.hod-table tbody tr:last-child { border-bottom: none; }
+.hod-table tbody tr:hover { background: rgba(245,243,243,0.6); }
+.hod-th-right, .hod-td-right { text-align: right; }
+
+.hod-faculty-cell { display: flex; align-items: center; gap: 12px; }
+.hod-cell-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(165,0,25,0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+.hod-cell-title { font-family: var(--hod-font-head); font-weight: 600; font-size: 14px; color: var(--hod-on-surface); }
+.hod-cell-sub { font-size: 12px; color: var(--hod-on-surface-variant); margin-top: 2px; }
+.hod-cell-truncate { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Category chips */
+.hod-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: var(--hod-radius-chip); font-size: 12px; font-weight: 600; }
+.hod-chip .material-symbols-outlined { font-size: 14px; }
+.hod-chip-tertiary { background: rgba(0,86,123,0.10); color: var(--hod-tertiary); }
+.hod-chip-secondary{ background: rgba(178,43,29,0.10); color: var(--hod-secondary); }
+.hod-chip-approved { background: var(--hod-approved-bg); color: var(--hod-approved); }
+.hod-chip-muted    { background: var(--hod-surface-high); color: var(--hod-on-surface-variant); }
+
+/* Status badges */
+.hod-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.hod-badge .material-symbols-outlined { font-size: 13px; }
+.hod-badge-approved { background: var(--hod-approved-bg); color: var(--hod-approved); }
+.hod-badge-pending  { background: var(--hod-pending-bg);  color: var(--hod-pending); }
+.hod-badge-rejected { background: var(--hod-rejected-bg); color: var(--hod-rejected); }
+
+/* ============================================================================
+   BUTTONS
+   ============================================================================ */
+.hod-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 18px; border-radius: var(--hod-radius-btn); font-family: var(--hod-font-body); font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; text-decoration: none; transition: background .15s ease, border-color .15s ease, color .15s ease; white-space: nowrap; }
+.hod-btn .material-symbols-outlined { font-size: 18px; }
+.hod-btn-primary { background: var(--hod-primary); color: #fff; }
+.hod-btn-primary:hover { background: var(--hod-primary-container); }
+.hod-btn-outline { background: transparent; color: var(--hod-primary); border-color: rgba(165,0,25,0.35); }
+.hod-btn-outline:hover { border-color: var(--hod-primary); background: rgba(165,0,25,0.04); }
+.hod-btn-ghost { background: transparent; color: var(--hod-on-surface-variant); border-color: var(--hod-outline); }
+.hod-btn-ghost:hover { background: var(--hod-surface-low); }
+.hod-btn-danger { background: var(--hod-rejected); color: #fff; }
+.hod-btn-danger:hover { background: #9f102f; }
+.hod-btn-sm { padding: 7px 12px; font-size: 13px; }
+.hod-btn[disabled] { opacity: .55; cursor: not-allowed; }
+.hod-btn-block { width: 100%; }
+.hod-link { color: var(--hod-primary); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.hod-link:hover { color: var(--hod-primary-container); text-decoration: underline; }
+
+/* ============================================================================
+   FILTER BARS / FORMS
+   ============================================================================ */
+.hod-filters { display: grid; gap: 16px; margin-bottom: 20px; }
+.hod-filters-3 { grid-template-columns: 2fr 1fr 1fr; }
+.hod-filters-4 { grid-template-columns: 2fr 1fr 1fr 1fr; }
+
+.hod-field { display: flex; flex-direction: column; gap: 6px; }
+.hod-field-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hod-on-surface-variant); }
+.hod-input, .hod-select, .hod-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--hod-border); border-radius: var(--hod-radius-btn);
+  background: var(--hod-surface-lowest); color: var(--hod-on-surface);
+  font-family: var(--hod-font-body); font-size: 14px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.hod-input:focus, .hod-select:focus, .hod-textarea:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(165,0,25,0.12); }
+.hod-input[readonly], .hod-input:disabled { background: var(--hod-surface-low); color: var(--hod-on-surface-variant); cursor: not-allowed; }
+.hod-textarea { resize: vertical; min-height: 90px; }
+.hod-search-wrap { position: relative; display: flex; align-items: center; }
+.hod-search-wrap .material-symbols-outlined { position: absolute; left: 12px; color: var(--hod-on-surface-variant); font-size: 20px; pointer-events: none; }
+.hod-search-wrap .hod-input { padding-left: 40px; }
+
+/* Info rows (read-only institutional details) */
+.hod-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.hod-info-row { display: flex; flex-direction: column; gap: 4px; }
+.hod-info-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hod-on-surface-variant); }
+.hod-info-value { font-size: 15px; color: var(--hod-on-surface); font-weight: 500; }
+
+/* ============================================================================
+   PAGINATION
+   ============================================================================ */
+.hod-pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 24px; border-top: 1px solid var(--hod-border); flex-wrap: wrap; }
+.hod-pagination-info { font-size: 13px; color: var(--hod-on-surface-variant); }
+.hod-pagination-controls { display: flex; align-items: center; gap: 6px; }
+.hod-page-btn { display: inline-flex; align-items: center; justify-content: center; min-width: 36px; height: 36px; padding: 0 10px; border: 1px solid var(--hod-border); background: var(--hod-surface-lowest); border-radius: var(--hod-radius-btn); font-size: 13px; color: var(--hod-on-surface); cursor: pointer; transition: background .15s ease; }
+.hod-page-btn:hover:not([disabled]) { background: var(--hod-surface-low); }
+.hod-page-btn.active { background: var(--hod-primary); color: #fff; border-color: var(--hod-primary); }
+.hod-page-btn[disabled] { opacity: .45; cursor: not-allowed; }
+
+/* ============================================================================
+   PROFILE HEADER / STAT CARDS / LIST ITEMS  (faculty & HOD profile)
+   ============================================================================ */
+.hod-profile-head { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+.hod-profile-avatar { width: 96px; height: 96px; border-radius: 50%; background: rgba(165,0,25,0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-family: var(--hod-font-head); font-weight: 700; font-size: 34px; flex-shrink: 0; }
+.hod-profile-avatar.lg { width: 128px; height: 128px; font-size: 44px; }
+.hod-profile-meta { flex: 1; min-width: 220px; }
+.hod-profile-name { font-family: var(--hod-font-head); font-size: 24px; font-weight: 700; margin: 0 0 4px; }
+.hod-profile-role { color: var(--hod-on-surface-variant); margin: 0 0 8px; }
+.hod-profile-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.hod-list { display: flex; flex-direction: column; }
+.hod-list-item { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--hod-border); }
+.hod-list-item:last-child { border-bottom: none; }
+.hod-list-main { flex: 1; min-width: 0; }
+.hod-list-title { font-family: var(--hod-font-head); font-weight: 600; font-size: 15px; color: var(--hod-on-surface); }
+.hod-list-sub { font-size: 13px; color: var(--hod-on-surface-variant); margin-top: 2px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ============================================================================
+   NOTIFICATION CENTER (full page)
+   ============================================================================ */
+.hod-notif-body { flex: 1; min-width: 0; }
+.hod-notif-title { font-family: var(--hod-font-head); font-size: 16px; font-weight: 600; color: var(--hod-on-surface); }
+.hod-notif-time { font-size: 12px; color: var(--hod-on-surface-variant); white-space: nowrap; }
+.hod-notif-msg { font-size: 14px; color: var(--hod-on-surface-variant); }
+.hod-notif-actions { display: flex; gap: 12px; margin-top: 12px; }
+
+/* ============================================================================
+   MODAL — review dialog inner styling (uses components.css .modal-backdrop shell)
+   ============================================================================ */
+.hod-modal-detail { display: flex; flex-direction: column; gap: 16px; }
+.hod-detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 24px; }
+.hod-detail-item .hod-info-label { margin-bottom: 2px; }
+.hod-detail-desc { background: var(--hod-surface-low); border: 1px solid var(--hod-border); border-radius: 8px; padding: 12px 14px; font-size: 14px; color: var(--hod-on-surface); line-height: 1.5; }
+.hod-feedback-quote { border-left: 3px solid var(--hod-primary); padding: 4px 0 4px 14px; font-style: italic; color: var(--hod-on-surface-variant); }
+
+/* Confirmation states inside modal */
+.hod-confirm { text-align: center; padding: 12px 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.hod-confirm-ico { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.hod-confirm-ico .material-symbols-outlined { font-size: 44px; font-variation-settings: 'FILL' 1; }
+.hod-confirm-ico.ok { background: var(--hod-approved-bg); color: var(--hod-approved); }
+.hod-confirm-ico.warn { background: var(--hod-pending-bg); color: var(--hod-pending); }
+.hod-confirm-title { font-family: var(--hod-font-head); font-size: 22px; font-weight: 700; }
+.hod-confirm-msg { color: var(--hod-on-surface-variant); max-width: 380px; }
+
+/* ============================================================================
+   STATES — loading, empty, error, access denied
+   ============================================================================ */
+.hod-spinner { width: 34px; height: 34px; border: 3px solid var(--hod-border); border-top-color: var(--hod-primary); border-radius: 50%; animation: hod-spin .8s linear infinite; margin: 0 auto; }
+@keyframes hod-spin { to { transform: rotate(360deg); } }
+
+.hod-state { text-align: center; padding: 48px 24px; color: var(--hod-on-surface-variant); }
+.hod-state .material-symbols-outlined { font-size: 44px; color: var(--hod-outline); margin-bottom: 8px; }
+.hod-state-title { font-family: var(--hod-font-head); font-size: 18px; font-weight: 600; color: var(--hod-on-surface); margin: 6px 0 4px; }
+.hod-state-text { font-size: 14px; max-width: 440px; margin: 0 auto; }
+
+.hod-skeleton { background: linear-gradient(90deg, var(--hod-surface-low) 25%, var(--hod-surface-high) 37%, var(--hod-surface-low) 63%); background-size: 400% 100%; animation: hod-shimmer 1.4s ease infinite; border-radius: 6px; }
+@keyframes hod-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+.hod-access-denied { max-width: 480px; margin: 60px auto; text-align: center; background: var(--hod-surface); border: 1px solid var(--hod-border); border-radius: var(--hod-radius-card); box-shadow: var(--hod-shadow-sm); padding: 40px 28px; }
+.hod-access-denied .material-symbols-outlined { font-size: 56px; color: var(--hod-rejected); }
+
+/* Utility */
+.hod-flex { display: flex; align-items: center; }
+.hod-gap-8 { gap: 8px; }
+.hod-gap-12 { gap: 12px; }
+.hod-mt-24 { margin-top: 24px; }
+.hod-stack-24 > * + * { margin-top: var(--hod-gap); }
+.hod-hidden { display: none !important; }
+
+/* Sidebar drawer backdrop (mobile) */
+.hod-drawer-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 55; opacity: 0; visibility: hidden; transition: opacity .2s ease; }
+.hod-drawer-backdrop.active { opacity: 1; visibility: visible; }
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 1200px) {
+  .hod-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 1024px) {
+  .hod-menu-toggle { display: inline-flex; }
+  .hod-sidebar {
+    position: fixed; top: 0; left: 0; height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    box-shadow: 0 0 30px rgba(0,0,0,0.2);
+  }
+  .hod-sidebar.active { transform: translateX(0); }
+  .hod-topbar-title { font-size: 18px; }
+}
+@media (max-width: 768px) {
+  .hod-content { padding: 16px; }
+  .hod-topbar { padding: 0 16px; }
+  .hod-grid-2, .hod-grid-3 { grid-template-columns: 1fr; }
+  .hod-filters-3, .hod-filters-4 { grid-template-columns: 1fr; }
+  .hod-info-grid, .hod-detail-grid { grid-template-columns: 1fr; }
+  .hod-topuser-text { display: none; }
+
+  /* Tables reflow into stacked cards */
+  .hod-table.reflow thead { display: none; }
+  .hod-table.reflow tbody tr { display: block; padding: 14px; border: 1px solid var(--hod-border); border-radius: var(--hod-radius-card); margin-bottom: 12px; position: relative; }
+  .hod-table.reflow tbody tr:hover { background: var(--hod-surface); }
+  .hod-table.reflow td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 6px 0; border: none; text-align: right; }
+  .hod-table.reflow td::before { content: attr(data-label); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hod-on-surface-variant); text-align: left; }
+  .hod-table.reflow td.hod-td-right { justify-content: flex-end; }
+  .hod-table.reflow .hod-faculty-cell { justify-content: flex-end; }
+  .hod-table.reflow .hod-cell-truncate { max-width: none; white-space: normal; }
+}
+@media (max-width: 480px) {
+  .hod-kpi-grid { grid-template-columns: 1fr; }
+  .hod-content { padding: 12px; }
+  .hod-page-title { font-size: 20px; }
+  .hod-profile-head { flex-direction: column; text-align: center; }
+  .hod-profile-tags { justify-content: center; }
+}
+
+/* ============================================================================
+   PART 2 — components for the queue / achievements / faculty / profile /
+   analytics / notifications pages.
+
+   Appended after Part 1 on purpose: the two rules here that re-declare an
+   existing class (.hod-filters, .hod-profile-meta) rely on "last rule wins" at
+   equal specificity. Neither class has an @media rule in Part 1, so nothing
+   above is overridden unintentionally. Part 2's own responsive rules live at the
+   very bottom of this file.
+   ============================================================================ */
+
+/* ─── Page-head count pill (e.g. "10 pending", "5 members") ─── */
+.hod-count-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 999px;
+  background: var(--hod-primary-fixed); color: var(--hod-primary);
+  font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.hod-count-pill .material-symbols-outlined { font-size: 18px; }
+
+/* ─── Filter bar (search + selects + reset, inline on one row) ───
+   Re-declared: Part 1's .hod-filters is a stacking grid with a bottom margin.
+   These pages put the class on the same element as .hod-card-pad, so it must be
+   a wrapping flex row with no extra margin. */
+.hod-filters {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  margin-bottom: 0;
+}
+.hod-filters:not(:last-child) { border-bottom: 1px solid var(--hod-border); }
+.hod-filters .hod-select { flex: 0 1 190px; width: auto; }
+
+.hod-search { position: relative; display: flex; align-items: center; flex: 1 1 260px; min-width: 0; }
+.hod-search > .material-symbols-outlined { position: absolute; left: 12px; color: var(--hod-on-surface-variant); font-size: 20px; pointer-events: none; }
+.hod-search input {
+  width: 100%; box-sizing: border-box;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--hod-border); border-radius: var(--hod-radius-btn);
+  background: var(--hod-surface-lowest); color: var(--hod-on-surface);
+  font-family: var(--hod-font-body); font-size: 14px;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.hod-search input:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(165,0,25,0.12); }
+.hod-search input::placeholder { color: var(--hod-outline); }
+
+/* ─── Faculty directory cards ─── */
+.hod-faculty-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: var(--hod-gap); }
+.hod-faculty-card { transition: box-shadow .2s ease, transform .2s ease; }
+.hod-faculty-card:hover { box-shadow: var(--hod-shadow-md); transform: translateY(-2px); }
+.hod-faculty-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.hod-faculty-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: rgba(165,0,25,0.10); color: var(--hod-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--hod-font-head); font-weight: 700; font-size: 19px; flex-shrink: 0;
+}
+.hod-faculty-name { font-family: var(--hod-font-head); font-size: 17px; font-weight: 700; color: var(--hod-on-surface); margin: 0 0 2px; }
+.hod-faculty-role { font-size: 13px; color: var(--hod-on-surface-variant); margin: 0 0 14px; }
+.hod-faculty-meta { display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: 1px solid var(--hod-border); }
+.hod-faculty-meta-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--hod-on-surface-variant); min-width: 0; }
+.hod-faculty-meta-row .material-symbols-outlined { font-size: 17px; color: var(--hod-outline); flex-shrink: 0; }
+.hod-faculty-cta { width: 100%; margin-top: 16px; }
+
+/* ─── Back link ─── */
+.hod-back-link {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 16px;
+  color: var(--hod-on-surface-variant); font-size: 14px; font-weight: 600; text-decoration: none;
+}
+.hod-back-link:hover { color: var(--hod-primary); }
+.hod-back-link .material-symbols-outlined { font-size: 18px; }
+
+/* ─── Profile header (faculty profile + HOD profile) ─── */
+.hod-profile-header { margin-bottom: var(--hod-gap); }
+.hod-profile-id { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.hod-profile-id-text { flex: 1; min-width: 220px; }
+.hod-profile-name-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 2px; }
+/* Re-declared: Part 1 sized .hod-profile-meta as a flex child; here it wraps meta rows. */
+.hod-profile-meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 12px; }
+.hod-profile-meta-row { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--hod-on-surface-variant); }
+.hod-profile-meta-row .material-symbols-outlined { font-size: 17px; color: var(--hod-outline); }
+
+/* ─── Per-faculty stat grid ─── */
+.hod-stat-grid { grid-template-columns: repeat(4, 1fr); }
+
+/* ─── Analytics charts ───
+   A grid item's default min-width is auto, so it refuses to shrink below its
+   content's min-content width. A <canvas> has an intrinsic width of 300px, so
+   on a 320px screen the chart card was forced to 350px and pushed the page
+   sideways. min-width:0 lets the column shrink; max-width:100% keeps the
+   canvas Chart.js sizes inside the card. */
+.hod-grid > * { min-width: 0; }
+.hod-chart-wrap { position: relative; height: 280px; min-width: 0; }
+.hod-chart-wrap canvas { max-width: 100%; }
+.hod-chart-legend { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--hod-border); }
+.hod-legend-item { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.hod-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.hod-legend-label { flex: 1; color: var(--hod-on-surface); font-weight: 500; }
+.hod-legend-value { color: var(--hod-on-surface-variant); font-weight: 600; }
+
+/* ─── Notification rows (full-page list inside one card) ───
+   gap:0 because the rows are separated by borders, not spacing. */
+.hod-notif-list { display: flex; flex-direction: column; gap: 0; }
+.hod-notif {
+  position: relative; display: flex; align-items: flex-start; gap: 16px;
+  padding: 18px 24px; border-bottom: 1px solid var(--hod-border);
+  cursor: pointer; transition: background .15s ease;
+}
+.hod-notif:last-child { border-bottom: none; }
+.hod-notif:hover { background: rgba(245,243,243,0.7); }
+.hod-notif.unread { background: rgba(255,218,215,0.22); }
+.hod-notif.unread::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--hod-primary); }
+.hod-notif-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.hod-notif-icon.approved { background: var(--hod-approved-bg); color: var(--hod-approved); }
+.hod-notif-icon.rejected { background: var(--hod-rejected-bg); color: var(--hod-rejected); }
+.hod-notif-icon.pending  { background: var(--hod-pending-bg);  color: var(--hod-pending); }
+.hod-notif-icon.tertiary { background: var(--hod-tertiary-fixed); color: var(--hod-tertiary); }
+.hod-notif-icon.muted    { background: var(--hod-surface-high); color: var(--hod-on-surface-variant); }
+.hod-notif-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 3px; }
+.hod-notif-msg { margin: 0; }
+.hod-notif-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--hod-primary); }
+.hod-notif-link .material-symbols-outlined { font-size: 16px; }
+.hod-notif-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--hod-primary); flex-shrink: 0; margin-top: 6px; }
+
+/* ─── Profile form ─── */
+.hod-container-narrow { max-width: 860px; }
+.hod-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.hod-field-full { grid-column: 1 / -1; }
+.hod-field .hod-label { color: var(--hod-on-surface-variant); }
+.hod-readonly {
+  padding: 10px 12px; border: 1px solid var(--hod-border); border-radius: var(--hod-radius-btn);
+  background: var(--hod-surface-low); color: var(--hod-on-surface-variant);
+  font-size: 14px; min-height: 42px; box-sizing: border-box; display: flex; align-items: center;
+}
+.hod-input.has-error { border-color: var(--hod-error); }
+.hod-input.has-error:focus { box-shadow: 0 0 0 3px rgba(186,26,26,0.12); }
+.hod-field-error { color: var(--hod-error); font-size: 12px; min-height: 15px; }
+.hod-form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--hod-border); }
+
+/* ─── Part 2 responsive ─── */
+@media (max-width: 1200px) {
+  .hod-stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 1024px) {
+  .hod-filters .hod-select { flex: 1 1 170px; }
+}
+@media (max-width: 768px) {
+  .hod-filters { padding: 16px; }
+  .hod-search { flex: 1 1 100%; }
+  .hod-filters .hod-select { flex: 1 1 100%; }
+  .hod-filters .hod-btn { width: 100%; }
+  .hod-faculty-grid { grid-template-columns: 1fr; }
+  .hod-form-grid { grid-template-columns: 1fr; }
+  .hod-notif { padding: 16px; }
+  .hod-pagination { padding: 14px 16px; justify-content: center; }
+  .hod-chart-wrap { height: 240px; }
+  .hod-form-actions .hod-btn { width: 100%; }
+  .hod-form-actions { justify-content: stretch; }
+}
+@media (max-width: 480px) {
+  .hod-stat-grid { grid-template-columns: repeat(2, 1fr); }
+  .hod-profile-id { gap: 14px; }
+  .hod-profile-avatar { width: 64px; height: 64px; font-size: 22px; }
+  .hod-count-pill { width: 100%; justify-content: center; }
+  .hod-notif { padding: 14px 12px; gap: 12px; }
+  .hod-notif-icon { width: 34px; height: 34px; }
+  .hod-notif-top { flex-direction: column; gap: 2px; }
+  .hod-chart-wrap { height: 220px; }
+}
+@media (max-width: 360px) {
+  .hod-stat-grid { grid-template-columns: 1fr; }
+}

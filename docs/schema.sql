@@ -2,6 +2,22 @@
 -- Faculty Achievement Portal - Database Schema DDL
 -- Target RDBMS: MySQL 8.0+
 -- Database: faculty_achievement_db
+--
+-- READ THIS FIRST
+-- This file is a readable, all-in-one picture of the finished schema. It is
+-- documentation, not the thing that builds the database.
+--
+-- The real database is built and kept up to date by Flyway from
+-- backend/src/main/resources/db/migration/V1..V4. That is the only mechanism
+-- that runs against a live installation, because it can migrate an existing
+-- database without destroying the data in it. This script starts with DROP
+-- TABLE, so running it against a real installation would delete everything.
+--
+-- Use it to read the schema, or to build a throwaway copy from nothing.
+-- Never run it to upgrade a database that has data in it.
+--
+-- Current state: V1 (core tables) + V2 (reference seed data) + V3 (fine-grained
+-- permissions) + V4 (visibility, keywords, public slugs and share links).
 -- ====================================================================
 
 -- 1. Create Database
@@ -14,6 +30,9 @@ USE `faculty_achievement_db`;
 -- Disable foreign key checks for clean recreation script
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `share_links`;
+DROP TABLE IF EXISTS `user_permissions`;
+DROP TABLE IF EXISTS `permissions`;
 DROP TABLE IF EXISTS `audit_logs`;
 DROP TABLE IF EXISTS `notifications`;
 DROP TABLE IF EXISTS `awards`;
@@ -62,6 +81,11 @@ CREATE TABLE `users` (
     `role_id` BIGINT NOT NULL,
     `phone` VARCHAR(20) NULL,
     `status` ENUM('ACTIVE', 'INACTIVE', 'SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
+    -- Public profile address, e.g. "rajesh-kumar-cse" (migration V4).
+    -- Filled in for existing rows by PublicSlugBackfill on startup, and for new
+    -- accounts by UserManagementService. Never changed once handed out, because
+    -- that would break every link anyone has saved.
+    `public_slug` VARCHAR(120) NULL UNIQUE,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `fk_users_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE RESTRICT,
@@ -90,9 +114,21 @@ CREATE TABLE `achievements` (
     `category_id` BIGINT NOT NULL,
     `title` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
+    -- Free-text search terms for the public research gallery (migration V4).
+    `keywords` VARCHAR(500) NULL,
     `achievement_date` DATE NOT NULL,
     `academic_year` VARCHAR(20) NOT NULL, -- e.g. "2024-2025"
     `status` ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    -- Who may see this record (migration V4). Completely independent of `status`:
+    -- verification decides whether the record is trusted, visibility decides who
+    -- may look at it. The public site shows a record only when
+    -- status = 'APPROVED' AND visibility = 'PUBLIC'.
+    --   PUBLIC   -> listed in the public gallery and on the faculty's public profile
+    --   UNLISTED -> not listed anywhere; reachable only through a share link
+    --   PRIVATE  -> never leaves the authenticated portal
+    -- DEFAULT 'PRIVATE' is what kept every pre-existing record off the public site
+    -- when this column was introduced.
+    `visibility` ENUM('PUBLIC', 'UNLISTED', 'PRIVATE') NOT NULL DEFAULT 'PRIVATE',
     `verification_comment` TEXT NULL,
     `verified_by_user_id` BIGINT NULL,
     `verified_at` DATETIME NULL,
@@ -106,7 +142,11 @@ CREATE TABLE `achievements` (
     INDEX `idx_achievements_category` (`category_id`),
     INDEX `idx_achievements_academic_year` (`academic_year`),
     INDEX `idx_achievements_status` (`status`),
-    INDEX `idx_achievements_date` (`achievement_date`)
+    INDEX `idx_achievements_date` (`achievement_date`),
+    -- Added by V4. The composite index is the one the public gallery uses, because
+    -- every public query filters on both columns together.
+    INDEX `idx_achievements_visibility` (`visibility`),
+    INDEX `idx_achievements_public` (`status`, `visibility`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================================================
@@ -223,6 +263,82 @@ CREATE TABLE `audit_logs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================================================
+-- 4b. Fine-Grained Permissions (migration V3)
+--
+-- A role says what kind of user somebody is. A permission says what one
+-- particular person is additionally allowed to do. The two live side by side:
+-- ROLE_* authorities are never removed, permissions are only ever added on top,
+-- so nothing a role could do before stops working.
+--
+-- ROLE_ADMIN holds all fifteen permissions implicitly, worked out in code by
+-- CustomUserDetailsService. There are deliberately no grant rows for admins, so
+-- the system can never be left with an administrator who cannot administer.
+-- ====================================================================
+
+CREATE TABLE `permissions` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `permission_code` VARCHAR(50) NOT NULL UNIQUE,
+    `description` VARCHAR(255) NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE `user_permissions` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `user_id` BIGINT NOT NULL,
+    `permission_id` BIGINT NOT NULL,
+    `granted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_user_permissions_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_user_permissions_permission` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`) ON DELETE CASCADE,
+    -- One row per person per permission. Granting twice is not an error, it is a
+    -- no-op, which is what makes the "save these checkboxes" endpoint safe to retry.
+    UNIQUE KEY `uk_user_permission` (`user_id`, `permission_id`),
+    INDEX `idx_user_permissions_user` (`user_id`),
+    INDEX `idx_user_permissions_permission` (`permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ====================================================================
+-- 4c. Share Links for Unlisted Research (migration V4)
+--
+-- A share link lets a faculty member show unpublished work to somebody who has
+-- no account — a reviewer, a collaborator, a funding body — without making it
+-- public. The token in the URL IS the credential, so:
+--   * it is 32 bytes from SecureRandom, URL-safe Base64, never derived from an
+--     id, an employee number or a timestamp;
+--   * expiry is checked on the server on every single request, never in the
+--     browser;
+--   * revoking is immediate, and switching the record away from UNLISTED
+--     revokes outstanding links automatically.
+--
+-- Known trade-off: the token is stored as plain text, not a hash, because the
+-- "Copy Link" button has to be able to show it again later. Anyone with read
+-- access to this table can therefore use a live link.
+-- ====================================================================
+
+CREATE TABLE `share_links` (
+    `id` BIGINT AUTO_INCREMENT PRIMARY KEY,
+    `achievement_id` BIGINT NOT NULL,
+    `created_by_user_id` BIGINT NOT NULL,
+    `share_token` VARCHAR(64) NOT NULL UNIQUE,
+    `expires_at` DATETIME NULL,                        -- NULL = permanent link
+    `include_proof_document` BOOLEAN NOT NULL DEFAULT FALSE,
+    `revoked` BOOLEAN NOT NULL DEFAULT FALSE,
+    `revoked_at` DATETIME NULL,
+    -- Counts successful opens only. A hit on an expired or revoked link updates
+    -- last_accessed_at but not this, so the number means "times somebody actually
+    -- read the work".
+    `access_count` BIGINT NOT NULL DEFAULT 0,
+    `last_accessed_at` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT `fk_share_links_achievement` FOREIGN KEY (`achievement_id`) REFERENCES `achievements` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_share_links_creator` FOREIGN KEY (`created_by_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    INDEX `idx_share_links_token` (`share_token`),
+    INDEX `idx_share_links_achievement` (`achievement_id`),
+    INDEX `idx_share_links_creator` (`created_by_user_id`),
+    INDEX `idx_share_links_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ====================================================================
 -- 5. Seed Data Insertion
 -- ====================================================================
 
@@ -248,6 +364,32 @@ INSERT INTO `achievement_categories` (`id`, `code`, `category_name`, `descriptio
 (3, 'RESEARCH_GRANT', 'Research & Consultancy Grant', 'Funded research projects and industrial consultancy'),
 (4, 'WORKSHOP_FDP', 'Workshop / FDP / Certification', 'Faculty Development Programs, workshops, and certifications'),
 (5, 'AWARD', 'Award & Recognition', 'Honors and awards received from recognized organizations');
+
+-- Insert the fifteen grantable permissions (migration V3).
+-- These are reference rows, like roles and departments: the list is fixed by the
+-- code in security/Permissions.java, and an administrator grants and revokes them
+-- per user rather than inventing new ones.
+--
+-- EDIT_ACHIEVEMENT and DELETE_ACHIEVEMENT are seeded but intentionally not wired
+-- to anything: achievements stay strictly editable by their owner alone. They are
+-- listed here so the set is complete and so switching them on later is a code
+-- change, not a data migration.
+INSERT INTO `permissions` (`id`, `permission_code`, `description`) VALUES
+(1,  'CREATE_FACULTY',        'Create new faculty accounts'),
+(2,  'EDIT_FACULTY',          'Edit existing faculty account details'),
+(3,  'CREATE_HOD',            'Create new Head of Department accounts'),
+(4,  'EDIT_HOD',              'Edit existing Head of Department account details'),
+(5,  'CREATE_ADMIN',          'Create new administrator accounts (highly restricted)'),
+(6,  'MANAGE_USER_STATUS',    'Activate, deactivate or suspend user accounts'),
+(7,  'VIEW_ALL_ACHIEVEMENTS', 'View achievements belonging to every department'),
+(8,  'VERIFY_ACHIEVEMENT',    'Approve or reject submitted achievements'),
+(9,  'EDIT_ACHIEVEMENT',      'Edit achievement records'),
+(10, 'DELETE_ACHIEVEMENT',    'Delete achievement records'),
+(11, 'VIEW_REPORTS',          'View institutional reports and analytics'),
+(12, 'EXPORT_REPORTS',        'Export report data to CSV'),
+(13, 'MANAGE_DEPARTMENTS',    'Create, edit and remove departments'),
+(14, 'VIEW_AUDIT_LOGS',       'View the system audit trail'),
+(15, 'MANAGE_PERMISSIONS',    'Grant and revoke permissions for other users (highly restricted)');
 
 -- Seed Initial System Administrator (Password: Admin@123 -> BCrypt hash)
 INSERT INTO `users` (`id`, `employee_id`, `full_name`, `email`, `password_hash`, `designation`, `department_id`, `role_id`, `phone`, `status`) VALUES

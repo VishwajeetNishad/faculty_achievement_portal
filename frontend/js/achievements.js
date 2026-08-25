@@ -54,7 +54,7 @@ async function runSearch(page) {
   const tableBody = document.getElementById('achievementsTableBody');
   if (!tableBody) return;
 
-  tableBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-secondary);">Loading achievements...</p></td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="7" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem; font-size:0.8rem; color:var(--text-secondary);">Loading achievements...</p></td></tr>`;
 
   const searchInput = document.getElementById('searchInput') || document.getElementById('searchKeyword');
   const statusFilter = document.getElementById('statusFilter') || document.getElementById('filterStatus');
@@ -74,7 +74,7 @@ async function runSearch(page) {
   if (!res.success) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-state">
+        <td colspan="7" class="empty-state">
           <div class="empty-state-title" style="color: var(--color-danger);">Error Loading Records</div>
           <p class="empty-state-text">${escapeHtml(res.message || 'Unable to fetch achievements')}</p>
         </td>
@@ -93,7 +93,7 @@ async function runSearch(page) {
   if (list.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="empty-state">
+        <td colspan="7" class="empty-state">
           <div class="empty-state-title">No Achievements Found</div>
           <p class="empty-state-text">No records match the current filter. Try adjusting your search query.</p>
           <a href="add-achievement.html" class="btn btn-primary btn-sm">+ Add Achievement</a>
@@ -119,6 +119,7 @@ async function runSearch(page) {
       <td data-label="Status">
         <span class="badge-status-dot ${statusClass}">${statusLabel}</span>
       </td>
+      <td data-label="Visibility">${renderVisibilityBadge(item.visibility)}</td>
       <td data-label="Actions" style="text-align: right;">
         <div style="display: inline-flex; gap: 0.35rem; justify-content: flex-end;">
           <button class="btn btn-outline btn-sm view-item-btn" data-id="${item.id}">View</button>
@@ -313,6 +314,8 @@ function initializeAddAchievementForm() {
   const form = document.getElementById('addAchievementForm');
   if (!form) return;
 
+  wireSharingControls();
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -321,6 +324,7 @@ function initializeAddAchievementForm() {
     const dateInput = document.getElementById('achievementDate');
     const yearInput = document.getElementById('academicYear');
     const descInput = document.getElementById('achievementDesc') || document.getElementById('achievementDescription');
+    const keywordsInput = document.getElementById('achievementKeywords');
     const fileInput = document.getElementById('proofFileInput');
 
     const categoryId = catInput ? catInput.value : '1';
@@ -328,6 +332,8 @@ function initializeAddAchievementForm() {
     const date = dateInput ? dateInput.value : '';
     const academicYear = yearInput ? yearInput.value : '2024-2025';
     const description = descInput ? descInput.value.trim() : '';
+    const keywords = keywordsInput ? keywordsInput.value.trim() : '';
+    const visibility = getSelectedVisibility();
 
     if (!title) {
       showToast('Please enter the achievement title', 'error');
@@ -339,6 +345,24 @@ function initializeAddAchievementForm() {
       showToast('Please select the achievement date', 'error');
       if (dateInput) dateInput.focus();
       return;
+    }
+
+    // A custom expiry must actually be filled in, and must be in the future.
+    // The server enforces this too — this check only saves a round trip and
+    // gives the message next to the field the person is looking at.
+    const durationSel = document.getElementById('shareDuration');
+    const customInput = document.getElementById('shareCustomExpiry');
+    if (visibility === 'UNLISTED' && durationSel && durationSel.value === 'CUSTOM') {
+      if (!customInput || !customInput.value) {
+        showToast('Please choose the date and time the link should expire', 'error');
+        if (customInput) customInput.focus();
+        return;
+      }
+      if (new Date(customInput.value) <= new Date()) {
+        showToast('The expiry date must be in the future', 'error');
+        customInput.focus();
+        return;
+      }
     }
 
     const submitBtn = document.getElementById('submitBtn') || document.getElementById('submitAchievementBtn');
@@ -354,6 +378,8 @@ function initializeAddAchievementForm() {
         description,
         achievementDate: date,
         academicYear,
+        keywords: keywords || null,
+        visibility,
         proofDocumentUrl: null
       };
 
@@ -374,11 +400,11 @@ function initializeAddAchievementForm() {
       if (fileInput && fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
         if (submitBtn) submitBtn.textContent = 'Uploading Proof Document...';
-        
+
         const formData = new FormData();
         formData.append('file', file);
         const uploadRes = await ApiClient.upload(`/achievements/${createdId}/proof`, formData);
-        
+
         if (uploadRes.success) {
           showToast('Achievement submitted with proof document!', 'success');
         } else {
@@ -386,6 +412,23 @@ function initializeAddAchievementForm() {
         }
       } else {
         showToast('Achievement submitted for review successfully!', 'success');
+      }
+
+      // The share link is created AFTER the proof upload, so that ticking
+      // "include the proof document" actually has a document to point at.
+      if (visibility === 'UNLISTED') {
+        if (submitBtn) submitBtn.textContent = 'Generating Share Link...';
+        const linkRes = await createShareLinkForNewRecord(createdId);
+        if (linkRes) {
+          // Hand the person their link instead of navigating away from it.
+          form.reset();
+          showGeneratedShareLink(linkRes);
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit for Review';
+          }
+          return;
+        }
       }
 
       form.reset();
@@ -404,10 +447,150 @@ function initializeAddAchievementForm() {
   });
 }
 
+/** Which of the three visibility radios is selected; PRIVATE if the fieldset is absent. */
+function getSelectedVisibility() {
+  const checked = document.querySelector('input[name="visibility"]:checked');
+  return checked ? checked.value : 'PRIVATE';
+}
+
+/**
+ * Show the link options only for "Unlisted", and the custom date box only for
+ * "Custom". Purely cosmetic — the backend validates the real values regardless
+ * of what this does.
+ */
+function wireSharingControls() {
+  const radios = document.querySelectorAll('input[name="visibility"]');
+  const linkOptions = document.getElementById('shareLinkOptions');
+  const durationSel = document.getElementById('shareDuration');
+  const customWrap = document.getElementById('customExpiryWrap');
+
+  if (radios.length && linkOptions) {
+    const sync = () => {
+      linkOptions.style.display = getSelectedVisibility() === 'UNLISTED' ? 'block' : 'none';
+    };
+    radios.forEach(r => r.addEventListener('change', sync));
+    sync();
+  }
+
+  if (durationSel && customWrap) {
+    const syncCustom = () => {
+      customWrap.style.display = durationSel.value === 'CUSTOM' ? 'block' : 'none';
+    };
+    durationSel.addEventListener('change', syncCustom);
+    syncCustom();
+  }
+}
+
+/** POST the share link for a record that was just created. Returns the link, or null. */
+async function createShareLinkForNewRecord(achievementId) {
+  const durationSel = document.getElementById('shareDuration');
+  const customInput = document.getElementById('shareCustomExpiry');
+  const includeProof = document.getElementById('shareIncludeProof');
+
+  const duration = durationSel ? durationSel.value : 'TWENTY_FOUR_HOURS';
+
+  const body = {
+    duration,
+    includeProofDocument: !!(includeProof && includeProof.checked)
+  };
+  // datetime-local already gives "YYYY-MM-DDTHH:mm", which is exactly what
+  // LocalDateTime parses — do not add a timezone or the server rejects it.
+  if (duration === 'CUSTOM' && customInput && customInput.value) {
+    body.customExpiresAt = customInput.value.length === 16 ? customInput.value + ':00' : customInput.value;
+  }
+
+  const res = await ApiClient.post(`/achievements/${achievementId}/share`, body);
+  if (!res.success || !res.data) {
+    showToast(res.message || 'Record saved, but the share link could not be created. You can create one from My Shared Research.', 'warning');
+    return null;
+  }
+  return res.data;
+}
+
+/** Put the finished link on screen with a Copy button. */
+function showGeneratedShareLink(link) {
+  const host = document.getElementById('shareLinkOptions');
+  if (!host) return;
+
+  const expiryText = link.permanent
+    ? 'This link never expires. Revoke it when you no longer need it.'
+    : `This link expires on ${formatDateTime(link.expiresAt)}.`;
+
+  host.innerHTML = `
+    <div class="share-warning" style="background: rgba(16,185,129,0.09); border-color: #A7F3D0; color: #065F46;">
+      <span class="share-warning-icon">✅</span>
+      <span>
+        <strong>Your share link is ready.</strong> ${escapeHtml(expiryText)}
+        ${link.includeProofDocument ? ' The proof document is included.' : ' The proof document is <strong>not</strong> included.'}
+      </span>
+    </div>
+    <div class="share-link-box">
+      <input type="text" id="generatedShareUrl" class="form-control" readonly value="${escapeHtml(link.shareUrl || '')}">
+      <button type="button" class="btn btn-primary btn-sm" id="copyShareUrlBtn">Copy Link</button>
+    </div>
+    <p style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 0.6rem;">
+      You can copy or revoke this link any time from
+      <a href="shared-research.html" style="color: var(--primary-color); font-weight: 600;">My Shared Research</a>.
+    </p>
+  `;
+  host.style.display = 'block';
+  host.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  const copyBtn = document.getElementById('copyShareUrlBtn');
+  if (copyBtn) copyBtn.addEventListener('click', () => copyShareUrl(link.shareUrl));
+}
+
+/**
+ * Copy to the clipboard. navigator.clipboard needs a secure context, which
+ * plain http://localhost happens to count as — but a LAN address like
+ * http://192.168.x.x does not, so the select-and-execCommand fallback is what
+ * actually runs when this is demonstrated from another machine.
+ */
+async function copyShareUrl(url) {
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Link copied to clipboard', 'success');
+  } catch (_) {
+    const field = document.getElementById('generatedShareUrl');
+    if (field) {
+      field.select();
+      field.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Link copied to clipboard', 'success');
+        return;
+      } catch (_e) { /* fall through */ }
+    }
+    showToast('Could not copy automatically — select the link and copy it manually.', 'warning');
+  }
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+/** Date plus time, for link expiry where the hour genuinely matters. */
+function formatDateTime(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleString('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+  });
+}
+
+/**
+ * The visibility badge for the list. Records created before this feature
+ * existed have no visibility set, and the server treats a missing value as
+ * PRIVATE — so the badge says the same rather than showing a blank cell.
+ */
+function renderVisibilityBadge(visibility) {
+  const v = (visibility || 'PRIVATE').toUpperCase();
+  const label = v === 'PUBLIC' ? 'Public' : v === 'UNLISTED' ? 'Unlisted' : 'Private';
+  return `<span class="badge-visibility ${v.toLowerCase()}">${label}</span>`;
 }
 
 function escapeHtml(str) {

@@ -76,6 +76,10 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  /* Wrap rather than push the table wider: a row can now carry Edit,
+     Deactivate and Permissions together. */
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 /* ─── Pagination Styles ─── */

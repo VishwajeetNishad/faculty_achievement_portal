@@ -204,6 +204,46 @@
   }
 }
 
+/* ─── Header Strip Crowding (≤ 768px) ───
+   The header packs three things into one row: the notification bell, the
+   page's main action button ("Add User", "Add Department") and the identity
+   widget. On a phone that is more than fits, so:
+     · the bell drops to just its icon — the unread badge still shows;
+     · header buttons stop stretching, because the ".btn { width: 100% }" rule
+       above is meant for buttons inside forms and cards, not this strip;
+     · a long page title truncates with an ellipsis instead of wrapping and
+       pushing the header taller than its fixed height.
+   Nothing here changes the desktop layout. */
+@media (max-width: 768px) {
+  #notificationBellBtn span:not(#unreadNotifBadge) {
+    display: none;
+  }
+
+  #notificationBellBtn {
+    padding: 0.4rem 0.55rem;
+    gap: 0.3rem;
+  }
+
+  .app-header .btn {
+    width: auto;
+    flex-shrink: 0;
+  }
+
+  .header-right {
+    gap: 0.5rem;
+  }
+
+  .header-left {
+    min-width: 0;
+  }
+
+  .page-title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
 /* ─── Print Styles ─── */
 @media print {
   .app-sidebar,

@@ -8,7 +8,9 @@
  *   GET  /api/dashboard/admin
  *   GET  /api/users
  *   GET  /api/departments
- *   GET  /api/categories
+ *
+ * Note: there is deliberately no /api/categories call — that endpoint does not
+ * exist. See ADMIN_CATEGORY_OPTIONS below.
  */
 
 let selectedReviewId  = null;
@@ -375,7 +377,7 @@ async function runAdminSearch(page) {
 function buildAdminSearchParams(page) {
   const keyword  = document.getElementById('adminSearchKeyword')?.value?.trim() || '';
   const status   = document.getElementById('adminFilterStatus')?.value || '';
-  const catId    = document.getElementById('adminFilterCategory')?.value || '';
+  const catCode  = document.getElementById('adminFilterCategory')?.value || '';
   const deptId   = document.getElementById('adminFilterDept')?.value || '';
   const year     = document.getElementById('adminFilterYear')?.value || '';
   const fromDate = document.getElementById('adminFilterFromDate')?.value || '';
@@ -386,7 +388,7 @@ function buildAdminSearchParams(page) {
   const params = new URLSearchParams();
   if (keyword)  params.set('keyword', keyword);
   if (status)   params.set('status', status);
-  if (catId)    params.set('categoryId', catId);
+  if (catCode)  params.set('categoryCode', catCode);
   // departmentId is accepted as an additional FILTER on the server;
   // it cannot bypass ADMIN scope — auth scope is always derived from JWT first.
   if (deptId)   params.set('departmentId', deptId);
@@ -441,21 +443,30 @@ function hideAdminPagination() {
   if (bar) bar.style.display = 'none';
 }
 
+// The portal has no GET /api/categories endpoint, so the seeded category set is
+// the source of truth — the same approach hod-common.js already documents.
+//
+// These are CODES, not database ids. The search endpoint accepts either
+// (AchievementController: categoryId or categoryCode), and a code cannot drift:
+// the previous version of this file guessed the ids 1..5 and would have filtered
+// by the wrong category had the seed data ever been inserted in another order.
+const ADMIN_CATEGORY_OPTIONS = [
+  { code: 'PUBLICATION',    label: 'Research Publication' },
+  { code: 'PATENT',         label: 'Patent / Intellectual Property' },
+  { code: 'RESEARCH_GRANT', label: 'Research & Consultancy Grant' },
+  { code: 'WORKSHOP_FDP',   label: 'Workshop / FDP / Certification' },
+  { code: 'AWARD',          label: 'Award & Recognition' }
+];
+
 async function loadAdminCategoryOptions() {
   const sel = document.getElementById('adminFilterCategory');
   if (!sel) return;
-  const res = await ApiClient.get('/categories');
-  if (res.success && Array.isArray(res.data)) {
-    res.data.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat.id; opt.textContent = cat.categoryName || cat.name;
-      sel.appendChild(opt);
-    });
-  } else {
-    [['1','Research Publication'],['2','Patent'],['3','Research Grant'],['4','Workshop/FDP'],['5','Award']].forEach(([v,t]) => {
-      const opt = document.createElement('option'); opt.value = v; opt.textContent = t; sel.appendChild(opt);
-    });
-  }
+  ADMIN_CATEGORY_OPTIONS.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.code;
+    opt.textContent = c.label;
+    sel.appendChild(opt);
+  });
 }
 
 async function loadAdminDepartmentOptions() {
@@ -501,17 +512,31 @@ async function adminExportCsv() {
 }
 
 let allDepartments = [];
+// Declared up front so the search and filter boxes still work when the roster
+// itself failed to load (for example a 403). Without this the variable only
+// exists after a successful fetch, and typing in the search box throws.
+let allFacultyData = [];
 
 async function initializeFacultyRoster() {
   const tableBody = document.getElementById('facultyRosterTableBody');
   const searchInput = document.getElementById('searchFaculty');
   const deptFilter = document.getElementById('departmentFilter');
+  const roleFilter = document.getElementById('roleFilter');
   const statusFilter = document.getElementById('statusFilter');
 
   if (!tableBody) return;
 
   // Show loading state
   tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="spinner"></div><p style="margin-top:0.5rem;">Loading faculty roster from database...</p></td></tr>`;
+
+  // The Actions column asks can('MANAGE_PERMISSIONS'), so make sure the real
+  // permission list has arrived before the rows are drawn.
+  if (typeof ensurePermissionsLoaded === 'function') {
+    try { await ensurePermissionsLoaded(); } catch (e) { /* fall back to the cached list */ }
+  }
+
+  // Hide the "Add User" button unless this account can create somebody.
+  if (typeof applyPermissionVisibility === 'function') applyPermissionVisibility(document);
 
   // Load departments for filter dropdown
   try {
@@ -538,12 +563,7 @@ async function initializeFacultyRoster() {
     if (res.success && Array.isArray(res.data)) {
       allFacultyData = res.data;
       renderFacultyTable(allFacultyData);
-
-      // Update stats
-      const totalEl = document.getElementById('totalFacultyCount');
-      const activeEl = document.getElementById('activeFacultyCount');
-      if (totalEl) totalEl.textContent = allFacultyData.length;
-      if (activeEl) activeEl.textContent = allFacultyData.filter(f => f.status === 'ACTIVE').length;
+      updateRosterCounts(allFacultyData);
     } else if (res.status === 403) {
       tableBody.innerHTML = `<tr><td colspan="5" class="empty-state"><div class="empty-state-title">Access Denied</div><p class="empty-state-text">You do not have admin privileges to view the faculty roster.</p></td></tr>`;
       showToast('Admin privileges required to view faculty roster.', 'error');
@@ -558,12 +578,32 @@ async function initializeFacultyRoster() {
   // Attach search and filter event listeners
   if (searchInput) searchInput.addEventListener('input', filterAndRenderFaculty);
   if (deptFilter) deptFilter.addEventListener('change', filterAndRenderFaculty);
+  if (roleFilter) roleFilter.addEventListener('change', filterAndRenderFaculty);
   if (statusFilter) statusFilter.addEventListener('change', filterAndRenderFaculty);
+
+  wireStatusModal();
+}
+
+/**
+ * The tallies under the filter bar. "Showing" is recalculated on every filter
+ * change; the totals always describe the whole roster.
+ */
+function updateRosterCounts(filtered) {
+  const shownEl = document.getElementById('shownFacultyCount');
+  const totalEl = document.getElementById('totalFacultyCount');
+  const activeEl = document.getElementById('activeFacultyCount');
+  const inactiveEl = document.getElementById('inactiveFacultyCount');
+
+  if (shownEl) shownEl.textContent = (filtered || []).length;
+  if (totalEl) totalEl.textContent = allFacultyData.length;
+  if (activeEl) activeEl.textContent = allFacultyData.filter(f => f.status === 'ACTIVE').length;
+  if (inactiveEl) inactiveEl.textContent = allFacultyData.filter(f => f.status !== 'ACTIVE').length;
 }
 
 function filterAndRenderFaculty() {
   const keyword = (document.getElementById('searchFaculty')?.value || '').toLowerCase().trim();
   const deptValue = document.getElementById('departmentFilter')?.value || '';
+  const roleValue = document.getElementById('roleFilter')?.value || '';
   const statusValue = document.getElementById('statusFilter')?.value || '';
 
   let filtered = allFacultyData;
@@ -580,12 +620,30 @@ function filterAndRenderFaculty() {
     filtered = filtered.filter(f => f.departmentName === deptValue);
   }
 
+  if (roleValue) {
+    filtered = filtered.filter(f => normaliseRoleName(f.role) === roleValue);
+  }
+
   if (statusValue) {
     filtered = filtered.filter(f => f.status === statusValue);
   }
 
   renderFacultyTable(filtered);
+  updateRosterCounts(filtered);
 }
+
+/** The backend accepts the role with or without the ROLE_ prefix; compare with it. */
+function normaliseRoleName(role) {
+  if (!role) return '';
+  const upper = String(role).toUpperCase();
+  return upper.startsWith('ROLE_') ? upper : 'ROLE_' + upper;
+}
+
+const ROSTER_ROLE_LABEL = {
+  ROLE_FACULTY: 'Faculty',
+  ROLE_HOD: 'Head of Dept.',
+  ROLE_ADMIN: 'Administrator'
+};
 
 function renderFacultyTable(roster) {
   const tableBody = document.getElementById('facultyRosterTableBody');
@@ -598,26 +656,177 @@ function renderFacultyTable(roster) {
     return;
   }
 
+  // Read once rather than per row. These decide which buttons are OFFERED; the
+  // API re-checks every permission from the database on each request, so hiding
+  // a button is a courtesy to the user, never the security boundary.
+  const canManagePermissions = typeof can === 'function' ? can('MANAGE_PERMISSIONS') : false;
+  const canManageStatus = typeof can === 'function' ? can('MANAGE_USER_STATUS') : false;
+  const canEditFaculty = typeof can === 'function' ? can('EDIT_FACULTY') : false;
+  const canEditHod = typeof can === 'function' ? can('EDIT_HOD') : false;
+
+  let sessionUserId = '';
+  try {
+    sessionUserId = String(JSON.parse(sessionStorage.getItem('currentUser') || '{}').userId || '');
+  } catch (e) { /* not signed in with a parsable session */ }
+
+  const sessionIsAdmin = (() => {
+    try {
+      const role = normaliseRoleName(JSON.parse(sessionStorage.getItem('currentUser') || '{}').role);
+      return role === 'ROLE_ADMIN';
+    } catch (e) { return false; }
+  })();
+
   roster.forEach(f => {
     const statusBadge = f.status === 'ACTIVE' ? 'badge-approved' :
                         f.status === 'INACTIVE' ? 'badge-pending' : 'badge-rejected';
     const statusSymbol = f.status === 'ACTIVE' ? '✓' : f.status === 'INACTIVE' ? '○' : '✕';
 
+    const roleValue = normaliseRoleName(f.role);
+    const isSelf = sessionUserId && String(f.id) === sessionUserId;
+
+    // Mirrors requirePermissionToEdit() in UserManagementServiceImpl: an
+    // Administrator account can only be edited by an administrator, and there is
+    // deliberately no EDIT_ADMIN permission to hand out.
+    const canEditThisUser = roleValue === 'ROLE_ADMIN' ? sessionIsAdmin
+                          : roleValue === 'ROLE_HOD' ? canEditHod
+                          : canEditFaculty;
+
+    const actions = [];
+
+    if (canEditThisUser) {
+      actions.push(`<a class="btn btn-outline btn-sm" href="add-user.html?userId=${encodeURIComponent(f.id)}">Edit</a>`);
+    }
+
+    // Nobody may change their own status — the server refuses it, so the button
+    // is not offered either.
+    if (canManageStatus && !isSelf) {
+      const goingActive = f.status !== 'ACTIVE';
+      actions.push(
+        `<button type="button" class="btn ${goingActive ? 'btn-outline' : 'btn-danger'} btn-sm js-status-btn"` +
+        ` data-user-id="${escapeHtml(String(f.id))}"` +
+        ` data-user-name="${escapeHtml(f.fullName || '')}"` +
+        ` data-current-status="${escapeHtml(f.status || '')}">` +
+        `${goingActive ? 'Reactivate' : 'Deactivate'}</button>`
+      );
+    }
+
+    if (canManagePermissions) {
+      actions.push(`<a class="btn btn-ghost btn-sm" href="user-permissions.html?userId=${encodeURIComponent(f.id)}">Permissions</a>`);
+    }
+
+    const actionsHtml = actions.length
+      ? `<div class="action-btn-group">${actions.join('')}</div>`
+      : '<span class="table-subtext">No actions available</span>';
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td data-label="Employee ID & Name">
-        <div class="table-title-cell">${escapeHtml(f.fullName)}</div>
-        <div class="table-subtext">${escapeHtml(f.employeeId)}</div>
+      <td data-label="Name & Employee ID">
+        <div class="table-title-cell">${escapeHtml(f.fullName)}${isSelf ? ' <span class="table-subtext">(you)</span>' : ''}</div>
+        <div class="table-subtext">${escapeHtml(f.employeeId)} &middot; ${escapeHtml(f.email)}</div>
       </td>
-      <td data-label="Email">${escapeHtml(f.email)}</td>
-      <td data-label="Department">${escapeHtml(f.departmentName || '')}</td>
-      <td data-label="Designation">${escapeHtml(f.designation || '')}</td>
+      <td data-label="Department & Designation">
+        <div>${escapeHtml(f.departmentName || '—')}</div>
+        <div class="table-subtext">${escapeHtml(f.designation || '')}</div>
+      </td>
+      <td data-label="Role">${escapeHtml(ROSTER_ROLE_LABEL[roleValue] || f.role || '—')}</td>
       <td data-label="Status">
-        <span class="badge ${statusBadge}"><span class="badge-symbol">${statusSymbol}</span> ${f.status}</span>
+        <span class="badge ${statusBadge}"><span class="badge-symbol">${statusSymbol}</span> ${escapeHtml(f.status || '')}</span>
       </td>
+      <td data-label="Actions">${actionsHtml}</td>
     `;
     tableBody.appendChild(tr);
   });
+}
+
+// ─── Activate / deactivate ──────────────────────────────────────────────────
+
+// Which account the status modal is currently about.
+let statusModalUser = null;
+
+function wireStatusModal() {
+  const tableBody = document.getElementById('facultyRosterTableBody');
+  const confirmBtn = document.getElementById('statusModalConfirmBtn');
+  if (!tableBody || !confirmBtn) return;
+
+  // One delegated listener, so it keeps working after every re-render.
+  tableBody.addEventListener('click', event => {
+    const btn = event.target.closest('.js-status-btn');
+    if (!btn) return;
+    openStatusModal({
+      id: btn.getAttribute('data-user-id'),
+      name: btn.getAttribute('data-user-name'),
+      status: btn.getAttribute('data-current-status')
+    });
+  });
+
+  confirmBtn.addEventListener('click', submitStatusChange);
+}
+
+function openStatusModal(user) {
+  statusModalUser = user;
+
+  const goingActive = user.status !== 'ACTIVE';
+  const select = document.getElementById('statusModalTarget');
+  const reason = document.getElementById('statusModalReason');
+
+  select.value = goingActive ? 'ACTIVE' : 'INACTIVE';
+  reason.value = '';
+
+  document.getElementById('statusModalMessage').innerHTML = goingActive
+    ? `<strong>${escapeHtml(user.name)}</strong> currently cannot sign in. Setting the account back to Active restores their access immediately.`
+    : `<strong>${escapeHtml(user.name)}</strong> can sign in right now. Deactivating blocks them from their very next request onwards, even though their current session has not expired. Nothing they have submitted is deleted.`;
+
+  document.getElementById('statusModalConfirmBtn').textContent = goingActive ? 'Reactivate Account' : 'Deactivate Account';
+
+  openModal('statusModal');
+}
+
+async function submitStatusChange() {
+  if (!statusModalUser) return;
+
+  const confirmBtn = document.getElementById('statusModalConfirmBtn');
+  const status = document.getElementById('statusModalTarget').value;
+  const reason = document.getElementById('statusModalReason').value.trim();
+
+  const body = { status };
+  if (reason) body.reason = reason;
+
+  const originalLabel = confirmBtn.textContent;
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Saving…';
+
+  const res = await ApiClient.patch(`/users/${encodeURIComponent(statusModalUser.id)}/status`, body);
+
+  confirmBtn.disabled = false;
+  confirmBtn.textContent = originalLabel;
+
+  if (res.success) {
+    closeModal('statusModal');
+    showToast(
+      status === 'ACTIVE'
+        ? `${statusModalUser.name} can sign in again.`
+        : `${statusModalUser.name} can no longer sign in.`,
+      status === 'ACTIVE' ? 'success' : 'warning'
+    );
+
+    // Update the row in place from the server's own response, so the table shows
+    // what was actually saved rather than what was requested.
+    const index = allFacultyData.findIndex(f => String(f.id) === String(statusModalUser.id));
+    if (index !== -1 && res.data) allFacultyData[index] = res.data;
+    filterAndRenderFaculty();
+    statusModalUser = null;
+    return;
+  }
+
+  // 409 is the last-active-administrator guard. It is a refusal, not a failure,
+  // so it is worth stating plainly instead of showing a generic error.
+  if (res.status === 409) {
+    showToast(res.message || 'That change would leave the portal with no active administrator.', 'error');
+  } else if (res.status === 403) {
+    showToast(res.message || 'You do not have permission to change this account’s status.', 'error');
+  } else {
+    showToast(res.message || 'The status could not be changed.', 'error');
+  }
 }
 
 function renderDepartmentComparisonTable(depts) {

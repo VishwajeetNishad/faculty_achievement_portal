@@ -1,0 +1,77 @@
+# ====================================================================
+# Caddy configuration for the Faculty Achievement Portal.
+#
+# {$DOMAIN} and {$ACME_EMAIL} are read from the environment (set in .env and
+# passed in by docker-compose). Caddy AUTOMATICALLY obtains and renews a free,
+# browser-trusted HTTPS certificate from Let's Encrypt for {$DOMAIN}, and
+# redirects http -> https for you. No manual certificate steps.
+#
+# For a quick LOCAL test, set DOMAIN=localhost in .env: Caddy will serve
+# https://localhost with a local certificate (your browser may warn once).
+# ====================================================================
+
+{
+	# Email address Let's Encrypt uses for certificate-expiry notices.
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	# Compress responses (faster page loads).
+	encode zstd gzip
+
+	# --- Security headers applied to every response ---
+	header {
+		# Tell browsers to always use HTTPS for this site for 1 year.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Don't let the browser guess/override declared content types.
+		X-Content-Type-Options "nosniff"
+		# Disallow embedding this site in a frame (clickjacking protection).
+		X-Frame-Options "DENY"
+		# Limit how much referrer information is sent to other sites.
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# Content Security Policy — the main in-browser defense.
+		# script-src must allow 'unsafe-inline' because the existing pages use
+		# inline onclick handlers; but connect-src/img-src/form-action are locked
+		# to 'self', which blocks a stolen login token from being sent to any
+		# outside server. Google Fonts are explicitly allowed.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+		# Hide the server software banner.
+		-Server
+	}
+
+	# --- Pretty public URLs -------------------------------------------
+	# The public pages live on disk as /public/*.html and read their
+	# identifier from a query string (faculty-profile.html?u=<slug>,
+	# share.html?t=<token>). These rewrites let a visitor use the clean
+	# addresses printed on cards and share links —
+	#     /faculty                     the directory
+	#     /faculty/rajesh-kumar-cse    one profile
+	#     /share/AbC123...             one shared achievement
+	# — while the browser still loads the real file underneath. This is an
+	# internal rewrite, not a redirect: the address bar keeps the pretty URL.
+	#
+	# rewrite runs before the handle blocks below, so the rewritten path
+	# (e.g. /public/faculty.html) is what the file server ultimately serves.
+	# The regexes use [^/]+ so a slug or token is a single path segment and
+	# can never reach up into another directory. /api/* is never matched.
+	@facultyProfile path_regexp facultyProfile ^/faculty/([^/]+)/?$
+	rewrite @facultyProfile /public/faculty-profile.html?u={http.regexp.facultyProfile.1}
+
+	@facultyDir path /faculty /faculty/
+	rewrite @facultyDir /public/faculty.html
+
+	@share path_regexp share ^/share/([^/]+)/?$
+	rewrite @share /public/share.html?t={http.regexp.share.1}
+
+	# --- API calls -> Spring Boot backend (over the private network) ---
+	# The full "/api/..." path is forwarded unchanged (the backend expects it).
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# --- Everything else -> the static frontend website ---
+	handle {
+		root * /srv
+		file_server
+	}
+}

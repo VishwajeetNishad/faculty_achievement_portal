@@ -262,3 +262,365 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ====================================================================
+   Base Component Styles — completing the shared design system.
+   These class names were referenced by dashboard, table, toast and
+   header markup across the app but had no base rules (only their
+   responsive overrides lived in responsive.css), so the components
+   rendered unstyled. Everything below is built from the design tokens
+   in variables.css.
+   ==================================================================== */
+
+/* ─── KPI Stat Cards & Metric Grid ─── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  padding: 1.25rem 1.5rem;
+}
+
+.stat-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.stat-icon-wrapper.primary { background-color: var(--primary-light);        color: var(--primary-color); }
+.stat-icon-wrapper.warning { background-color: var(--color-warning-light);  color: var(--secondary-hover); }
+.stat-icon-wrapper.success { background-color: var(--color-success-light);  color: var(--color-success); }
+.stat-icon-wrapper.danger  { background-color: var(--color-danger-light);   color: var(--color-danger); }
+
+.stat-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.stat-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-extrabold);
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+}
+
+/* ─── Base Badge Pill (colour variants defined higher up) ─── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.badge-symbol {
+  font-size: 0.9em;
+  line-height: 1;
+}
+
+/* ─── Alerts / Toasts ─── */
+.alert {
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-card);
+  color: var(--text-primary);
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.alert-success { background-color: var(--color-success-light); color: var(--status-approved-text); border-color: var(--status-approved-border); }
+.alert-danger  { background-color: var(--color-danger-light);  color: var(--status-rejected-text); border-color: var(--status-rejected-border); }
+.alert-warning { background-color: var(--color-warning-light); color: var(--status-pending-text);  border-color: var(--status-pending-border); }
+.alert-info    { background-color: var(--color-info-light);    color: #075985;                      border-color: #BAE6FD; }
+
+/* ─── Header User Widget ─── */
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--primary-color);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.user-details {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-role-tag {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+/* ─── Empty & Loading States ─── */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.empty-state {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state-title {
+  display: block;
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.empty-state-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* ─── Utility ─── */
+.w-full { width: 100%; }
+
+/* ══════════════════════════════════════════════════════════════════
+   SHARING & ACCESS (Track B)
+   Used by the "Sharing & Access" fieldset on add-achievement.html and
+   by the shared-research.html table. Built from the same tokens as
+   everything above, so it inherits the NIET palette automatically.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Three radio "cards" — a bigger click target than a bare radio, and it
+   leaves room for the one-line explanation each choice needs. */
+.visibility-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .visibility-options { grid-template-columns: 1fr; }
+}
+
+.visibility-option {
+  position: relative;
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  padding: 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.visibility-option:hover {
+  border-color: var(--primary-color);
+  background: rgba(225, 29, 72, 0.02);
+}
+
+/* The radio itself stays a real <input> so the keyboard and screen
+   readers work; :has() lets the card react without any JavaScript. */
+.visibility-option:has(input:checked) {
+  border-color: var(--primary-color);
+  background: rgba(225, 29, 72, 0.04);
+  box-shadow: 0 0 0 1px var(--primary-color) inset;
+}
+
+.visibility-option:has(input:focus-visible) {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.visibility-option input[type="radio"] {
+  margin-top: 0.15rem;
+  accent-color: var(--primary-color);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.visibility-option-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.15rem;
+}
+
+.visibility-option-hint {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+}
+
+/* The amber caution box for unlisted sharing. */
+.share-warning {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 0.85rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(245, 158, 11, 0.09);
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: #92400E;
+}
+
+.share-warning strong { color: #78350F; }
+
+.share-warning-icon {
+  flex-shrink: 0;
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+/* Duration select + the custom date/time input that appears beside it. */
+.share-expiry-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .share-expiry-row { grid-template-columns: 1fr; }
+}
+
+/* A generated link, shown read-only next to a Copy button. */
+.share-link-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.share-link-box input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 0.72rem;
+  background: var(--bg-main);
+  color: var(--text-secondary);
+}
+
+/* ─── Visibility badges ─── */
+.badge-visibility {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.badge-visibility.public {
+  background-color: rgba(2, 132, 199, 0.12);
+  color: #075985;
+  border: 1px solid #BAE6FD;
+}
+
+.badge-visibility.unlisted {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #B45309;
+  border: 1px solid #FDE68A;
+}
+
+.badge-visibility.private {
+  background-color: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+/* ─── Share-link lifecycle states ─── */
+.badge-share-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.675rem;
+  font-weight: 700;
+  padding: 0.18rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.badge-share-state.active {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+
+.badge-share-state.expired {
+  background-color: rgba(100, 116, 139, 0.12);
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.badge-share-state.revoked {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+}

@@ -13,6 +13,8 @@ import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.exception.GlobalExceptionHandler;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.UserRepository;
+import com.niet.facultyachievement.security.Permissions;
+import com.niet.facultyachievement.security.UserPermissionResolver;
 import com.niet.facultyachievement.service.AchievementService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,6 +49,16 @@ class AchievementControllerTest {
 
     @Mock
     private UserRepository userRepository;
+
+    /**
+     * The controller now asks this resolver whether the caller was individually
+     * granted a permission. Mockito returns an empty set by default, which is
+     * exactly right for these tests: the sample user is an administrator, so
+     * every check must pass on the role alone — proving the permission work is
+     * purely additive and did not become a new requirement.
+     */
+    @Mock
+    private UserPermissionResolver userPermissionResolver;
 
     @InjectMocks
     private AchievementController achievementController;
@@ -172,20 +185,82 @@ class AchievementControllerTest {
 
     @Test
     void getAchievementsByStatus_Valid_Returns200() throws Exception {
+        when(userRepository.findByEmail("admin@faculty.edu")).thenReturn(Optional.of(mockUser));
         when(achievementService.getAchievementsByStatus(AchievementStatus.PENDING))
                 .thenReturn(List.of(sampleResponse));
 
-        mockMvc.perform(get("/api/achievements/status/PENDING"))
+        mockMvc.perform(get("/api/achievements/status/PENDING").principal(mockAuth))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].status").value("PENDING"));
     }
 
     @Test
     void getAchievementsByStatus_Invalid_Returns400() throws Exception {
-        mockMvc.perform(get("/api/achievements/status/INVALID_STATUS"))
+        when(userRepository.findByEmail("admin@faculty.edu")).thenReturn(Optional.of(mockUser));
+
+        mockMvc.perform(get("/api/achievements/status/INVALID_STATUS").principal(mockAuth))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400))
                 .andExpect(jsonPath("$.message").value("Invalid achievement status: INVALID_STATUS. Allowed values: PENDING, APPROVED, REJECTED."));
+    }
+
+    /**
+     * Regression test for a real data leak: this endpoint used to have no
+     * authorization check at all, so any signed-in faculty member could list
+     * every colleague's pending and rejected submissions together with the
+     * reviewers' private comments.
+     */
+    @Test
+    void getAchievementsByStatus_PlainFaculty_Returns403() throws Exception {
+        Role facultyRole = Role.builder().id(3L).name("ROLE_FACULTY").description("Faculty").build();
+        User facultyUser = User.builder()
+                .id(7L)
+                .employeeId("EMP007")
+                .fullName("Dr. Verma")
+                .email("faculty@faculty.edu")
+                .role(facultyRole)
+                .build();
+
+        Authentication facultyAuth =
+                new UsernamePasswordAuthenticationToken("faculty@faculty.edu", null, List.of());
+
+        when(userRepository.findByEmail("faculty@faculty.edu")).thenReturn(Optional.of(facultyUser));
+        when(userPermissionResolver.resolvePermissionCodes(facultyUser)).thenReturn(Set.of());
+
+        mockMvc.perform(get("/api/achievements/status/PENDING").principal(facultyAuth))
+                .andExpect(status().isForbidden());
+
+        verify(achievementService, never()).getAchievementsByStatus(any());
+    }
+
+    /**
+     * The flip side: a faculty member who has been individually granted
+     * VIEW_ALL_ACHIEVEMENTS does get through, proving the permission is wired
+     * to something real rather than merely seeded.
+     */
+    @Test
+    void getAchievementsByStatus_FacultyWithPermission_Returns200() throws Exception {
+        Role facultyRole = Role.builder().id(3L).name("ROLE_FACULTY").description("Faculty").build();
+        User facultyUser = User.builder()
+                .id(7L)
+                .employeeId("EMP007")
+                .fullName("Dr. Verma")
+                .email("faculty@faculty.edu")
+                .role(facultyRole)
+                .build();
+
+        Authentication facultyAuth =
+                new UsernamePasswordAuthenticationToken("faculty@faculty.edu", null, List.of());
+
+        when(userRepository.findByEmail("faculty@faculty.edu")).thenReturn(Optional.of(facultyUser));
+        when(userPermissionResolver.resolvePermissionCodes(facultyUser))
+                .thenReturn(Set.of(Permissions.VIEW_ALL_ACHIEVEMENTS));
+        when(achievementService.getAchievementsByStatus(AchievementStatus.PENDING))
+                .thenReturn(List.of(sampleResponse));
+
+        mockMvc.perform(get("/api/achievements/status/PENDING").principal(facultyAuth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("PENDING"));
     }
 
     @Test

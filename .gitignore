@@ -38,6 +38,9 @@ dependency-reduced-pom.xml
 *.code-workspace
 .history/
 
+# Claude Code tooling & session state (plans, worktrees, local launch config)
+.claude/
+
 # Operating System - Windows
 Thumbs.db
 Thumbs.db:encryptable
@@ -68,3 +71,7 @@ application-local.yml
 # File Upload Storage (PDF Proof Documents)
 uploads/
 backend/uploads/
+
+# Application log files (rolling logs + compressed rollovers)
+logs/
+backend/logs/

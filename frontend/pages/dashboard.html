@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/niet-logo.png">
   <title>Faculty Dashboard | NIET Faculty Achievement Portal</title>
 
   <!-- Fonts & Styles -->
@@ -362,10 +363,12 @@
     <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand-group">
-          <div class="brand-circle-logo">N</div>
+          <span class="niet-logo-badge">
+            <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+          </span>
           <div class="sidebar-brand-title">
-            NIET
-            <span>ACHIEVEMENT PORTAL</span>
+            Faculty Portal
+            <span>Achievement System</span>
           </div>
         </div>
         <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
@@ -407,6 +410,16 @@
                   <span>My Achievements</span>
                 </div>
                 <span class="nav-badge-count" id="sidebarAchievementCount">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="shared-research.html" class="nav-link">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/>
+                  </svg>
+                  <span>My Shared Research</span>
+                </div>
               </a>
             </li>
             <li class="nav-item">
@@ -693,7 +706,6 @@
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
-  <script src="../js/mockData.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>

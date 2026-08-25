@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Institution Reports | NIET HOD Portal</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Stylesheets (HOD load order — skips layout.css/responsive.css; hod-theme owns the shell) -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/hod-theme.css">
+</head>
+<body class="hod-app">
+
+  <div class="hod-layout">
+
+    <!-- Sidebar -->
+    <aside class="hod-sidebar" id="hodSidebar">
+      <div class="hod-sidebar-header">
+        <div class="hod-brand">
+          <span class="hod-brand-logo"><img src="../../assets/niet-logo.png" alt="NIET"></span>
+          <div>
+            <div class="hod-brand-title" id="hodBrandTitle">Department</div>
+            <div class="hod-brand-sub" id="hodBrandSub">Faculty Achievement Portal</div>
+          </div>
+        </div>
+        <a href="verification-queue.html" class="hod-quick-btn"><span class="material-symbols-outlined">bolt</span> Quick Verify</a>
+      </div>
+
+      <nav class="hod-nav">
+        <a href="dashboard.html" class="hod-nav-link"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+        <a href="verification-queue.html" class="hod-nav-link"><span class="material-symbols-outlined">fact_check</span> Verification Queue</a>
+        <a href="achievements.html" class="hod-nav-link"><span class="material-symbols-outlined">workspace_premium</span> Department Achievements</a>
+        <a href="faculty.html" class="hod-nav-link"><span class="material-symbols-outlined">groups</span> Faculty Directory</a>
+        <a href="analytics.html" class="hod-nav-link"><span class="material-symbols-outlined">monitoring</span> Department Analytics</a>
+        <a href="audit-logs.html" class="hod-nav-link" data-perm="VIEW_AUDIT_LOGS" style="display:none;"><span class="material-symbols-outlined">receipt_long</span> Audit Logs</a>
+        <a href="reports.html" class="hod-nav-link" data-perm="VIEW_REPORTS" style="display:none;"><span class="material-symbols-outlined">assessment</span> Institution Reports</a>
+        <a href="notifications.html" class="hod-nav-link"><span class="material-symbols-outlined">notifications</span> Notifications</a>
+        <a href="profile.html" class="hod-nav-link"><span class="material-symbols-outlined">account_circle</span> HOD Profile</a>
+      </nav>
+
+      <div class="hod-sidebar-footer">
+        <a href="../login.html" class="hod-nav-link logout" id="signOutBtn"><span class="material-symbols-outlined">logout</span> Sign Out</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="hod-main">
+      <header class="hod-topbar">
+        <div class="hod-topbar-left">
+          <button class="hod-menu-toggle" id="hodMenuToggle" aria-label="Toggle navigation"><span class="material-symbols-outlined">menu</span></button>
+          <span class="hod-topbar-title">NIET Faculty Achievement Portal</span>
+        </div>
+        <div class="hod-topbar-right header-right">
+          <div class="hod-topuser">
+            <div class="hod-topuser-text">
+              <div class="hod-topuser-name" id="hodTopUserName">Head of Department</div>
+              <div class="hod-topuser-role" id="hodTopUserRole">HOD</div>
+            </div>
+            <div class="hod-avatar" id="hodTopAvatar">HD</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="hod-content">
+        <div class="hod-container">
+
+          <!-- Page head -->
+          <div class="hod-greeting" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div>
+              <h1 class="hod-page-title">Institution Reports</h1>
+              <p class="hod-page-sub">Institution-wide achievement statistics across every department.</p>
+            </div>
+            <!-- Revealed by hod-reports.js only if this HOD also holds EXPORT_REPORTS. -->
+            <div id="hodReportExportWrap" style="display:none;flex-direction:column;align-items:flex-end;gap:4px;">
+              <button class="hod-btn hod-btn-outline" id="hodReportExport">
+                <span class="material-symbols-outlined">download</span> Export CSV
+              </button>
+              <small class="hod-muted" style="font-size:12px;text-align:right;max-width:260px;">Exports your own department's achievements. Institution-wide export is reserved for administrators.</small>
+            </div>
+          </div>
+
+          <div id="hodRepContent">
+            <!-- KPI grid -->
+            <div class="hod-grid hod-kpi-grid" style="margin-bottom:24px;">
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon tertiary"><span class="material-symbols-outlined">groups</span></div></div>
+                <p class="hod-kpi-label">Total Faculty</p><p class="hod-kpi-value" id="hodRepFaculty">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon primary"><span class="material-symbols-outlined">workspace_premium</span></div></div>
+                <p class="hod-kpi-label">Total Achievements</p><p class="hod-kpi-value" id="hodRepTotal">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon approved"><span class="material-symbols-outlined">verified</span></div></div>
+                <p class="hod-kpi-label">Approved</p><p class="hod-kpi-value approved" id="hodRepApproved">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon pending"><span class="material-symbols-outlined">schedule</span></div></div>
+                <p class="hod-kpi-label">Pending</p><p class="hod-kpi-value pending" id="hodRepPending">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon rejected"><span class="material-symbols-outlined">cancel</span></div></div>
+                <p class="hod-kpi-label">Rejected</p><p class="hod-kpi-value rejected" id="hodRepRejected">—</p>
+              </div>
+            </div>
+
+            <!-- Distributions -->
+            <div class="hod-grid hod-grid-2" style="margin-bottom:24px;">
+              <div class="hod-card">
+                <div class="hod-card-header"><h3 class="hod-card-title">Achievements by Category</h3></div>
+                <div class="hod-card-pad" id="hodRepCategory">
+                  <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
+                </div>
+              </div>
+              <div class="hod-card">
+                <div class="hod-card-header"><h3 class="hod-card-title">Achievements by Academic Year</h3></div>
+                <div class="hod-card-pad" id="hodRepYear">
+                  <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Department comparison -->
+            <div class="hod-card" style="padding:0;overflow:hidden;">
+              <div class="hod-card-header"><h3 class="hod-card-title">Department Comparison</h3></div>
+              <div class="hod-table-wrap">
+                <table class="hod-table reflow">
+                  <thead>
+                    <tr>
+                      <th>Department</th>
+                      <th>Faculty</th>
+                      <th>Total</th>
+                      <th>Approved</th>
+                      <th>Pending</th>
+                      <th>Rejected</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hodRepDeptBody">
+                    <tr><td colspan="6"><div style="padding:40px 0;text-align:center;"><div class="hod-spinner"></div></div></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../../js/config.js"></script>
+  <script src="../../js/api.js"></script>
+  <script src="../../js/common.js"></script>
+  <script src="../../js/hod-common.js"></script>
+  <script src="../../js/hod-reports.js"></script>
+</body>
+</html>

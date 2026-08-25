@@ -3,191 +3,167 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HOD Department Analytics | NIET Faculty Achievement Portal</title>
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Dashboard | NIET HOD Portal</title>
 
-  <!-- Stylesheets -->
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Stylesheets (HOD load order — skips layout.css/responsive.css; hod-theme owns the shell) -->
   <link rel="stylesheet" href="../../css/variables.css">
   <link rel="stylesheet" href="../../css/reset.css">
-  <link rel="stylesheet" href="../../css/layout.css">
   <link rel="stylesheet" href="../../css/components.css">
   <link rel="stylesheet" href="../../css/forms.css">
   <link rel="stylesheet" href="../../css/tables.css">
-  <link rel="stylesheet" href="../../css/responsive.css">
+  <link rel="stylesheet" href="../../css/hod-theme.css">
 </head>
-<body>
+<body class="hod-app">
 
-  <div class="app-wrapper">
+  <div class="hod-layout">
 
-    <!-- HOD Sidebar -->
-    <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
-      <div class="sidebar-header">
-        <span class="niet-brand-badge" style="background-color: #0284C7; color: #FFF;">HOD</span>
-        <div class="sidebar-brand-title">
-          NIET Portal
-          <span id="hodDeptBadge">Department Control</span>
+    <!-- Sidebar -->
+    <aside class="hod-sidebar" id="hodSidebar">
+      <div class="hod-sidebar-header">
+        <div class="hod-brand">
+          <span class="hod-brand-logo"><img src="../../assets/niet-logo.png" alt="NIET"></span>
+          <div>
+            <div class="hod-brand-title" id="hodBrandTitle">Department</div>
+            <div class="hod-brand-sub" id="hodBrandSub">Faculty Achievement Portal</div>
+          </div>
         </div>
+        <a href="verification-queue.html" class="hod-quick-btn"><span class="material-symbols-outlined">bolt</span> Quick Verify</a>
       </div>
 
-      <nav class="sidebar-nav">
-        <div class="nav-section-title">Department Admin</div>
-        <ul class="nav-list">
-          <li class="nav-item">
-            <a href="dashboard.html" class="nav-link active">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-              HOD Dashboard
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="../admin/achievements.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-              Verification Queue
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="../dashboard.html" class="nav-link">
-              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-              My Faculty View
-            </a>
-          </li>
-        </ul>
+      <nav class="hod-nav">
+        <a href="dashboard.html" class="hod-nav-link"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+        <a href="verification-queue.html" class="hod-nav-link"><span class="material-symbols-outlined">fact_check</span> Verification Queue</a>
+        <a href="achievements.html" class="hod-nav-link"><span class="material-symbols-outlined">workspace_premium</span> Department Achievements</a>
+        <a href="faculty.html" class="hod-nav-link"><span class="material-symbols-outlined">groups</span> Faculty Directory</a>
+        <a href="analytics.html" class="hod-nav-link"><span class="material-symbols-outlined">monitoring</span> Department Analytics</a>
+        <a href="audit-logs.html" class="hod-nav-link" data-perm="VIEW_AUDIT_LOGS" style="display:none;"><span class="material-symbols-outlined">receipt_long</span> Audit Logs</a>
+        <a href="reports.html" class="hod-nav-link" data-perm="VIEW_REPORTS" style="display:none;"><span class="material-symbols-outlined">assessment</span> Institution Reports</a>
+        <a href="notifications.html" class="hod-nav-link"><span class="material-symbols-outlined">notifications</span> Notifications</a>
+        <a href="profile.html" class="hod-nav-link"><span class="material-symbols-outlined">account_circle</span> HOD Profile</a>
       </nav>
 
-      <div class="sidebar-footer">
-        <a href="../login.html" class="nav-link" style="color: #FCA5A5;">
-          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-          Sign Out
-        </a>
+      <div class="hod-sidebar-footer">
+        <a href="../login.html" class="hod-nav-link logout" id="signOutBtn"><span class="material-symbols-outlined">logout</span> Sign Out</a>
       </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <main class="app-main">
-      
-      <header class="app-header">
-        <div class="header-left">
-          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
-            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-          </button>
-          <h1 class="page-title" id="hodHeaderTitle">Department Analytics</h1>
+    <!-- Main -->
+    <div class="hod-main">
+      <header class="hod-topbar">
+        <div class="hod-topbar-left">
+          <button class="hod-menu-toggle" id="hodMenuToggle" aria-label="Toggle navigation"><span class="material-symbols-outlined">menu</span></button>
+          <span class="hod-topbar-title">NIET Faculty Achievement Portal</span>
         </div>
-
-        <div class="header-right">
-          <div class="user-profile-widget">
-            <div class="avatar-circle" style="background-color: #0284C7;">HD</div>
-            <div class="user-details">
-              <span class="user-name" id="hodUserName">Head of Department</span>
-              <span class="user-role-tag" id="hodDeptTag">Department Control</span>
+        <div class="hod-topbar-right header-right">
+          <div class="hod-topuser">
+            <div class="hod-topuser-text">
+              <div class="hod-topuser-name" id="hodTopUserName">Head of Department</div>
+              <div class="hod-topuser-role" id="hodTopUserRole">HOD</div>
             </div>
+            <div class="hod-avatar" id="hodTopAvatar">HD</div>
           </div>
         </div>
       </header>
 
-      <div class="page-content">
-        <div class="content-container">
+      <div class="hod-content">
+        <div class="hod-container">
 
-          <!-- HOD Metric Cards Grid -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon-wrapper primary">
-                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-              </div>
-              <div class="stat-details">
-                <span class="stat-value" id="hodFacultyCount">0</span>
-                <span class="stat-label">Department Faculty</span>
+          <!-- Greeting -->
+          <div class="hod-greeting">
+            <div>
+              <h1 class="hod-page-title" id="hodGreeting">Welcome back</h1>
+              <p class="hod-page-sub" id="hodGreetingSub">Here’s what’s happening across your department today.</p>
+            </div>
+            <a href="verification-queue.html" class="hod-btn hod-btn-primary" id="hodReviewPendingBtn">
+              <span class="material-symbols-outlined">fact_check</span> Review Pending
+            </a>
+          </div>
+
+          <!-- KPIs -->
+          <div class="hod-grid hod-kpi-grid" style="margin-bottom:24px;">
+            <div class="hod-kpi">
+              <div class="hod-kpi-top"><div class="hod-kpi-icon tertiary"><span class="material-symbols-outlined">groups</span></div></div>
+              <p class="hod-kpi-label">Total Faculty</p>
+              <p class="hod-kpi-value" id="hodFacultyCount">—</p>
+            </div>
+            <div class="hod-kpi">
+              <div class="hod-kpi-top"><div class="hod-kpi-icon primary"><span class="material-symbols-outlined">workspace_premium</span></div></div>
+              <p class="hod-kpi-label">Total Achievements</p>
+              <p class="hod-kpi-value" id="hodTotalAchievements">—</p>
+            </div>
+            <div class="hod-kpi">
+              <div class="hod-kpi-top"><div class="hod-kpi-icon pending"><span class="material-symbols-outlined">schedule</span></div></div>
+              <p class="hod-kpi-label">Pending Verification</p>
+              <p class="hod-kpi-value pending" id="hodPendingCount">—</p>
+            </div>
+            <div class="hod-kpi">
+              <div class="hod-kpi-top"><div class="hod-kpi-icon approved"><span class="material-symbols-outlined">check_circle</span></div></div>
+              <p class="hod-kpi-label">Approved</p>
+              <p class="hod-kpi-value approved" id="hodApprovedCount">—</p>
+            </div>
+          </div>
+
+          <!-- Distribution -->
+          <div class="hod-grid hod-grid-2" style="margin-bottom:24px;">
+            <div class="hod-card">
+              <div class="hod-card-header"><h3 class="hod-card-title">Category Breakdown</h3></div>
+              <div class="hod-card-pad" id="hodCategoryContainer">
+                <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
               </div>
             </div>
-
-            <div class="stat-card">
-              <div class="stat-icon-wrapper warning">
-                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-              <div class="stat-details">
-                <span class="stat-value" id="hodPendingCount">0</span>
-                <span class="stat-label">Pending Verification Queue</span>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon-wrapper success">
-                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-              <div class="stat-details">
-                <span class="stat-value" id="hodApprovedCount">0</span>
-                <span class="stat-label">Approved Records</span>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon-wrapper danger">
-                <svg style="width: 26px; height: 26px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-              </div>
-              <div class="stat-details">
-                <span class="stat-value" id="hodRejectedCount">0</span>
-                <span class="stat-label">Rejected Records</span>
+            <div class="hod-card">
+              <div class="hod-card-header"><h3 class="hod-card-title">Academic Year Distribution</h3></div>
+              <div class="hod-card-pad" id="hodYearContainer">
+                <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
               </div>
             </div>
           </div>
 
-          <!-- Analytics Grid: Category & Academic Year Distribution -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-            <!-- Category Distribution Card -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Department Category Breakdown</h3>
+          <!-- Recent submissions -->
+          <div class="hod-card">
+            <div class="hod-card-header">
+              <div>
+                <h3 class="hod-card-title">Recent Submissions</h3>
+                <p class="hod-card-sub">Latest achievements submitted across your department</p>
               </div>
-              <div class="card-body" id="hodCategoryContainer">
-                <div class="loading-spinner"><div class="spinner"></div><p>Loading category stats...</p></div>
-              </div>
+              <a href="verification-queue.html" class="hod-btn hod-btn-outline hod-btn-sm"><span class="material-symbols-outlined">fact_check</span> View queue</a>
             </div>
-
-            <!-- Academic Year Distribution Card -->
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Academic Year Distribution</h3>
-              </div>
-              <div class="card-body" id="hodYearContainer">
-                <div class="loading-spinner"><div class="spinner"></div><p>Loading year stats...</p></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recent Department Submissions Table -->
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">Recent Department Submissions</h2>
-              <a href="../admin/achievements.html" class="btn btn-primary btn-sm">Review Queue</a>
-            </div>
-            <div class="card-body" style="padding: 0;">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Faculty & Title</th>
-                      <th>Category</th>
-                      <th>Academic Year</th>
-                      <th>Submission Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="hodRecentTableBody">
-                    <!-- Populated dynamically by hod.js -->
-                  </tbody>
-                </table>
-              </div>
+            <div class="hod-table-wrap">
+              <table class="hod-table reflow">
+                <thead>
+                  <tr>
+                    <th>Faculty</th>
+                    <th>Achievement</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th class="hod-th-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="hodRecentTableBody">
+                  <tr><td colspan="6"><div style="padding:32px 0;"><div class="hod-spinner"></div></div></td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
         </div>
       </div>
-
-    </main>
-
+    </div>
   </div>
 
   <!-- Scripts -->
   <script src="../../js/config.js"></script>
   <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
+  <script src="../../js/hod-common.js"></script>
   <script src="../../js/hod.js"></script>
 </body>
 </html>

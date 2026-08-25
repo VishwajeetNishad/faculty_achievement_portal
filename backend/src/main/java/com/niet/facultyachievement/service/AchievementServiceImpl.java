@@ -8,12 +8,14 @@ import com.niet.facultyachievement.dto.PagedResponse;
 import com.niet.facultyachievement.entity.Achievement;
 import com.niet.facultyachievement.entity.AchievementCategory;
 import com.niet.facultyachievement.entity.AchievementStatus;
+import com.niet.facultyachievement.entity.AchievementVisibility;
 import com.niet.facultyachievement.entity.User;
 import com.niet.facultyachievement.entity.NotificationType;
 import com.niet.facultyachievement.exception.BadRequestException;
 import com.niet.facultyachievement.exception.ResourceNotFoundException;
 import com.niet.facultyachievement.repository.AchievementCategoryRepository;
 import com.niet.facultyachievement.repository.AchievementRepository;
+import com.niet.facultyachievement.repository.ShareLinkRepository;
 import com.niet.facultyachievement.repository.UserRepository;
 import com.niet.facultyachievement.specification.AchievementSpecification;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,14 @@ public class AchievementServiceImpl implements AchievementService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
 
+    /**
+     * Needed only so that switching a record away from UNLISTED kills the share
+     * links that were handed out while it was unlisted. The repository is
+     * injected rather than {@code ShareService} to keep this class free of any
+     * service-to-service dependency.
+     */
+    private final ShareLinkRepository shareLinkRepository;
+
     @Override
     @Transactional
     public AchievementResponse createAchievement(Long userId, AchievementCreateRequest request) {
@@ -83,9 +93,17 @@ public class AchievementServiceImpl implements AchievementService {
                 .category(category)
                 .title(request.getTitle())
                 .description(request.getDescription())
+                .keywords(request.getKeywords())
                 .achievementDate(request.getAchievementDate())
                 .academicYear(request.getAcademicYear())
                 .status(AchievementStatus.PENDING)
+                /* A missing visibility becomes PRIVATE, never PUBLIC. An older
+                   client that knows nothing about Track B therefore cannot
+                   publish anything by omission — the quiet failure mode is
+                   "stayed private", which is the one you can recover from. */
+                .visibility(request.getVisibility() != null
+                        ? request.getVisibility()
+                        : AchievementVisibility.PRIVATE)
                 .proofDocumentUrl(request.getProofDocumentUrl())
                 .build();
 
@@ -184,9 +202,40 @@ public class AchievementServiceImpl implements AchievementService {
         achievement.setCategory(category);
         achievement.setTitle(request.getTitle());
         achievement.setDescription(request.getDescription());
+        achievement.setKeywords(request.getKeywords());
         achievement.setAchievementDate(request.getAchievementDate());
         achievement.setAcademicYear(request.getAcademicYear());
         achievement.setProofDocumentUrl(request.getProofDocumentUrl());
+
+        /* Visibility. A null means "leave it alone" — see the note on
+           AchievementUpdateRequest.visibility for why an update must not
+           default to PRIVATE the way a create does. */
+        AchievementVisibility previousVisibility = achievement.getVisibility();
+        if (request.getVisibility() != null) {
+            achievement.setVisibility(request.getVisibility());
+        }
+
+        /* Turning off unlisted sharing has to actually stop the sharing.
+           Without this, an owner who switched a record from UNLISTED back to
+           PRIVATE would see the label change and reasonably assume they had
+           withdrawn it — while every token already handed out kept working.
+           A setting that looks like a revocation but is not is worse than no
+           setting at all, so the links are revoked for real. */
+        if (previousVisibility == AchievementVisibility.UNLISTED
+                && achievement.getVisibility() != AchievementVisibility.UNLISTED) {
+            int killed = shareLinkRepository.revokeAllForAchievement(achievement.getId(), LocalDateTime.now());
+            if (killed > 0) {
+                auditLogService.logAction(
+                        AuditAction.SHARE_REVOKED,
+                        "ACHIEVEMENT",
+                        achievement.getId(),
+                        "Revoked " + killed + " share link(s) because visibility changed from UNLISTED to "
+                                + achievement.getVisibility(),
+                        achievement.getUser(),
+                        null
+                );
+            }
+        }
 
         Achievement updated = achievementRepository.save(achievement);
 
@@ -581,9 +630,11 @@ public class AchievementServiceImpl implements AchievementService {
                 .categoryName(category.getCategoryName())
                 .title(achievement.getTitle())
                 .description(achievement.getDescription())
+                .keywords(achievement.getKeywords())
                 .achievementDate(achievement.getAchievementDate())
                 .academicYear(achievement.getAcademicYear())
                 .status(achievement.getStatus())
+                .visibility(achievement.getVisibility())
                 .verificationComment(achievement.getVerificationComment())
                 .verifiedByUserId(verifier != null ? verifier.getId() : null)
                 .verifiedByName(verifier != null ? verifier.getFullName() : null)

@@ -29,6 +29,22 @@ public class User {
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
+    /**
+     * The readable address of this person's public profile, e.g.
+     * {@code rajesh-kumar-cse} → {@code /faculty/rajesh-kumar-cse}.
+     *
+     * <p>Nullable because it is filled in by {@code PublicSlugBackfill} on
+     * startup for accounts created before Track B, and assigned by
+     * {@code UserManagementService} for every account created after. Unique at
+     * the database level so two people can never share a public address.
+     *
+     * <p>Note this is the <em>only</em> user column that is safe to expose
+     * publicly alongside name, designation and department. Email, employee id,
+     * phone and password hash never appear in a public response.
+     */
+    @Column(name = "public_slug", unique = true, length = 120)
+    private String publicSlug;
+
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 

@@ -31,14 +31,18 @@ faculty-achievement-portal/
 │       │   │   └── specification/       # JPA Criteria Search Specifications
 │       │   └── resources/
 │       │       ├── application.properties # Environment & Production App Settings
-│       │       └── schema.sql           # Database Schema DDL Script
+│       │       ├── logback-spring.xml     # Logging config (console + rolling file)
+│       │       └── db/migration/          # Flyway schema & seed migrations (V1, V2, ...)
 │       └── test/                        # Maven Unit & Integration Tests
 ├── frontend/                           # Static HTML5/CSS3/JS Web Application
 │   ├── css/                            # Custom CSS Design System
-│   │   ├── components.css
-│   │   ├── dashboard.css
+│   │   ├── variables.css
+│   │   ├── reset.css
 │   │   ├── layout.css
-│   │   └── main.css
+│   │   ├── components.css
+│   │   ├── forms.css
+│   │   ├── tables.css
+│   │   └── responsive.css
 │   ├── js/                             # Frontend Controllers
 │   │   ├── achievements.js
 │   │   ├── admin-audit.js
@@ -47,8 +51,10 @@ faculty-achievement-portal/
 │   │   ├── common.js
 │   │   ├── config.js
 │   │   ├── dashboard.js
+│   │   ├── hod.js
 │   │   ├── login.js
-│   │   └── profile.js
+│   │   ├── profile.js
+│   │   └── validation.js
 │   └── pages/                          # User HTML Views
 │       ├── achievements.html
 │       ├── add-achievement.html

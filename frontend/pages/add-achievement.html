@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/niet-logo.png">
   <title>Add Achievement | NIET Faculty Achievement Portal</title>
 
   <!-- Fonts & Styles -->
@@ -115,10 +116,12 @@
     <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
         <div class="sidebar-brand-group">
-          <div class="brand-circle-logo">N</div>
+          <span class="niet-logo-badge">
+            <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+          </span>
           <div class="sidebar-brand-title">
-            NIET
-            <span>ACHIEVEMENT PORTAL</span>
+            Faculty Portal
+            <span>Achievement System</span>
           </div>
         </div>
         <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
@@ -160,6 +163,16 @@
                   <span>My Achievements</span>
                 </div>
                 <span class="nav-badge-count" id="sidebarAchievementCount">0</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="shared-research.html" class="nav-link">
+                <div class="nav-link-content">
+                  <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/>
+                  </svg>
+                  <span>My Shared Research</span>
+                </div>
               </a>
             </li>
             <li class="nav-item">
@@ -413,6 +426,17 @@
                   <textarea id="achievementDesc" name="description" class="form-control" placeholder="Provide a brief summary, methodology, impact, or outcomes..."></textarea>
                 </div>
 
+                <!-- Keywords (used by public search) -->
+                <div class="form-group">
+                  <label class="form-label" for="achievementKeywords">
+                    Keywords
+                  </label>
+                  <input type="text" id="achievementKeywords" name="keywords" class="form-control" placeholder="e.g. machine learning, image segmentation, healthcare">
+                  <p style="font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.3rem;">
+                    Comma-separated. Helps people find this work if you make it public.
+                  </p>
+                </div>
+
                 <!-- Supporting Document Dropzone -->
                 <div class="form-group">
                   <label class="form-label">Supporting Document (Certificate / Proof)</label>
@@ -428,6 +452,79 @@
 
                   <div id="fileSelectedNotice" style="display: none; margin-top: 0.5rem; font-size: 0.8rem; color: #059669; font-weight: 600;">
                     ✓ Selected: <span id="selectedFileName"></span>
+                  </div>
+                </div>
+
+                <!-- ─── Sharing & Access (Track B) ─── -->
+                <div class="form-group" style="border-top: 1px solid var(--border-light); padding-top: 1.25rem; margin-top: 1.5rem;">
+                  <label class="form-label" style="font-size: 0.9rem; font-weight: 700;">Sharing &amp; Access</label>
+                  <p style="font-size: 0.75rem; color: var(--text-secondary); margin: -0.25rem 0 0.85rem;">
+                    Who can see this record. It stays private until you decide otherwise — approval by your HOD does not make it public.
+                  </p>
+
+                  <div class="visibility-options">
+                    <label class="visibility-option">
+                      <input type="radio" name="visibility" value="PRIVATE" checked>
+                      <span>
+                        <span class="visibility-option-label">Private</span>
+                        <span class="visibility-option-hint">Only you and reviewers. The default.</span>
+                      </span>
+                    </label>
+
+                    <label class="visibility-option">
+                      <input type="radio" name="visibility" value="PUBLIC">
+                      <span>
+                        <span class="visibility-option-label">Public</span>
+                        <span class="visibility-option-hint">Listed on the public site — but only once it is Approved.</span>
+                      </span>
+                    </label>
+
+                    <label class="visibility-option">
+                      <input type="radio" name="visibility" value="UNLISTED">
+                      <span>
+                        <span class="visibility-option-label">Unlisted Link</span>
+                        <span class="visibility-option-hint">Not searchable. Reachable only by a link you generate below.</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  <!-- Link options appear only when Unlisted is chosen. -->
+                  <div id="shareLinkOptions" style="display: none;">
+                    <div class="share-warning">
+                      <span class="share-warning-icon">⚠️</span>
+                      <span>
+                        <strong>A share link is like a key.</strong> Anyone who has the link can open this
+                        record — and the proof document too, if you tick the box — until it expires or you
+                        revoke it. Only share it with people you trust. You can revoke it any time from
+                        <em>My Shared Research</em>.
+                      </span>
+                    </div>
+
+                    <div class="share-expiry-row">
+                      <div>
+                        <label class="form-label" for="shareDuration">Link expires after</label>
+                        <select id="shareDuration" name="shareDuration" class="form-control">
+                          <option value="THIRTY_MINUTES">30 minutes</option>
+                          <option value="ONE_HOUR">1 hour</option>
+                          <option value="SIX_HOURS">6 hours</option>
+                          <option value="TWELVE_HOURS">12 hours</option>
+                          <option value="TWENTY_FOUR_HOURS" selected>24 hours</option>
+                          <option value="SEVEN_DAYS">7 days</option>
+                          <option value="PERMANENT">Never (permanent)</option>
+                          <option value="CUSTOM">Custom date &amp; time…</option>
+                        </select>
+                      </div>
+
+                      <div id="customExpiryWrap" style="display: none;">
+                        <label class="form-label" for="shareCustomExpiry">Custom expiry</label>
+                        <input type="datetime-local" id="shareCustomExpiry" name="shareCustomExpiry" class="form-control">
+                      </div>
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.85rem; font-size: 0.8rem; color: var(--text-primary); cursor: pointer;">
+                      <input type="checkbox" id="shareIncludeProof" name="shareIncludeProof" style="accent-color: var(--primary-color);">
+                      Allow the person with the link to view the attached proof document
+                    </label>
                   </div>
                 </div>
 
@@ -490,7 +587,6 @@
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
-  <script src="../js/mockData.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- No-cache: always load the current admin JS/CSS during local development -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Departments | NIET Admin Portal</title>
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/layout.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+
+  <style>
+    /* Scoped to this page only. */
+
+    .dept-code-chip {
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      border-radius: var(--radius-xs);
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.02em;
+    }
+
+    .dept-count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.15rem 0.55rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-color);
+      background: var(--surface-secondary);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .dept-count-pill.is-empty {
+      border-color: var(--status-pending-border);
+      background: var(--status-pending-bg);
+      color: var(--status-pending-text);
+    }
+
+    .dept-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .dept-toolbar-search { flex: 1 1 240px; min-width: 200px; }
+
+    .dept-summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border-light);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .dept-summary-row strong { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- Admin Sidebar -->
+    <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
+      <div class="sidebar-header">
+        <span class="niet-logo-badge">
+          <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <div class="sidebar-brand-title">
+          Admin Console
+          <span>Control Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Administration</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="dashboard.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+              Admin Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="achievements.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Verification Queue
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="faculty.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+              Faculty Roster
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="departments.html" class="nav-link active">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              Departments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="user-permissions.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              User Permissions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="audit-logs.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              Audit Trail
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <a href="../login.html" class="nav-link" style="color: #FCA5A5;">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sign Out
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 class="page-title">Departments</h1>
+        </div>
+        <div class="header-right">
+          <button type="button" class="btn btn-primary btn-sm" id="addDepartmentBtn">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Department
+          </button>
+          <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
+          <div class="user-profile-widget">
+            <div class="avatar-circle" style="background-color: #DC2626;" data-identity="initials"></div>
+            <div class="user-details">
+              <span class="user-name" data-identity="name"></span>
+              <span class="user-role-tag" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-container">
+
+          <!-- Why this screen matters, in plain language -->
+          <div class="alert alert-info" style="margin-bottom: 1.25rem;">
+            <div>
+              <strong>A department is more than a label.</strong> It decides which faculty a Head of
+              Department can see and verify, and every account must belong to exactly one. Renaming a
+              department is safe; deleting one is only possible once nobody is left in it.
+            </div>
+          </div>
+
+          <!-- Access message, shown instead of the table when the API refuses -->
+          <div id="deptNotice"></div>
+
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: 1rem 1.5rem;">
+              <div class="dept-toolbar">
+                <div class="dept-toolbar-search">
+                  <label class="form-label" for="searchDepartments">Search Departments</label>
+                  <input type="text" id="searchDepartments" class="form-control"
+                         placeholder="Search by code or name…">
+                </div>
+                <div style="min-width: 170px;">
+                  <label class="form-label" for="deptStaffingFilter">Staffing</label>
+                  <select id="deptStaffingFilter" class="form-control">
+                    <option value="">All departments</option>
+                    <option value="STAFFED">Has accounts</option>
+                    <option value="EMPTY">Empty (can be deleted)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="dept-summary-row">
+                <span>Showing <strong id="shownDeptCount">0</strong> of <strong id="totalDeptCount">0</strong></span>
+                <span>Accounts assigned: <strong id="totalAssignedCount">0</strong></span>
+                <span>Empty departments: <strong id="emptyDeptCount">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">All Departments</h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Code &amp; Name</th>
+                      <th>Description</th>
+                      <th>Accounts</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="departmentsTableBody">
+                    <!-- Rendered by admin-departments.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Create / rename department -->
+  <div class="modal-backdrop" id="deptModal" aria-hidden="true" role="dialog" aria-labelledby="deptModalTitle">
+    <div class="modal-container" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deptModalTitle">Add Department</h3>
+        <button class="modal-close-btn" onclick="closeModal('deptModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="deptModalNotice"></div>
+
+        <div class="form-group">
+          <label class="form-label required-field" for="deptCode">Code</label>
+          <input type="text" id="deptCode" class="form-control" maxlength="20"
+                 placeholder="e.g. CSE" autocomplete="off">
+          <span class="form-hint">Short handle shown in filters and badges. Letters, numbers, dashes and underscores only.</span>
+          <span class="form-error" id="err-deptCode" style="display: none;"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required-field" for="deptName">Name</label>
+          <input type="text" id="deptName" class="form-control" maxlength="100"
+                 placeholder="e.g. Computer Science &amp; Engineering" autocomplete="off">
+          <span class="form-error" id="err-deptName" style="display: none;"></span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="deptDescription">Description (optional)</label>
+          <input type="text" id="deptDescription" class="form-control" maxlength="255"
+                 placeholder="e.g. Undergraduate and postgraduate computing programmes">
+          <span class="form-error" id="err-deptDescription" style="display: none;"></span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('deptModal')">Cancel</button>
+        <button class="btn btn-primary" id="deptModalSaveBtn">Create Department</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirmation -->
+  <div class="modal-backdrop" id="deptDeleteModal" aria-hidden="true" role="dialog" aria-labelledby="deptDeleteTitle">
+    <div class="modal-container" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deptDeleteTitle">Delete Department</h3>
+        <button class="modal-close-btn" onclick="closeModal('deptDeleteModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="deptDeleteMessage" style="font-size: var(--font-size-base); color: var(--text-primary);"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('deptDeleteModal')">Cancel</button>
+        <button class="btn btn-danger" id="deptDeleteConfirmBtn">Delete Department</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/config.js?v=20260825"></script>
+  <script src="../../js/api.js?v=20260825"></script>
+  <script src="../../js/common.js?v=20260825"></script>
+  <script src="../../js/admin-departments.js?v=20260825"></script>
+</body>
+</html>

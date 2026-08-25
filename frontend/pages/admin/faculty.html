@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- No-cache: always load the current admin JS/CSS during local development -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
   <title>Faculty Roster | NIET Admin Portal</title>
 
   <!-- Stylesheets -->
@@ -21,9 +26,11 @@
     <!-- Admin Sidebar -->
     <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
       <div class="sidebar-header">
-        <span class="niet-brand-badge" style="background-color: #DC2626; color: #FFF;">ADMIN</span>
+        <span class="niet-logo-badge">
+          <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
         <div class="sidebar-brand-title">
-          NIET Portal
+          Admin Console
           <span>Control Center</span>
         </div>
       </div>
@@ -49,6 +56,24 @@
               Faculty Roster
             </a>
           </li>
+          <li class="nav-item">
+            <a href="departments.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+              Departments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="user-permissions.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              User Permissions
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="audit-logs.html" class="nav-link">
+              <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              Audit Trail
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -70,6 +95,24 @@
           </button>
           <h1 class="page-title">NIET Faculty Roster</h1>
         </div>
+        <div class="header-right">
+          <!-- Hidden unless the signed-in account can actually create somebody.
+               applyPermissionVisibility() in common.js does the hiding; the
+               server re-checks the permission on the request regardless. -->
+          <a href="add-user.html" class="btn btn-primary btn-sm" id="addUserBtn"
+             data-requires-permission="CREATE_FACULTY, CREATE_HOD, CREATE_ADMIN">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add User
+          </a>
+          <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
+          <div class="user-profile-widget">
+            <div class="avatar-circle" style="background-color: #DC2626;" data-identity="initials"></div>
+            <div class="user-details">
+              <span class="user-name" data-identity="name"></span>
+              <span class="user-role-tag" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div class="page-content">
@@ -88,6 +131,15 @@
                     <option value="">All Departments</option>
                   </select>
                 </div>
+                <div style="min-width: 150px;">
+                  <label class="form-label" for="roleFilter">Role</label>
+                  <select id="roleFilter" class="form-control">
+                    <option value="">All Roles</option>
+                    <option value="ROLE_FACULTY">Faculty</option>
+                    <option value="ROLE_HOD">Head of Department</option>
+                    <option value="ROLE_ADMIN">Administrator</option>
+                  </select>
+                </div>
                 <div style="min-width: 130px;">
                   <label class="form-label" for="statusFilter">Status</label>
                   <select id="statusFilter" class="form-control">
@@ -98,9 +150,13 @@
                   </select>
                 </div>
               </div>
-              <div style="display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.875rem; color: #94A3B8;">
-                <span>Total: <strong id="totalFacultyCount" style="color: #E2E8F0;">0</strong></span>
-                <span>Active: <strong id="activeFacultyCount" style="color: #4ADE80;">0</strong></span>
+              <div style="display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 1rem; padding-top: 0.85rem;
+                          border-top: 1px solid var(--border-light); font-size: var(--font-size-sm);
+                          color: var(--text-secondary);">
+                <span>Showing <strong id="shownFacultyCount" style="color: var(--text-primary);">0</strong> of
+                      <strong id="totalFacultyCount" style="color: var(--text-primary);">0</strong></span>
+                <span>Active: <strong id="activeFacultyCount" style="color: var(--color-success);">0</strong></span>
+                <span>Inactive or suspended: <strong id="inactiveFacultyCount" style="color: var(--color-danger);">0</strong></span>
               </div>
             </div>
           </div>
@@ -114,11 +170,11 @@
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Employee ID & Name</th>
-                      <th>Email</th>
-                      <th>Department</th>
-                      <th>Designation</th>
+                      <th>Name &amp; Employee ID</th>
+                      <th>Department &amp; Designation</th>
+                      <th>Role</th>
                       <th>Status</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody id="facultyRosterTableBody">
@@ -136,9 +192,44 @@
 
   </div>
 
-  <script src="../../js/config.js"></script>
-  <script src="../../js/api.js"></script>
-  <script src="../../js/common.js"></script>
-  <script src="../../js/admin.js"></script>
+  <!-- Change-status confirmation.
+       Deactivating somebody cuts their access on their very next request, so it
+       is worth one deliberate click rather than being a toggle in a table row. -->
+  <div class="modal-backdrop" id="statusModal" aria-hidden="true" role="dialog" aria-labelledby="statusModalTitle">
+    <div class="modal-container" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="statusModalTitle">Change Account Status</h3>
+        <button class="modal-close-btn" onclick="closeModal('statusModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="statusModalMessage" style="font-size: var(--font-size-base); color: var(--text-primary); margin-bottom: 1rem;"></p>
+
+        <div class="form-group" id="statusModalTargetGroup" style="margin-bottom: 1rem;">
+          <label class="form-label" for="statusModalTarget">New status</label>
+          <select id="statusModalTarget" class="form-control">
+            <option value="ACTIVE">Active — can sign in</option>
+            <option value="INACTIVE">Inactive — cannot sign in</option>
+            <option value="SUSPENDED">Suspended — cannot sign in</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="statusModalReason">Reason (optional)</label>
+          <input type="text" id="statusModalReason" class="form-control" maxlength="255"
+                 placeholder="e.g. Left the institution in June 2026">
+          <span class="form-hint">Saved to the audit trail so the change can be explained later.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('statusModal')">Cancel</button>
+        <button class="btn btn-primary" id="statusModalConfirmBtn">Save Status</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/config.js?v=20260825"></script>
+  <script src="../../js/api.js?v=20260825"></script>
+  <script src="../../js/common.js?v=20260825"></script>
+  <script src="../../js/admin.js?v=20260825"></script>
 </body>
 </html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/niet-logo.png">
+  <title>Shared Research | NIET Faculty Achievement Portal</title>
+
+  <!-- A share link points at unpublished work. Keep it out of search engines. -->
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
+
+  <link rel="stylesheet" href="../css/variables.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/public-theme.css">
+</head>
+
+<!-- data-root="../" — this page is one folder below the web root. -->
+<body class="public-body" data-root="../">
+
+  <a class="pub-skip-link" href="#main">Skip to content</a>
+
+  <header class="pub-nav">
+    <div class="pub-container pub-nav-inner">
+
+      <a class="pub-brand" href="../index.html">
+        <span class="niet-logo-badge">
+          <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <span class="pub-brand-text">
+          <span class="pub-brand-name">Faculty Achievement Portal</span>
+          <span class="pub-brand-tag">Noida Institute of Engineering &amp; Technology</span>
+        </span>
+      </a>
+
+      <nav aria-label="Main navigation">
+        <ul class="pub-nav-links" id="pubNavLinks">
+          <li><a class="pub-nav-link" href="../index.html">Home</a></li>
+          <li><a class="pub-nav-link" href="faculty.html">Faculty Directory</a></li>
+          <li><a class="pub-nav-link" href="achievements.html">Achievements</a></li>
+          <li><a class="pub-nav-link" href="../index.html#about">About</a></li>
+        </ul>
+      </nav>
+
+      <div class="pub-nav-actions">
+        <a class="pub-btn-login" href="../pages/login.html">
+          <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span class="pub-login-label-full">Portal Login</span>
+          <span class="pub-login-label-short">Login</span>
+        </a>
+
+        <button class="pub-nav-toggle" id="pubNavToggle" aria-label="Toggle navigation"
+                aria-expanded="false" aria-controls="pubNavLinks">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main id="main">
+    <div class="pub-container" style="max-width: 900px;">
+
+      <nav class="pub-breadcrumb" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="sep">/</span>
+        <span class="current">Shared research</span>
+      </nav>
+
+      <!-- Everything below is drawn by public-share.js. Nothing is hardcoded:
+           if the token is missing, unknown, expired or revoked, the script
+           replaces this container with the matching message. -->
+      <div id="shareRoot" aria-busy="true" aria-live="polite">
+        <div class="pub-card pub-card-pad" style="margin-bottom: 3rem;">
+          <div class="pub-skeleton-card" style="border: 0; box-shadow: none; padding: 0;">
+            <div class="pub-sk-line" style="width: 40%;"></div>
+            <div class="pub-sk-line" style="width: 80%;"></div>
+            <div class="pub-sk-line" style="width: 65%;"></div>
+            <div class="pub-sk-line" style="width: 90%;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="pub-footer">
+    <div class="pub-container">
+      <div class="pub-footer-grid">
+        <div>
+          <span class="pub-brand">
+            <span class="niet-logo-badge">
+              <img src="../assets/niet-logo.png" alt="NIET">
+            </span>
+            <span class="pub-brand-text">
+              <span class="pub-brand-name">Faculty Achievement Portal</span>
+              <span class="pub-brand-tag">Noida Institute of Engineering &amp; Technology</span>
+            </span>
+          </span>
+          <p class="pub-footer-about">
+            A record of research and professional achievement across NIET's
+            departments. Every entry shown publicly has been submitted by the
+            faculty member it belongs to and verified by their department.
+          </p>
+        </div>
+        <div>
+          <h3 class="pub-footer-heading">Browse</h3>
+          <ul class="pub-footer-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="faculty.html">Faculty Directory</a></li>
+            <li><a href="achievements.html">All Achievements</a></li>
+            <li><a href="../index.html#categories">Categories</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="pub-footer-heading">Portal</h3>
+          <ul class="pub-footer-links">
+            <li><a href="../pages/login.html">Faculty Login</a></li>
+            <li><a href="../pages/login.html">HOD Login</a></li>
+            <li><a href="../pages/login.html">Admin Login</a></li>
+            <li><a href="../index.html#about">About this portal</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="pub-footer-bottom">
+        <span>&copy; 2026 Noida Institute of Engineering &amp; Technology, Greater Noida.</span>
+        <span>Shared research is private to whoever holds the link and is not listed publicly.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/public-api.js"></script>
+  <script src="../js/public-common.js"></script>
+  <script src="../js/public-share.js"></script>
+</body>
+</html>

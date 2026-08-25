@@ -66,6 +66,22 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Spring Boot Actuator: production health checks & diagnostics (/actuator/health) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- Flyway: versioned, auto-applied database schema migrations (runs on startup) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
         <!-- MySQL JDBC Connector -->
         <dependency>
             <groupId>com.mysql</groupId>
@@ -103,8 +119,12 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <fork>true</fork>
-                    <executable>C:\Program Files\Eclipse Adoptium\jdk-21.0.12.8-hotspot\bin\javac.exe</executable>
+                    <!--
+                      Portable build: the Java version comes from the <java.version>
+                      property (21) via the Spring Boot parent. We only declare the
+                      Lombok annotation processor here so the build works on any OS
+                      (Linux server, Docker, CI) with no hardcoded compiler path.
+                    -->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

@@ -18,4 +18,7 @@ echo Downloading Maven Wrapper...
 powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; (New-Object Net.WebClient).DownloadFile('https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.3.2/maven-wrapper-3.3.2.jar', '%MAVEN_PROJECTBASEDIR%\.mvn\wrapper\maven-wrapper.jar')"
 
 :run
-java -jar %WRAPPER_JAR% %*
+@REM The wrapper JAR has no Main-Class, so it must be launched via its main class
+@REM on the classpath (not "java -jar"). maven.multiModuleProjectDirectory tells
+@REM Maven where the project root is.
+java -classpath %WRAPPER_JAR% "-Dmaven.multiModuleProjectDirectory=%MAVEN_PROJECTBASEDIR%" org.apache.maven.wrapper.MavenWrapperMain %*

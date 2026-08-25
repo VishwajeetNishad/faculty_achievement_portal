@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../assets/niet-logo.png">
   <title>Faculty Sign In | NIET Faculty Achievement Portal</title>
 
   <!-- Fonts & Styles -->
@@ -61,6 +62,24 @@
       justify-content: center;
       font-weight: 800;
       font-size: 1.15rem;
+    }
+
+    /* Official NIET logo on a white panel (dark-text logo on the dark hero) */
+    .niet-logo-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      border-radius: 8px;
+      padding: 5px 9px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      flex-shrink: 0;
+    }
+
+    .niet-logo-badge img {
+      display: block;
+      height: 32px;
+      width: auto;
     }
 
     .brand-title-left {
@@ -335,11 +354,10 @@
       
       <!-- Brand Logo Header -->
       <div class="brand-header-left">
-        <div class="brand-circle-logo">N</div>
-        <div>
-          <span class="brand-title-left">NIET</span>
-          <span class="brand-tag-left">ACHIEVEMENT PORTAL</span>
-        </div>
+        <span class="niet-logo-badge">
+          <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <span class="brand-title-left">Achievement Portal</span>
       </div>
 
       <!-- Center Showcase Content -->
@@ -383,7 +401,7 @@
     <div class="login-right-section">
       <main class="login-form-card">
         
-        <h1 class="form-header-title">Faculty Sign In</h1>
+        <h1 class="form-header-title">Sign In</h1>
         <p class="form-header-subtitle">Enter your institutional credentials.</p>
 
         <form id="loginForm" novalidate>
@@ -453,12 +471,12 @@
 
           <!-- Submit Button -->
           <button type="submit" class="btn-signin-primary">
-            Sign In to Portal
+            Sign In
           </button>
 
           <!-- Create Account Secondary Action -->
-          <a href="#" class="btn-create-account" onclick="showToast('Faculty registration is managed by your department coordinator.', 'info'); return false;">
-            Create Faculty Account
+          <a href="#" class="btn-create-account" onclick="showToast('Accounts are created by a portal administrator. Please contact your department office.', 'info'); return false;">
+            Create Account
           </a>
 
           <!-- Help footer -->
@@ -475,7 +493,6 @@
 
   <!-- Scripts -->
   <script src="../js/config.js"></script>
-  <script src="../js/mockData.js"></script>
   <script src="../js/api.js"></script>
   <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>

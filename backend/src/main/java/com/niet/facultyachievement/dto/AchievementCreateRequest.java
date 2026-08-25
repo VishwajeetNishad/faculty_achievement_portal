@@ -1,5 +1,6 @@
 package com.niet.facultyachievement.dto;
 
+import com.niet.facultyachievement.entity.AchievementVisibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
@@ -35,4 +36,24 @@ public class AchievementCreateRequest {
 
     @Size(max = 500, message = "Proof document URL cannot exceed 500 characters")
     private String proofDocumentUrl;
+
+    /**
+     * Comma-separated subject terms the author chooses, used by public search.
+     * Optional — a record with no keywords is still findable by title.
+     */
+    @Size(max = 500, message = "Keywords cannot exceed 500 characters")
+    private String keywords;
+
+    /**
+     * Who may read this record once it is approved.
+     *
+     * <p>Deliberately <strong>not</strong> {@code @NotNull}. The portal's own
+     * add-achievement form always sends it, but leaving it optional means an
+     * older client, a saved bookmark or an integration written before Track B
+     * still works — and lands on {@code PRIVATE}, because the service defaults a
+     * missing value rather than trusting a blank. The failure mode of a forgotten
+     * field is then "nothing was published", never "something was published by
+     * accident".
+     */
+    private AchievementVisibility visibility;
 }
