@@ -26,44 +26,33 @@
   const TIMELINE_LIMIT = 12;   /* Newest first; a "view all" link follows. */
   const CITATION_LIMIT = 10;
 
-  let usingSampleData = false;
-
-  let elGrid, elSidebar, elMain, elState, elNotice, elCrumb;
+  let elGrid, elSidebar, elMain, elState, elCrumb;
 
   /* ================================================================
      Data loading
      ================================================================ */
 
   async function loadProfile(slug) {
-    /* TODO(track-b): when GET /api/public/faculty/{slug} exists this
-       returns the real PublicFacultyProfileResponse and the fallback
-       below stops running. */
-    const live = await PublicApi.tryGet('/public/faculty/' + encodeURIComponent(slug));
-    if (live) return live;
-
-    usingSampleData = true;
-    return PublicSampleData.facultyBySlug(slug);
+    /* getRaw, because a 404 here is not an error — it means "no such
+       faculty member", which has its own, gentler message. Any other
+       non-2xx really is a fault and is thrown for the catch block. */
+    const res = await PublicApi.getRaw('/public/faculty/' + encodeURIComponent(slug));
+    if (res.ok && res.body) return res.body;
+    if (res.status === 404) return null;
+    throw new Error('GET public faculty profile returned ' + res.status);
   }
 
   async function loadAchievements(slug) {
-    /* TODO(track-b): when GET /api/public/faculty/{slug}/achievements
-       exists this returns real rows — already restricted to
-       APPROVED + PUBLIC by the service layer — and the fallback below
-       stops running. */
-    const live = await PublicApi.tryGet(
+    /* Only reached once the profile is known to exist, so the endpoint
+       returns a (possibly empty) page. getOrFail: if it faults, the page
+       should say so rather than imply the person has published nothing. */
+    const live = await PublicApi.getOrFail(
       '/public/faculty/' + encodeURIComponent(slug) + '/achievements',
       { page: 0, size: 200 }
     );
-    if (live) {
-      const rows = Array.isArray(live) ? live : (live.content || []);
-      /* Belt and braces — the backend is the authority. */
-      return PublicUI.filterPublic(rows);
-    }
-
-    usingSampleData = true;
-    return PublicSampleData.publicAchievements().filter(function (a) {
-      return a.facultySlug === slug;
-    });
+    const rows = Array.isArray(live) ? live : (live.content || []);
+    /* Belt and braces — the backend is the authority. */
+    return PublicUI.filterPublic(rows);
   }
 
   /* ================================================================
@@ -402,9 +391,10 @@
     showSkeleton();
 
     try {
-      const results = await Promise.all([loadProfile(slug), loadAchievements(slug)]);
-      const person = results[0];
-      let achievements = results[1] || [];
+      /* Load the profile first: if the slug is unknown there is no point
+         fetching achievements, and the "not found" message is different
+         from the "something broke" one. */
+      const person = await loadProfile(slug);
 
       /* Unknown slug — a stale bookmark, a typo, or a profile that has
          since been deactivated. */
@@ -417,6 +407,8 @@
         );
         return;
       }
+
+      let achievements = await loadAchievements(slug) || [];
 
       /* Newest first — a profile reads as a record of recent work. */
       achievements.sort(function (a, b) {
@@ -441,10 +433,6 @@
         achievementsCardMarkup(person, achievements) +
         publicationsCardMarkup(publications);
 
-      if (usingSampleData) {
-        PublicUI.showSampleNotice(elNotice);
-      }
-
     } catch (error) {
       console.error('[public-faculty-profile] failed to load the profile', error);
       showState(
@@ -461,7 +449,6 @@
     elSidebar = document.getElementById('profileSidebar');
     elMain    = document.getElementById('profileMain');
     elState   = document.getElementById('profileState');
-    elNotice  = document.getElementById('profileNotice');
     elCrumb   = document.getElementById('crumbName');
 
     if (!elGrid) return;

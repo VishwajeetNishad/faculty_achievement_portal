@@ -421,34 +421,6 @@ const PublicUI = (function () {
   }
 
   /* ================================================================
-     The "sample content" banner
-     Shown whenever a page had to fall back to public-sample-data.js.
-     It is deliberately impossible to miss: a visitor must never mistake
-     placeholder layout content for real institutional data.
-     ================================================================ */
-  function showSampleNotice(container) {
-    if (!container) return;
-    container.innerHTML =
-      '<div class="pub-notice">' +
-        '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-          '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" ' +
-          'd="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
-        '<span><strong>Sample content.</strong> The public read APIs ' +
-        '(<code>/api/public/…</code>) have not been built yet, so this page is ' +
-        'showing placeholder records from <code>js/public-sample-data.js</code> to ' +
-        'demonstrate the layout. No names, titles or figures here are real. Live ' +
-        'faculty data appears automatically once those endpoints exist.</span>' +
-      '</div>';
-    container.hidden = false;
-  }
-
-  function hideSampleNotice(container) {
-    if (!container) return;
-    container.innerHTML = '';
-    container.hidden = true;
-  }
-
-  /* ================================================================
      Navigation — the mobile drawer
      ================================================================ */
   function initNav() {
@@ -506,8 +478,6 @@ const PublicUI = (function () {
     showSkeletons: showSkeletons,
     showEmpty: showEmpty,
     showError: showError,
-    showSampleNotice: showSampleNotice,
-    hideSampleNotice: hideSampleNotice,
 
     initNav: initNav,
     queryParam: queryParam

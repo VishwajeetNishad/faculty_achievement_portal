@@ -4,8 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="../assets/niet-logo.png">
-  <title>Faculty Profile | NIET Faculty Achievement Portal</title>
-  <meta name="description" content="A NIET faculty member's publicly listed achievements, publications, patents, funded projects and awards.">
+  <title>Shared Research | NIET Faculty Achievement Portal</title>
+
+  <!-- A share link points at unpublished work. Keep it out of search engines. -->
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="referrer" content="no-referrer">
 
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/reset.css">
@@ -33,7 +36,7 @@
       <nav aria-label="Main navigation">
         <ul class="pub-nav-links" id="pubNavLinks">
           <li><a class="pub-nav-link" href="../index.html">Home</a></li>
-          <li><a class="pub-nav-link is-active" href="faculty.html">Faculty Directory</a></li>
+          <li><a class="pub-nav-link" href="faculty.html">Faculty Directory</a></li>
           <li><a class="pub-nav-link" href="achievements.html">Achievements</a></li>
           <li><a class="pub-nav-link" href="../index.html#about">About</a></li>
         </ul>
@@ -56,26 +59,25 @@
   </header>
 
   <main id="main">
-    <div class="pub-container">
+    <div class="pub-container" style="max-width: 900px;">
 
       <nav class="pub-breadcrumb" aria-label="Breadcrumb">
         <a href="../index.html">Home</a>
         <span class="sep">/</span>
-        <a href="faculty.html">Faculty Directory</a>
-        <span class="sep">/</span>
-        <span class="current" id="crumbName">Profile</span>
+        <span class="current">Shared research</span>
       </nav>
 
-      <!-- Shown instead of the grid when the slug is missing, unknown, or
-           the request fails. -->
-      <div id="profileState" hidden style="padding-bottom:4rem;"></div>
-
-      <div class="pub-profile-grid" id="profileGrid">
-        <aside id="profileSidebar">
-          <!-- Rendered by public-faculty-profile.js -->
-        </aside>
-        <div id="profileMain">
-          <!-- Rendered by public-faculty-profile.js -->
+      <!-- Everything below is drawn by public-share.js. Nothing is hardcoded:
+           if the token is missing, unknown, expired or revoked, the script
+           replaces this container with the matching message. -->
+      <div id="shareRoot" aria-busy="true" aria-live="polite">
+        <div class="pub-card pub-card-pad" style="margin-bottom: 3rem;">
+          <div class="pub-skeleton-card" style="border: 0; box-shadow: none; padding: 0;">
+            <div class="pub-sk-line" style="width: 40%;"></div>
+            <div class="pub-sk-line" style="width: 80%;"></div>
+            <div class="pub-sk-line" style="width: 65%;"></div>
+            <div class="pub-sk-line" style="width: 90%;"></div>
+          </div>
         </div>
       </div>
 
@@ -122,7 +124,7 @@
       </div>
       <div class="pub-footer-bottom">
         <span>&copy; 2026 Noida Institute of Engineering &amp; Technology, Greater Noida.</span>
-        <span>Only verified, publicly marked achievements are listed here.</span>
+        <span>Shared research is private to whoever holds the link and is not listed publicly.</span>
       </div>
     </div>
   </footer>
@@ -130,6 +132,6 @@
   <script src="../js/config.js"></script>
   <script src="../js/public-api.js"></script>
   <script src="../js/public-common.js"></script>
-  <script src="../js/public-faculty-profile.js"></script>
+  <script src="../js/public-share.js"></script>
 </body>
 </html>

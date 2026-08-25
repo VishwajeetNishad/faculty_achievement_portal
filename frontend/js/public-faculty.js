@@ -5,10 +5,9 @@
    designation, sort, and page through the results.
 
    How the data gets here:
-   The page asks GET /api/public/faculty first and only falls back to
-   public-sample-data.js when that call fails, so the directory turns
-   real the moment the Track B endpoint exists. The fallback is marked
-   TODO(track-b) below.
+   The page reads GET /api/public/faculty — ACTIVE users only, each with
+   the count of their public achievements. If that call fails the page
+   shows an error state; it never invents a directory.
 
    Why filtering happens in the browser:
    The whole directory is fetched once, then filtered, sorted and paged
@@ -27,33 +26,27 @@
   let allFaculty = [];
   let filtered = [];
   let currentPage = 0;
-  let usingSampleData = false;
 
   /* Elements, looked up once. */
   let elForm, elKeyword, elDepartment, elDesignation, elSort,
-      elGrid, elCount, elPagination, elNotice;
+      elGrid, elCount, elPagination;
 
   /* ================================================================
      Data loading
      ================================================================ */
 
   async function loadFaculty() {
-    /* TODO(track-b): when GET /api/public/faculty exists this returns
-       real rows — ACTIVE users only, with their public-achievement
-       counts — and the fallback below stops running. */
-    const live = await PublicApi.tryGet('/public/faculty', { page: 0, size: 500 });
-    if (live) {
-      return Array.isArray(live) ? live : (live.content || []);
-    }
-    usingSampleData = true;
-    return PublicSampleData.facultyWithCounts();
+    /* getOrFail — the directory is the whole point of the page, so a
+       failure here is fatal and load()'s catch block draws the error. */
+    const live = await PublicApi.getOrFail('/public/faculty', { page: 0, size: 500 });
+    return Array.isArray(live) ? live : (live.content || []);
   }
 
   async function loadDepartments() {
-    /* GET /api/departments already exists but sits behind authentication,
-       so a visitor cannot call it. The plan exposes the same list at
-       /api/public/departments for exactly this dropdown.
-       TODO(track-b): remove the fallback once that route is live. */
+    /* tryGet — the department dropdown is a convenience, not the point of
+       the page. If it cannot load, fillDepartmentOptions falls back to
+       the departments actually present in the directory, so the filter
+       still works. */
     const live = await PublicApi.tryGet('/public/departments');
     if (live) {
       const rows = Array.isArray(live) ? live : (live.content || []);
@@ -61,7 +54,7 @@
         return { code: d.code || d.departmentCode, name: d.name || d.departmentName };
       });
     }
-    return PublicSampleData.departments;
+    return [];
   }
 
   /* ================================================================
@@ -327,10 +320,6 @@
       applyUrlFilters();
       applyFilters();
 
-      if (usingSampleData) {
-        PublicUI.showSampleNotice(elNotice);
-      }
-
     } catch (error) {
       console.error('[public-faculty] failed to load the directory', error);
       elCount.textContent = '';
@@ -352,7 +341,6 @@
     elGrid        = document.getElementById('facultyGrid');
     elCount       = document.getElementById('facultyResultCount');
     elPagination  = document.getElementById('facultyPagination');
-    elNotice      = document.getElementById('facultySampleNotice');
 
     if (!elGrid) return;
 

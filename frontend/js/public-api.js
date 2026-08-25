@@ -12,15 +12,18 @@
    So this helper:
      · sends NO Authorization header
      · never redirects
-     · returns null instead of throwing when the endpoint is missing
+     · reports failure to the caller instead of handling it itself
 
-   That last point matters. The public read APIs (GET /api/public/...)
-   are Track B work and do not exist in the backend yet, so every call
-   here currently comes back unauthorised. Each page therefore asks for
-   real data first and only falls back to the sample content in
-   public-sample-data.js when the request fails. The day the backend
-   endpoints land, these pages start showing live data with no change
-   to a single line of page code.
+   There are three functions because the pages need three different
+   things from a failed request:
+
+     tryGet   — resolves to null on any failure. For data the page can
+                do without, like the department dropdown.
+     getOrFail— throws on any failure. For the data the page exists to
+                show; the caller's catch block draws the error state.
+     getRaw   — hands back the status code and body untouched, for when
+                the failure IS the message (a share link that expired is
+                a different story from one that never existed).
    ==================================================================== */
 
 const PublicApi = (function () {
@@ -29,11 +32,6 @@ const PublicApi = (function () {
   const BASE = (typeof CONFIG !== 'undefined' && CONFIG.API_BASE_URL)
     ? CONFIG.API_BASE_URL
     : 'http://localhost:8080/api';
-
-  /* Set to true the first time a public endpoint answers properly.
-     The pages read it to decide whether to show the "sample content"
-     banner. */
-  let liveBackendConfirmed = false;
 
   /**
    * Turn { keyword: 'ai', page: 0, departmentCode: '' } into
@@ -54,15 +52,16 @@ const PublicApi = (function () {
   }
 
   /**
-   * GET a public endpoint.
+   * GET a public endpoint, tolerating failure.
    *
-   * Resolves to the parsed JSON body on success, or null on ANY
-   * failure — network down, 401/403 because /api/public/** is not
-   * whitelisted yet, 404 because the controller does not exist, or a
-   * body that is not JSON. Callers treat null as "no live data
-   * available" and fall back to sample content.
+   * Resolves to the parsed JSON body on success, or null on ANY failure —
+   * network down, a non-2xx status, or a body that is not JSON.
    *
-   * @param {string} path   e.g. '/public/faculty'
+   * Use this only for data the page can manage without. An empty array is
+   * a success and comes back as `[]`, so null always means "the request
+   * did not work", never "there were no records".
+   *
+   * @param {string} path   e.g. '/public/departments'
    * @param {Object} params optional query parameters
    * @returns {Promise<Object|Array|null>}
    */
@@ -76,34 +75,109 @@ const PublicApi = (function () {
       });
 
       if (!response.ok) {
-        console.info(
-          '[public-api] ' + url + ' returned ' + response.status +
-          ' — falling back to sample content. This is expected until the ' +
-          'Track B public endpoints are built.'
-        );
+        console.warn('[public-api] ' + url + ' returned ' + response.status);
         return null;
       }
 
-      const body = await response.json();
-      liveBackendConfirmed = true;
-      return body;
+      return await response.json();
 
     } catch (error) {
-      console.info(
-        '[public-api] ' + url + ' is unreachable (' + error.message +
-        ') — falling back to sample content.'
-      );
+      console.warn('[public-api] ' + url + ' is unreachable (' + error.message + ')');
       return null;
     }
   }
 
-  function isLive() {
-    return liveBackendConfirmed;
+  /**
+   * GET a public endpoint, treating failure as fatal.
+   *
+   * Resolves to the parsed JSON body, or throws. Use this for the data a
+   * page exists to show: if the faculty directory cannot be fetched there
+   * is no directory to draw, and the honest thing is to say so rather than
+   * to show an empty grid that looks like "nobody works here".
+   *
+   * The thrown message is for the developer console. What the visitor
+   * reads is the error state the calling page draws in its catch block.
+   *
+   * @param {string} path   e.g. '/public/faculty'
+   * @param {Object} params optional query parameters
+   * @returns {Promise<Object|Array>}
+   */
+  async function getOrFail(path, params) {
+    const url = BASE + path + toQueryString(params);
+
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+    } catch (error) {
+      throw new Error('GET ' + url + ' could not be reached: ' + error.message);
+    }
+
+    if (!response.ok) {
+      throw new Error('GET ' + url + ' returned ' + response.status);
+    }
+
+    try {
+      return await response.json();
+    } catch (error) {
+      throw new Error('GET ' + url + ' did not return JSON');
+    }
+  }
+
+  /**
+   * GET a public endpoint and report the outcome in full.
+   *
+   * `tryGet` collapses every failure to null, which suits a listing page: it
+   * either has records to draw or it does not. The share page cannot use that,
+   * because for a share link the failure IS the message. A visitor needs to be
+   * told three different things:
+   *
+   *   404  — no such link. Probably a typo, or the address was truncated.
+   *   410 EXPIRED  — the link was real and its time ran out.
+   *   410 REVOKED  — the owner deliberately withdrew it.
+   *
+   * So this returns the status and the parsed body, and lets the caller decide.
+   * `status: 0` means the request never reached the server at all.
+   *
+   * @param {string} path   e.g. '/public/share/abc123'
+   * @param {Object} params optional query parameters
+   * @returns {Promise<{ok: boolean, status: number, body: *}>}
+   */
+  async function getRaw(path, params) {
+    const url = BASE + path + toQueryString(params);
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+      });
+
+      let body = null;
+      try {
+        body = await response.json();
+      } catch (e) {
+        body = null; // an error page with no JSON body is still a valid outcome
+      }
+
+      return { ok: response.ok, status: response.status, body: body };
+
+    } catch (error) {
+      return { ok: false, status: 0, body: null };
+    }
+  }
+
+  /** Absolute URL for a public endpoint — for an <a href> or an <iframe src>. */
+  function urlFor(path) {
+    return BASE + path;
   }
 
   return {
     tryGet: tryGet,
-    isLive: isLive,
+    getOrFail: getOrFail,
+    getRaw: getRaw,
+    urlFor: urlFor,
     toQueryString: toQueryString
   };
 

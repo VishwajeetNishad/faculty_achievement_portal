@@ -39,6 +39,30 @@
 		-Server
 	}
 
+	# --- Pretty public URLs -------------------------------------------
+	# The public pages live on disk as /public/*.html and read their
+	# identifier from a query string (faculty-profile.html?u=<slug>,
+	# share.html?t=<token>). These rewrites let a visitor use the clean
+	# addresses printed on cards and share links —
+	#     /faculty                     the directory
+	#     /faculty/rajesh-kumar-cse    one profile
+	#     /share/AbC123...             one shared achievement
+	# — while the browser still loads the real file underneath. This is an
+	# internal rewrite, not a redirect: the address bar keeps the pretty URL.
+	#
+	# rewrite runs before the handle blocks below, so the rewritten path
+	# (e.g. /public/faculty.html) is what the file server ultimately serves.
+	# The regexes use [^/]+ so a slug or token is a single path segment and
+	# can never reach up into another directory. /api/* is never matched.
+	@facultyProfile path_regexp facultyProfile ^/faculty/([^/]+)/?$
+	rewrite @facultyProfile /public/faculty-profile.html?u={http.regexp.facultyProfile.1}
+
+	@facultyDir path /faculty /faculty/
+	rewrite @facultyDir /public/faculty.html
+
+	@share path_regexp share ^/share/([^/]+)/?$
+	rewrite @share /public/share.html?t={http.regexp.share.1}
+
 	# --- API calls -> Spring Boot backend (over the private network) ---
 	# The full "/api/..." path is forwarded unchanged (the backend expects it).
 	handle /api/* {

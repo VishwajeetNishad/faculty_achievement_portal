@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="../assets/niet-logo.png">
-  <title>My Achievements | NIET Faculty Achievement Portal</title>
+  <title>My Shared Research | NIET Faculty Achievement Portal</title>
 
   <!-- Fonts & Styles -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -20,9 +20,9 @@
   <link rel="stylesheet" href="../css/responsive.css">
 
   <style>
-    .achievements-toolbar-wrap {
+    .shared-toolbar-wrap {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
+      grid-template-columns: 2fr 1fr;
       gap: 1rem;
       margin-bottom: 1.25rem;
       align-items: center;
@@ -43,10 +43,37 @@
     .search-input-wrap .form-control {
       padding-left: 2.35rem;
     }
+    /* The link cell holds a long token, so let it wrap instead of
+       stretching the whole table sideways on a phone. */
+    .share-url-cell {
+      font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      word-break: break-all;
+      max-width: 260px;
+    }
+    .expiry-soon { color: #B45309; font-weight: 700; }
+    .expiry-gone { color: var(--text-tertiary); }
+    /* "Show earlier revoked links" — sits directly under the toolbar. */
+    .history-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.775rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      margin: -0.35rem 0 1.1rem;
+      user-select: none;
+    }
+    .history-toggle input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
     @media (max-width: 768px) {
-      .achievements-toolbar-wrap {
-        grid-template-columns: 1fr;
-      }
+      .shared-toolbar-wrap { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -96,7 +123,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="achievements.html" class="nav-link active">
+              <a href="achievements.html" class="nav-link">
                 <div class="nav-link-content">
                   <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -107,7 +134,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a href="shared-research.html" class="nav-link">
+              <a href="shared-research.html" class="nav-link active">
                 <div class="nav-link-content">
                   <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/>
@@ -170,7 +197,7 @@
 
     <!-- ─── Main Content ─── -->
     <main class="app-main">
-      
+
       <!-- Topbar -->
       <header class="app-header">
         <div class="header-left">
@@ -178,8 +205,8 @@
             <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
           <div class="page-title-group">
-            <h1 class="page-title">My Achievements</h1>
-            <p class="page-subtitle" id="achievementsSubheader">View and manage your submitted records</p>
+            <h1 class="page-title">My Research &amp; Shared Resources</h1>
+            <p class="page-subtitle">Temporary links you have created for unpublished work</p>
           </div>
         </div>
 
@@ -204,73 +231,120 @@
       <div class="page-content">
         <div class="content-container">
 
+          <!-- What a share link is, in plain words. Shown once at the top so a
+               first-time visitor understands the risk before they read the table. -->
+          <div class="alert alert-info" style="margin-bottom: 1.25rem; display: flex; gap: 0.65rem; align-items: flex-start;">
+            <span style="font-size: 1rem; line-height: 1.3;">🔗</span>
+            <div style="font-size: 0.78rem; line-height: 1.5;">
+              <strong>How share links work.</strong>
+              A share link lets anyone open that one achievement without logging in — treat it like a key.
+              It keeps working until it expires or you revoke it. Revoking takes effect immediately.
+            </div>
+          </div>
+
+          <!-- Summary counters -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="stat-icon-wrapper success">
+                <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5M10.172 13.828a4 4 0 010-5.656l3-3a4 4 0 015.656 5.656l-1.5 1.5"/></svg>
+              </span>
+              <div class="stat-details">
+                <span class="stat-value" id="statActive">0</span>
+                <span class="stat-label">Active links</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-wrapper warning">
+                <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </span>
+              <div class="stat-details">
+                <span class="stat-value" id="statExpired">0</span>
+                <span class="stat-label">Expired</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-wrapper danger">
+                <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              </span>
+              <div class="stat-details">
+                <span class="stat-value" id="statRevoked">0</span>
+                <span class="stat-label">Revoked</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon-wrapper primary">
+                <svg style="width: 22px; height: 22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+              </span>
+              <div class="stat-details">
+                <span class="stat-value" id="statViews">0</span>
+                <span class="stat-label">Total views</span>
+              </div>
+            </div>
+          </div>
+
           <div class="card">
-            
-            <!-- Card Header with Count & Actions -->
+
             <div class="card-header">
               <div>
-                <h3 class="card-title">My Achievements</h3>
-                <p style="font-size: 0.75rem; color: var(--text-secondary);" id="tableTotalCount">0 total achievements</p>
+                <h3 class="card-title">Shared Resources</h3>
+                <p style="font-size: 0.75rem; color: var(--text-secondary);" id="sharedTotalCount">0 share links</p>
               </div>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <button id="exportCsvBtn" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-                  <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                  Export CSV
-                </button>
+                <a href="achievements.html" class="btn btn-outline btn-sm">My Achievements</a>
                 <a href="add-achievement.html" class="btn btn-primary btn-sm">+ Add Achievement</a>
               </div>
             </div>
 
-            <!-- Card Body / Table & Filter Toolbar -->
             <div class="card-body">
-              
+
               <!-- Search & Filter Controls -->
-              <div class="achievements-toolbar-wrap">
+              <div class="shared-toolbar-wrap">
                 <div class="search-input-wrap">
                   <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                  <input type="text" id="searchInput" class="form-control" placeholder="Search by achievement title...">
+                  <input type="text" id="sharedSearchInput" class="form-control" placeholder="Search by achievement title...">
                 </div>
-
                 <div>
-                  <select id="statusFilter" class="form-control">
-                    <option value="">All Statuses</option>
-                    <option value="PENDING">Pending Review</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="REJECTED">Rejected</option>
-                  </select>
-                </div>
-
-                <div>
-                  <select id="categoryFilter" class="form-control">
-                    <option value="">All Categories</option>
+                  <select id="sharedStateFilter" class="form-control">
+                    <option value="">All link states</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="EXPIRED">Expired</option>
+                    <option value="REVOKED">Revoked</option>
                   </select>
                 </div>
               </div>
+
+              <!--
+                Every time you re-share an achievement, the portal revokes the
+                previous link and issues a new one. That old link stays on
+                record forever, so after a few re-shares the table fills up
+                with dead links. By default we show only the newest link for
+                each achievement — the one that reflects how that achievement
+                is shared right now. The older ones are still here, one click
+                away, because a revoked link is part of your sharing history.
+              -->
+              <label class="history-toggle" id="historyToggleWrap" style="display: none;">
+                <input type="checkbox" id="showHistoryToggle">
+                <span id="historyToggleLabel">Show earlier revoked links</span>
+              </label>
 
               <!-- Data Table -->
               <div class="table-responsive">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>ACHIEVEMENT</th>
-                      <th>CATEGORY</th>
-                      <th>ACADEMIC YEAR</th>
-                      <th>DATE</th>
-                      <th>STATUS</th>
+                      <th>RESEARCH / ACHIEVEMENT</th>
                       <th>VISIBILITY</th>
+                      <th>LINK STATE</th>
+                      <th>EXPIRES</th>
+                      <th>CREATED</th>
+                      <th>VIEWS</th>
                       <th style="text-align: right;">ACTIONS</th>
                     </tr>
                   </thead>
-                  <tbody id="achievementsTableBody">
-                    <!-- Populated dynamically by achievements.js -->
+                  <tbody id="sharedTableBody">
+                    <!-- Populated dynamically by shared-research.js -->
                   </tbody>
                 </table>
-              </div>
-
-              <!-- Pagination Footer Bar -->
-              <div class="pagination-bar" id="paginationContainer" style="display: none;">
-                <div class="pagination-info" id="paginationInfo">Showing 0 of 0</div>
-                <div class="pagination-controls" id="paginationControls"></div>
               </div>
 
             </div>
@@ -290,18 +364,80 @@
 
   </div>
 
-  <!-- ─── Modal: Achievement Details ─── -->
-  <div class="modal-backdrop" id="viewDetailModal" aria-hidden="true">
-    <div class="modal-container" style="max-width: 620px;">
+  <!-- ─── Modal: Manage Share Link ─── -->
+  <div class="modal-backdrop" id="manageShareModal" aria-hidden="true">
+    <div class="modal-container" style="max-width: 560px;">
       <div class="modal-header">
-        <h3 class="modal-title" id="modalTitle">Achievement Details</h3>
-        <button class="modal-close-btn" onclick="closeModal('viewDetailModal')" aria-label="Close modal">&times;</button>
+        <h3 class="modal-title">Manage Share Link</h3>
+        <button class="modal-close-btn" onclick="closeModal('manageShareModal')" aria-label="Close modal">&times;</button>
       </div>
-      <div class="modal-body" id="modalDetailContent">
-        <!-- Rendered by achievements.js -->
+      <div class="modal-body">
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem;">Achievement</p>
+        <p style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1.1rem;" id="manageShareTitle">—</p>
+
+        <div class="form-group">
+          <label class="form-label" for="manageShareDuration">New expiry</label>
+          <select id="manageShareDuration" class="form-control">
+            <option value="THIRTY_MINUTES">30 minutes from now</option>
+            <option value="ONE_HOUR">1 hour from now</option>
+            <option value="SIX_HOURS">6 hours from now</option>
+            <option value="TWELVE_HOURS">12 hours from now</option>
+            <option value="TWENTY_FOUR_HOURS" selected>24 hours from now</option>
+            <option value="SEVEN_DAYS">7 days from now</option>
+            <option value="PERMANENT">Permanent — never expires</option>
+            <option value="CUSTOM">Custom date &amp; time…</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="manageCustomWrap" style="display: none;">
+          <label class="form-label" for="manageShareCustomExpiry">Custom expiry</label>
+          <input type="datetime-local" id="manageShareCustomExpiry" class="form-control">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="display: flex; gap: 0.55rem; align-items: flex-start; cursor: pointer;">
+            <input type="checkbox" id="manageIncludeProof" style="margin-top: 0.2rem; accent-color: var(--primary-color);">
+            <span style="font-size: 0.78rem; line-height: 1.45; color: var(--text-secondary);">
+              Include the proof document — anyone with the link can open the PDF.
+            </span>
+          </label>
+        </div>
+
+        <div class="share-warning" style="margin-top: 1rem;">
+          <span class="share-warning-icon">⚠</span>
+          <div>
+            Extending the expiry keeps the <strong>same link</strong> working for longer.
+            To stop it immediately, use <strong>Revoke</strong> instead.
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-outline btn-sm" onclick="closeModal('viewDetailModal')">Close</button>
+        <button class="btn btn-outline btn-sm" onclick="closeModal('manageShareModal')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="saveShareChangesBtn">Save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Modal: Confirm Revoke ─── -->
+  <div class="modal-backdrop" id="revokeShareModal" aria-hidden="true">
+    <div class="modal-container" style="max-width: 470px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Revoke this link?</h3>
+        <button class="modal-close-btn" onclick="closeModal('revokeShareModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55;">
+          The link for <strong id="revokeShareTitle" style="color: var(--text-primary);">—</strong>
+          will stop working right away. Anyone who already has it will see a
+          “link revoked” message instead of your research.
+        </p>
+        <p style="font-size: 0.78rem; color: var(--text-tertiary); margin-top: 0.75rem;">
+          You can always create a new link later — it will have a different address.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('revokeShareModal')">Keep the link</button>
+        <button class="btn btn-danger btn-sm" id="confirmRevokeBtn">Revoke link</button>
       </div>
     </div>
   </div>
@@ -349,6 +485,6 @@
   <script src="../js/api.js"></script>
   <script src="../js/validation.js"></script>
   <script src="../js/common.js"></script>
-  <script src="../js/achievements.js"></script>
+  <script src="../js/shared-research.js"></script>
 </body>
 </html>

@@ -25,45 +25,39 @@
   let filtered = [];
   let activeCategory = 'ALL';
   let currentPage = 0;
-  let usingSampleData = false;
 
   let elForm, elKeyword, elDepartment, elYear, elSort,
-      elTabs, elGrid, elCount, elPagination, elNotice;
+      elTabs, elGrid, elCount, elPagination;
 
   /* ================================================================
      Data loading
      ================================================================ */
 
   async function loadAchievements() {
-    /* TODO(track-b): when GET /api/public/achievements exists this
-       returns real rows — already restricted to APPROVED + PUBLIC by the
-       service layer — and the fallback below stops running. */
-    const live = await PublicApi.tryGet('/public/achievements', { page: 0, size: 500 });
-    if (live) {
-      const rows = Array.isArray(live) ? live : (live.content || []);
-      /* Belt and braces. The backend is the authority here. */
-      return PublicUI.filterPublic(rows);
-    }
-    usingSampleData = true;
-    return PublicSampleData.publicAchievements();
+    /* getOrFail — the gallery is the point of the page. The service layer
+       restricts this to APPROVED + PUBLIC before it ever leaves the
+       server; a failure here means load()'s catch draws the error. */
+    const live = await PublicApi.getOrFail('/public/achievements', { page: 0, size: 500 });
+    const rows = Array.isArray(live) ? live : (live.content || []);
+    /* Belt and braces. The backend is the authority here. */
+    return PublicUI.filterPublic(rows);
   }
 
   async function loadFaculty() {
-    /* Needed for the author line on each card and for the department
-       filter, because an achievement carries a faculty slug rather than
-       an embedded department.
-       TODO(track-b): a live PublicAchievementResponse is planned to embed
-       the author's name and department, at which point this second call
-       becomes an optimisation rather than a requirement. */
+    /* tryGet — the author line and the department filter are nicer with
+       this, but the gallery still renders without it (a live
+       PublicAchievementResponse embeds the author name and department),
+       so a failure here is not fatal. */
     const live = await PublicApi.tryGet('/public/faculty', { page: 0, size: 500 });
     if (live) {
       return Array.isArray(live) ? live : (live.content || []);
     }
-    usingSampleData = true;
-    return PublicSampleData.facultyWithCounts();
+    return [];
   }
 
   async function loadDepartments() {
+    /* tryGet — the dropdown falls back to the departments present in the
+       loaded records, so it is a convenience, not a requirement. */
     const live = await PublicApi.tryGet('/public/departments');
     if (live) {
       const rows = Array.isArray(live) ? live : (live.content || []);
@@ -71,7 +65,7 @@
         return { code: d.code || d.departmentCode, name: d.name || d.departmentName };
       });
     }
-    return PublicSampleData.departments;
+    return [];
   }
 
   /* ================================================================
@@ -458,10 +452,6 @@
       applyUrlFilters();
       applyFilters();
 
-      if (usingSampleData) {
-        PublicUI.showSampleNotice(elNotice);
-      }
-
     } catch (error) {
       console.error('[public-achievements] failed to load the gallery', error);
       elCount.textContent = '';
@@ -484,7 +474,6 @@
     elGrid       = document.getElementById('achGrid');
     elCount      = document.getElementById('achResultCount');
     elPagination = document.getElementById('achPagination');
-    elNotice     = document.getElementById('achSampleNotice');
 
     if (!elGrid) return;
 

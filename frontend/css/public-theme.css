@@ -1734,6 +1734,295 @@ body.public-body {
   .pub-btn-login { font-size: var(--font-size-sm); padding: 0.45rem 0.7rem; }
 }
 
+/* ================================================================
+   Shared research (public/share.html)
+   ----------------------------------------------------------------
+   A private link opens exactly one record, so this page has no grid
+   and no filters — just a banner saying what the page is, the expiry,
+   the record, and the failure screens. Everything reuses the tokens
+   already defined in variables.css; nothing new is invented here.
+   ================================================================ */
+
+/* The "this was shared privately with you" strip. Amber, not red:
+   it is information, not a warning about something going wrong. */
+.pub-share-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  background: var(--color-warning-light);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-left: 3px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  color: #78350F;
+}
+
+.pub-share-banner svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #B45309;
+}
+
+.pub-share-banner strong { font-weight: var(--font-weight-bold); }
+
+/* ─── Expiry bar ─── */
+.pub-share-expiry {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.65rem;
+  background: var(--sidebar-bg);
+  color: var(--text-inverse);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.pub-share-expiry-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.pub-share-expiry-value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums; /* stops the countdown jittering */
+  letter-spacing: 0.01em;
+}
+
+.pub-share-expiry-abs {
+  font-size: var(--font-size-xs);
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+/* Under an hour left — say so in amber rather than only in the digits. */
+.pub-share-expiry.is-soon {
+  background: #7C2D12;
+}
+.pub-share-expiry.is-soon .pub-share-expiry-value {
+  color: #FDBA74;
+}
+
+.pub-share-expiry.is-permanent {
+  background: var(--bg-main);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.pub-share-expiry.is-permanent .pub-share-expiry-label { opacity: 1; color: var(--text-secondary); }
+.pub-share-expiry.is-permanent .pub-share-expiry-value { font-size: var(--font-size-base); }
+
+/* ─── The record ─── */
+.pub-share-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1.3;
+  margin: 0 0 0.35rem;
+}
+
+.pub-share-subtle {
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+  margin: 0 0 1rem;
+}
+
+.pub-share-h2 {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  margin: 0 0 0.4rem;
+}
+
+.pub-share-abstract {
+  border-top: 1px solid var(--border-light);
+  padding-top: 1rem;
+  margin: 1rem 0;
+}
+
+.pub-share-abstract p {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin: 0;
+  /* An abstract is prose — let it wrap normally, no line clamp here. */
+  white-space: pre-line;
+}
+
+/* The category chip on this page carries an icon, which the grid
+   version does not — so it needs to be a flex row. */
+.pub-cat-chip.has-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+}
+.pub-cat-chip.has-icon svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+
+.pub-share-keywords {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 1rem;
+}
+
+.pub-keyword {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 0.2rem 0.6rem;
+}
+
+/* ─── Who shared it ─── */
+.pub-share-author {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border-light);
+  background: var(--bg-main);
+  padding: 0.9rem 1.5rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.pub-share-author-when {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* ─── Proof document ─── */
+.pub-share-doc {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.pub-share-footnote {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  text-align: center;
+  padding: 0 0 3rem;
+}
+
+.pub-share-footnote a {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ================================================================
+   Failure screens — missing / unknown / expired / revoked / offline
+   ================================================================ */
+.pub-share-state {
+  text-align: center;
+  padding: 3rem 1.75rem;
+  margin-bottom: 3rem;
+  border-top: 3px solid var(--border-color);
+}
+
+.pub-share-state-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 1.25rem;
+  background: var(--bg-main);
+  color: var(--text-tertiary);
+}
+
+.pub-share-state-icon svg { width: 27px; height: 27px; }
+
+.pub-share-state-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
+}
+
+.pub-share-state-text {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: 1.7;
+  max-width: 46ch;
+  margin: 0 auto;
+}
+
+.pub-share-status-code {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-family: 'Courier New', monospace;
+  margin: 0.75rem 0 0;
+}
+
+.pub-share-state-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.75rem;
+}
+
+/* Each outcome gets its own colour so the reason is legible at a glance
+   even before the text is read. */
+.pub-share-state.is-warn { border-top-color: var(--color-warning); }
+.pub-share-state.is-warn .pub-share-state-icon {
+  background: var(--color-warning-light);
+  color: #B45309;
+}
+
+.pub-share-state.is-expired { border-top-color: var(--text-tertiary); }
+.pub-share-state.is-expired .pub-share-state-icon {
+  background: #F1F5F9;
+  color: var(--text-secondary);
+}
+
+.pub-share-state.is-revoked { border-top-color: var(--color-danger); }
+.pub-share-state.is-revoked .pub-share-state-icon {
+  background: var(--color-danger-light);
+  color: #B91C1C;
+}
+
+.pub-share-state.is-error { border-top-color: var(--primary-color); }
+.pub-share-state.is-error .pub-share-state-icon {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+@media (max-width: 640px) {
+  .pub-share-expiry-abs { margin-left: 0; width: 100%; }
+  .pub-share-author-when { margin-left: 0; width: 100%; }
+  .pub-share-author { padding: 0.9rem 1.1rem; }
+  .pub-share-title { font-size: var(--font-size-xl); }
+  .pub-share-doc { flex-direction: column; align-items: stretch; }
+  .pub-share-doc .pub-btn { width: 100%; }
+  .pub-share-state { padding: 2.25rem 1.1rem; }
+  .pub-share-state-actions .pub-btn { width: 100%; }
+}
+
 /* ─── Print ─── */
 @media print {
   .pub-nav,
@@ -1741,6 +2030,8 @@ body.public-body {
   .pub-footer,
   .pub-search,
   .pub-filter-card,
+  .pub-share-expiry,
+  .pub-share-state-actions,
   .pub-pagination { display: none !important; }
 
   .pub-hero { background: none; color: #000; padding: 1rem 0; }

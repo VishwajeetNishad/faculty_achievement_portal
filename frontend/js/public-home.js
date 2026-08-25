@@ -7,9 +7,10 @@
      · the faculty preview row
      · the category pills
 
-   Every block asks the real API first and falls back to sample content,
-   so the page lights up with live data the moment the Track B public
-   endpoints exist. Each fallback is marked TODO(track-b) below.
+   Every number and every card on this page is read from the live public
+   API. Nothing is hardcoded and there is no placeholder content: if the
+   API cannot be reached, the page says so instead of showing figures
+   that were never real.
    ==================================================================== */
 
 (function () {
@@ -22,36 +23,27 @@
   let facultyBySlug = {};
   let allAchievements = [];
   let activeCategory = 'ALL';
-  let usingSampleData = false;
 
   /* ================================================================
      Data loading
+
+     getOrFail, not tryGet — the whole page is built from these two
+     lists, so if either one fails there is nothing honest to draw and
+     load()'s catch block takes over.
      ================================================================ */
 
   async function loadFaculty() {
-    /* TODO(track-b): when GET /api/public/faculty exists this returns
-       real rows and the fallback below stops running. */
-    const live = await PublicApi.tryGet('/public/faculty', { page: 0, size: 200 });
-    if (live) {
-      return Array.isArray(live) ? live : (live.content || []);
-    }
-    usingSampleData = true;
-    return PublicSampleData.facultyWithCounts();
+    const live = await PublicApi.getOrFail('/public/faculty', { page: 0, size: 200 });
+    return Array.isArray(live) ? live : (live.content || []);
   }
 
   async function loadAchievements() {
-    /* TODO(track-b): when GET /api/public/achievements exists this
-       returns real rows — already filtered to APPROVED + PUBLIC by the
-       backend — and the fallback below stops running. */
-    const live = await PublicApi.tryGet('/public/achievements', { page: 0, size: 100 });
-    if (live) {
-      const rows = Array.isArray(live) ? live : (live.content || []);
-      /* The backend is the authority on visibility. Re-filtering here is
-         belt-and-braces, not the actual control. */
-      return PublicUI.filterPublic(rows);
-    }
-    usingSampleData = true;
-    return PublicSampleData.publicAchievements();
+    const live = await PublicApi.getOrFail('/public/achievements', { page: 0, size: 100 });
+    const rows = Array.isArray(live) ? live : (live.content || []);
+    /* The backend is the authority on visibility — it only ever sends
+       APPROVED + PUBLIC records. Re-filtering here is belt-and-braces,
+       not the actual control. */
+    return PublicUI.filterPublic(rows);
   }
 
   /* ================================================================
@@ -316,14 +308,21 @@
       renderFacultyPreview(faculty);
       renderCategoryPills();
 
-      if (usingSampleData) {
-        PublicUI.showSampleNotice(document.getElementById('homeSampleNotice'));
-      }
-
     } catch (error) {
       console.error('[public-home] failed to build the page', error);
+
+      /* Take the stat strip and the tabs down rather than leaving them
+         blank. A strip of empty boxes reads as "zero achievements", which
+         is a different — and wrong — statement from "we could not load
+         the numbers just now". */
+      const stats = document.getElementById('homeStats');
+      if (stats) stats.closest('.pub-stats').hidden = true;
+      const tabs = document.getElementById('featuredTabs');
+      if (tabs) tabs.innerHTML = '';
+
       const message = 'The portal could not load its content just now. Please refresh the page, or try again in a few minutes.';
-      PublicUI.showError(featuredGrid, 'Could not load achievements', message);
+      PublicUI.showError(featuredGrid, 'Could not load achievements', message,
+        '<button class="pub-btn pub-btn-outline" type="button" onclick="window.location.reload()">Reload page</button>');
       PublicUI.showError(facultyGrid, 'Could not load faculty', message);
     }
   }
