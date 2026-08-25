@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
-  <title>HOD Profile | NIET HOD Portal</title>
+  <title>Institution Reports | NIET HOD Portal</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,78 +73,86 @@
       </header>
 
       <div class="hod-content">
-        <div class="hod-container hod-container-narrow">
+        <div class="hod-container">
 
           <!-- Page head -->
-          <div class="hod-greeting">
+          <div class="hod-greeting" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
             <div>
-              <h1 class="hod-page-title">HOD Profile</h1>
-              <p class="hod-page-sub">Manage your personal details.</p>
+              <h1 class="hod-page-title">Institution Reports</h1>
+              <p class="hod-page-sub">Institution-wide achievement statistics across every department.</p>
+            </div>
+            <!-- Revealed by hod-reports.js only if this HOD also holds EXPORT_REPORTS. -->
+            <div id="hodReportExportWrap" style="display:none;flex-direction:column;align-items:flex-end;gap:4px;">
+              <button class="hod-btn hod-btn-outline" id="hodReportExport">
+                <span class="material-symbols-outlined">download</span> Export CSV
+              </button>
+              <small class="hod-muted" style="font-size:12px;text-align:right;max-width:260px;">Exports your own department's achievements. Institution-wide export is reserved for administrators.</small>
             </div>
           </div>
 
-          <!-- Identity card -->
-          <div class="hod-card" style="margin-bottom:24px;">
-            <div class="hod-card-pad hod-profile-id">
-              <div class="hod-profile-avatar" id="hodPfAvatar">HD</div>
-              <div class="hod-profile-id-text">
-                <h2 class="hod-page-title" style="margin:0;" id="hodPfHeaderName">—</h2>
-                <p class="hod-page-sub" style="margin:0;" id="hodPfHeaderRole">Head of Department</p>
+          <div id="hodRepContent">
+            <!-- KPI grid -->
+            <div class="hod-grid hod-kpi-grid" style="margin-bottom:24px;">
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon tertiary"><span class="material-symbols-outlined">groups</span></div></div>
+                <p class="hod-kpi-label">Total Faculty</p><p class="hod-kpi-value" id="hodRepFaculty">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon primary"><span class="material-symbols-outlined">workspace_premium</span></div></div>
+                <p class="hod-kpi-label">Total Achievements</p><p class="hod-kpi-value" id="hodRepTotal">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon approved"><span class="material-symbols-outlined">verified</span></div></div>
+                <p class="hod-kpi-label">Approved</p><p class="hod-kpi-value approved" id="hodRepApproved">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon pending"><span class="material-symbols-outlined">schedule</span></div></div>
+                <p class="hod-kpi-label">Pending</p><p class="hod-kpi-value pending" id="hodRepPending">—</p>
+              </div>
+              <div class="hod-kpi">
+                <div class="hod-kpi-top"><div class="hod-kpi-icon rejected"><span class="material-symbols-outlined">cancel</span></div></div>
+                <p class="hod-kpi-label">Rejected</p><p class="hod-kpi-value rejected" id="hodRepRejected">—</p>
+              </div>
+            </div>
+
+            <!-- Distributions -->
+            <div class="hod-grid hod-grid-2" style="margin-bottom:24px;">
+              <div class="hod-card">
+                <div class="hod-card-header"><h3 class="hod-card-title">Achievements by Category</h3></div>
+                <div class="hod-card-pad" id="hodRepCategory">
+                  <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
+                </div>
+              </div>
+              <div class="hod-card">
+                <div class="hod-card-header"><h3 class="hod-card-title">Achievements by Academic Year</h3></div>
+                <div class="hod-card-pad" id="hodRepYear">
+                  <div style="padding:24px 0;"><div class="hod-spinner"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Department comparison -->
+            <div class="hod-card" style="padding:0;overflow:hidden;">
+              <div class="hod-card-header"><h3 class="hod-card-title">Department Comparison</h3></div>
+              <div class="hod-table-wrap">
+                <table class="hod-table reflow">
+                  <thead>
+                    <tr>
+                      <th>Department</th>
+                      <th>Faculty</th>
+                      <th>Total</th>
+                      <th>Approved</th>
+                      <th>Pending</th>
+                      <th>Rejected</th>
+                    </tr>
+                  </thead>
+                  <tbody id="hodRepDeptBody">
+                    <tr><td colspan="6"><div style="padding:40px 0;text-align:center;"><div class="hod-spinner"></div></div></td></tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-
-          <!-- Editable form -->
-          <form class="hod-card" id="hodProfileForm" novalidate>
-            <div class="hod-card-header">
-              <div>
-                <h3 class="hod-card-title">Account Information</h3>
-                <p class="hod-card-sub">Employee ID, email, role and department are managed by administration and can't be changed here.</p>
-              </div>
-            </div>
-            <div class="hod-card-pad">
-              <div class="hod-form-grid">
-                <div class="hod-field">
-                  <label class="hod-label">Employee ID</label>
-                  <div class="hod-readonly" id="hodPfEmpId">—</div>
-                </div>
-                <div class="hod-field">
-                  <label class="hod-label">Email</label>
-                  <div class="hod-readonly" id="hodPfEmail">—</div>
-                </div>
-                <div class="hod-field">
-                  <label class="hod-label">Role</label>
-                  <div class="hod-readonly" id="hodPfRole">—</div>
-                </div>
-                <div class="hod-field">
-                  <label class="hod-label">Department</label>
-                  <div class="hod-readonly" id="hodPfDept">—</div>
-                </div>
-
-                <div class="hod-field">
-                  <label class="hod-label" for="hodPfName">Full Name</label>
-                  <input type="text" id="hodPfName" class="hod-input" maxlength="100" autocomplete="name">
-                  <small class="hod-field-error" id="hodPfNameErr"></small>
-                </div>
-                <div class="hod-field">
-                  <label class="hod-label" for="hodPfPhone">Phone</label>
-                  <input type="tel" id="hodPfPhone" class="hod-input" maxlength="20" autocomplete="tel" placeholder="e.g. +91 98765 43210">
-                  <small class="hod-field-error" id="hodPfPhoneErr"></small>
-                </div>
-                <div class="hod-field hod-field-full">
-                  <label class="hod-label" for="hodPfDesignation">Designation</label>
-                  <input type="text" id="hodPfDesignation" class="hod-input" maxlength="100" placeholder="e.g. Professor & Head">
-                  <small class="hod-field-error" id="hodPfDesignationErr"></small>
-                </div>
-              </div>
-
-              <div class="hod-form-actions">
-                <button type="submit" class="hod-btn hod-btn-primary" id="hodPfSave">
-                  <span class="material-symbols-outlined">save</span> Save changes
-                </button>
-              </div>
-            </div>
-          </form>
 
         </div>
       </div>
@@ -156,6 +164,6 @@
   <script src="../../js/api.js"></script>
   <script src="../../js/common.js"></script>
   <script src="../../js/hod-common.js"></script>
-  <script src="../../js/hod-profile.js"></script>
+  <script src="../../js/hod-reports.js"></script>
 </body>
 </html>

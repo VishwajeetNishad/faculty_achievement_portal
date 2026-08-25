@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Audit Logs | NIET HOD Portal</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Stylesheets (HOD load order — skips layout.css/responsive.css; hod-theme owns the shell) -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/hod-theme.css">
+</head>
+<body class="hod-app">
+
+  <div class="hod-layout">
+
+    <!-- Sidebar -->
+    <aside class="hod-sidebar" id="hodSidebar">
+      <div class="hod-sidebar-header">
+        <div class="hod-brand">
+          <span class="hod-brand-logo"><img src="../../assets/niet-logo.png" alt="NIET"></span>
+          <div>
+            <div class="hod-brand-title" id="hodBrandTitle">Department</div>
+            <div class="hod-brand-sub" id="hodBrandSub">Faculty Achievement Portal</div>
+          </div>
+        </div>
+        <a href="verification-queue.html" class="hod-quick-btn"><span class="material-symbols-outlined">bolt</span> Quick Verify</a>
+      </div>
+
+      <nav class="hod-nav">
+        <a href="dashboard.html" class="hod-nav-link"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
+        <a href="verification-queue.html" class="hod-nav-link"><span class="material-symbols-outlined">fact_check</span> Verification Queue</a>
+        <a href="achievements.html" class="hod-nav-link"><span class="material-symbols-outlined">workspace_premium</span> Department Achievements</a>
+        <a href="faculty.html" class="hod-nav-link"><span class="material-symbols-outlined">groups</span> Faculty Directory</a>
+        <a href="analytics.html" class="hod-nav-link"><span class="material-symbols-outlined">monitoring</span> Department Analytics</a>
+        <a href="audit-logs.html" class="hod-nav-link" data-perm="VIEW_AUDIT_LOGS" style="display:none;"><span class="material-symbols-outlined">receipt_long</span> Audit Logs</a>
+        <a href="reports.html" class="hod-nav-link" data-perm="VIEW_REPORTS" style="display:none;"><span class="material-symbols-outlined">assessment</span> Institution Reports</a>
+        <a href="notifications.html" class="hod-nav-link"><span class="material-symbols-outlined">notifications</span> Notifications</a>
+        <a href="profile.html" class="hod-nav-link"><span class="material-symbols-outlined">account_circle</span> HOD Profile</a>
+      </nav>
+
+      <div class="hod-sidebar-footer">
+        <a href="../login.html" class="hod-nav-link logout" id="signOutBtn"><span class="material-symbols-outlined">logout</span> Sign Out</a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <div class="hod-main">
+      <header class="hod-topbar">
+        <div class="hod-topbar-left">
+          <button class="hod-menu-toggle" id="hodMenuToggle" aria-label="Toggle navigation"><span class="material-symbols-outlined">menu</span></button>
+          <span class="hod-topbar-title">NIET Faculty Achievement Portal</span>
+        </div>
+        <div class="hod-topbar-right header-right">
+          <div class="hod-topuser">
+            <div class="hod-topuser-text">
+              <div class="hod-topuser-name" id="hodTopUserName">Head of Department</div>
+              <div class="hod-topuser-role" id="hodTopUserRole">HOD</div>
+            </div>
+            <div class="hod-avatar" id="hodTopAvatar">HD</div>
+          </div>
+        </div>
+      </header>
+
+      <div class="hod-content">
+        <div class="hod-container">
+
+          <!-- Page head -->
+          <div class="hod-greeting">
+            <div>
+              <h1 class="hod-page-title">Audit Logs</h1>
+              <p class="hod-page-sub">Institutional security audit trail — every privileged action is recorded here for accountability.</p>
+            </div>
+          </div>
+
+          <!-- Filters -->
+          <div class="hod-card" style="margin-bottom:24px;">
+            <div class="hod-card-pad">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;align-items:end;">
+                <div class="hod-field">
+                  <label class="hod-field-label" for="hodAuditAction">Action Event</label>
+                  <select id="hodAuditAction" class="hod-select">
+                    <option value="">All Actions</option>
+                    <!-- Every value below is a real name from AuditAction.java; nothing is invented.
+                         SHARE_* actions exist in the enum but nothing writes them yet, so they are left out. -->
+                    <optgroup label="Sign-in">
+                      <option value="LOGIN_SUCCESS">LOGIN_SUCCESS</option>
+                      <option value="LOGIN_FAILURE">LOGIN_FAILURE</option>
+                    </optgroup>
+                    <optgroup label="Achievements">
+                      <option value="ACHIEVEMENT_CREATED">ACHIEVEMENT_CREATED</option>
+                      <option value="ACHIEVEMENT_UPDATED">ACHIEVEMENT_UPDATED</option>
+                      <option value="ACHIEVEMENT_DELETED">ACHIEVEMENT_DELETED</option>
+                      <option value="ACHIEVEMENT_APPROVED">ACHIEVEMENT_APPROVED</option>
+                      <option value="ACHIEVEMENT_REJECTED">ACHIEVEMENT_REJECTED</option>
+                      <option value="PROOF_UPLOADED">PROOF_UPLOADED</option>
+                      <option value="PROOF_DELETED">PROOF_DELETED</option>
+                    </optgroup>
+                    <optgroup label="Accounts">
+                      <option value="PROFILE_UPDATED">PROFILE_UPDATED</option>
+                      <option value="USER_CREATED">USER_CREATED</option>
+                      <option value="USER_UPDATED">USER_UPDATED</option>
+                      <option value="USER_STATUS_CHANGED">USER_STATUS_CHANGED</option>
+                      <option value="ROLE_CHANGED">ROLE_CHANGED</option>
+                      <option value="PASSWORD_RESET">PASSWORD_RESET</option>
+                    </optgroup>
+                    <optgroup label="Permissions">
+                      <option value="PERMISSION_GRANTED">PERMISSION_GRANTED</option>
+                      <option value="PERMISSION_REVOKED">PERMISSION_REVOKED</option>
+                      <option value="PERMISSIONS_UPDATED">PERMISSIONS_UPDATED</option>
+                    </optgroup>
+                    <optgroup label="Departments">
+                      <option value="DEPARTMENT_CREATED">DEPARTMENT_CREATED</option>
+                      <option value="DEPARTMENT_UPDATED">DEPARTMENT_UPDATED</option>
+                      <option value="DEPARTMENT_DELETED">DEPARTMENT_DELETED</option>
+                    </optgroup>
+                  </select>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-field-label" for="hodAuditEntity">Entity Type</label>
+                  <select id="hodAuditEntity" class="hod-select">
+                    <option value="">All Entities</option>
+                    <option value="ACHIEVEMENT">ACHIEVEMENT</option>
+                    <option value="PROOF">PROOF</option>
+                    <option value="AUTH">AUTH</option>
+                    <option value="USER">USER</option>
+                    <option value="DEPARTMENT">DEPARTMENT</option>
+                  </select>
+                </div>
+                <div class="hod-field">
+                  <label class="hod-field-label" for="hodAuditFrom">From Date</label>
+                  <input type="date" id="hodAuditFrom" class="hod-input">
+                </div>
+                <div class="hod-field">
+                  <label class="hod-field-label" for="hodAuditTo">To Date</label>
+                  <input type="date" id="hodAuditTo" class="hod-input">
+                </div>
+                <div style="display:flex;gap:10px;">
+                  <button class="hod-btn hod-btn-primary" id="hodAuditApply" style="flex:1;"><span class="material-symbols-outlined">search</span> Apply</button>
+                  <button class="hod-btn hod-btn-outline" id="hodAuditClear">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Records -->
+          <div class="hod-card" style="padding:0;overflow:hidden;">
+            <div class="hod-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+              <h3 class="hod-card-title">System Audit Records</h3>
+              <span class="hod-badge hod-badge-approved" id="hodAuditCount">0 records</span>
+            </div>
+            <div class="hod-table-wrap">
+              <table class="hod-table reflow">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Actor</th>
+                    <th>Action</th>
+                    <th>Entity &amp; ID</th>
+                    <th>Description</th>
+                    <th>IP Address</th>
+                  </tr>
+                </thead>
+                <tbody id="hodAuditBody">
+                  <tr><td colspan="6"><div style="padding:40px 0;text-align:center;"><div class="hod-spinner"></div><p style="margin-top:12px;color:var(--hod-on-surface-variant);">Loading audit records…</p></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="hod-pagination" id="hodAuditPager" style="padding:14px 24px;"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../../js/config.js"></script>
+  <script src="../../js/api.js"></script>
+  <script src="../../js/common.js"></script>
+  <script src="../../js/hod-common.js"></script>
+  <script src="../../js/hod-audit.js"></script>
+</body>
+</html>

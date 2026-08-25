@@ -47,6 +47,9 @@ async function hodBootstrap() {
 
   const me = res.data;
   window.HOD.me = me;
+  // The fine-grained permissions this HOD was granted by an Admin (Track A).
+  // /auth/me returns them fresh on every load, so a grant/revoke shows up on the next visit.
+  window.HOD.permissions = Array.isArray(me.permissions) ? me.permissions : [];
   hodFillIdentity(me);
 
   const role = String(me.role || '').toUpperCase();
@@ -56,6 +59,9 @@ async function hodBootstrap() {
     _hodReadyResolve(null);
     return;
   }
+
+  // Reveal any permission-gated sidebar links now that we know what this HOD holds.
+  hodApplyPermissionNav();
 
   _hodReadyResolve(me);
 }
@@ -145,6 +151,28 @@ function hodInitActiveNav() {
       if ((link.getAttribute('href') || '').endsWith('faculty.html')) link.classList.add('active');
     });
   }
+}
+
+/* ── Permission-aware UI (UX only — the server still enforces every check) ──── */
+/**
+ * True when the signed-in HOD holds the given fine-grained permission code
+ * (from GET /auth/me). This ONLY decides whether to show a menu item or button;
+ * the backend re-checks the permission on every request, so hiding a link is never
+ * the security boundary — it just avoids showing a door that would return 403 anyway.
+ */
+function hodCan(code) {
+  return Array.isArray(window.HOD.permissions) && window.HOD.permissions.includes(code);
+}
+
+/**
+ * Reveal sidebar links shipped hidden (`data-perm="CODE"` + inline display:none)
+ * when this HOD actually holds the matching permission. Links the HOD does not
+ * hold simply stay hidden. Setting display back to '' reverts to the stylesheet's flex.
+ */
+function hodApplyPermissionNav() {
+  document.querySelectorAll('.hod-nav-link[data-perm]').forEach((link) => {
+    if (hodCan(link.getAttribute('data-perm'))) link.style.display = '';
+  });
 }
 
 /* ── Render helpers (shared by every controller) ───────────────────────────── */
