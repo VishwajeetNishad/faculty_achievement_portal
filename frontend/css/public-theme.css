@@ -13,8 +13,8 @@
    every colour, radius, shadow and font size here is character-for-
    character the same as the Faculty, HOD and Admin screens.
 
-   Palette (unchanged from the rest of the portal, matches niet.co.in):
-     · NIET red      --primary-color  #E11D48
+   Palette (unchanged from the rest of the portal, sampled from assets/niet-logo.png):
+     · NIET red      --primary-color  #CF0012
      · Deep navy     --sidebar-bg     #0B1120
      · Gold accent   --secondary-color #F59E0B
    ==================================================================== */
@@ -244,8 +244,8 @@ body.public-body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.35rem 0.85rem;
-  background-color: rgba(225, 29, 72, 0.15);
-  border: 1px solid rgba(225, 29, 72, 0.3);
+  background-color: rgba(var(--primary-rgb), 0.15);
+  border: 1px solid rgba(var(--primary-rgb), 0.3);
   color: var(--primary-muted);
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
@@ -413,13 +413,13 @@ body.public-body {
 .pub-btn-primary {
   background-color: var(--primary-color);
   color: var(--text-inverse);
-  box-shadow: 0 4px 14px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 4px 14px rgba(var(--primary-rgb), 0.35);
 }
 
 .pub-btn-primary:hover {
   background-color: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(225, 29, 72, 0.45);
+  box-shadow: 0 6px 20px rgba(var(--primary-rgb), 0.45);
 }
 
 .pub-btn-ghost-light {
@@ -1307,7 +1307,7 @@ body.public-body {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-sm);
-  background: rgba(225, 29, 72, 0.16);
+  background: rgba(var(--primary-rgb), 0.16);
   color: var(--primary-muted);
   display: inline-flex;
   align-items: center;

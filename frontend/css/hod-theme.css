@@ -1,45 +1,49 @@
 /* ============================================================================
    HOD Portal Theme — "Academic Excellence Framework"
-   Reproduces the Google Stitch HOD design (light 280px sidebar + deep-red top
+   Reproduces the Google Stitch HOD design (light 280px sidebar + NIET-red top
    bar, Hanken Grotesk headings, Inter body, Material Symbols icons).
 
    Self-contained: HOD pages load  variables.css → reset.css → components.css →
    forms.css → tables.css → hod-theme.css  (they intentionally SKIP layout.css /
    responsive.css, which style the navy faculty/admin shell). This file owns the
-   HOD shell + responsive behaviour and re-tints the shared components that
-   common.js injects (toast, notification bell/modal, spinner) to HOD maroon.
+   HOD shell + responsive behaviour. Colours are NOT independent any more — every
+   --hod-* colour token below resolves to a shared token in variables.css, so the
+   HOD portal, the faculty/admin portal and the public pages share one palette.
    ============================================================================ */
 
-/* ─── Design tokens (copied from the Stitch tailwind.config / DESIGN.md) ─── */
+/* ─── Design tokens ───
+   Shape comes from the Stitch tailwind.config / DESIGN.md, but every colour now
+   points at frontend/css/variables.css so the HOD portal shares ONE palette with
+   the faculty, admin and public pages. Only the HOD-specific geometry (280px
+   sidebar, Hanken Grotesk headings, radii) stays local. */
 :root {
-  --hod-primary:            #a50019;   /* NIET deep red — top bar, active nav, primary actions */
-  --hod-primary-container:  #cf1427;   /* hover */
-  --hod-primary-dark:       #8f0015;
-  --hod-primary-fixed:      #ffdad7;   /* active-nav tint */
+  --hod-primary:            var(--primary-color);   /* NIET Red #CF0012 — top bar, active nav, primary actions */
+  --hod-primary-container:  var(--primary-hover);   /* hover */
+  --hod-primary-dark:       var(--primary-dark);
+  --hod-primary-fixed:      var(--primary-tint);    /* active-nav tint */
   --hod-on-primary:         #ffffff;
-  --hod-secondary:          #b22b1d;
-  --hod-secondary-container:#fe624e;
+  --hod-secondary:          var(--primary-hover);
   --hod-tertiary:           #00567b;   /* blue chips */
   --hod-tertiary-container: #006f9e;
   --hod-tertiary-fixed:     #c8e6ff;
 
-  --hod-surface:            #fbf9f8;   /* cards / sidebar */
-  --hod-surface-muted:      #F9FAFB;   /* page background (Level 0) */
-  --hod-surface-low:        #f5f3f3;   /* sidebar + table headers */
-  --hod-surface-high:       #eae8e7;
+  --hod-surface:            var(--surface-card);    /* cards / sidebar */
+  --hod-surface-muted:      var(--bg-main);         /* page background (Level 0) */
+  --hod-surface-low:        var(--surface-hover);   /* sidebar + table headers */
+  --hod-surface-high:       var(--border-color);
   --hod-surface-lowest:     #ffffff;
 
-  --hod-on-surface:         #1b1c1c;
-  --hod-on-surface-variant: #5c3f3d;
-  --hod-border:             #E5E7EB;
-  --hod-outline:            #916f6c;
+  --hod-on-surface:         var(--text-primary);
+  --hod-on-surface-variant: var(--text-secondary);
+  --hod-border:             var(--border-color);
+  --hod-outline:            var(--text-tertiary);
 
-  --hod-approved:           #15803D;
-  --hod-approved-bg:        #dcfce7;
-  --hod-pending:            #B45309;
-  --hod-pending-bg:         #fef3c7;
-  --hod-rejected:           #BE123C;
-  --hod-rejected-bg:        #ffe4e6;
+  --hod-approved:           var(--status-approved-text);
+  --hod-approved-bg:        var(--status-approved-bg);
+  --hod-pending:            var(--status-pending-text);
+  --hod-pending-bg:         var(--status-pending-bg);
+  --hod-rejected:           var(--status-rejected-text);
+  --hod-rejected-bg:        var(--status-rejected-bg);
   --hod-error:              #ba1a1a;
 
   --hod-radius-card:  12px;
@@ -55,14 +59,12 @@
   --hod-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ─── Re-tint the shared components injected by common.js / components.css ─── */
+/* ─── HOD body shell ───
+   The old --primary-* re-tint block that used to live here is gone: --hod-primary
+   now resolves to var(--primary-color) itself, so overriding the shared tokens on
+   body.hod-app would be an identity assignment. Components injected by common.js /
+   components.css already pick up the brand from :root. */
 body.hod-app {
-  --primary-color: var(--hod-primary);
-  --primary-hover: var(--hod-primary-container);
-  --primary-dark:  var(--hod-primary-dark);
-  --primary-light: rgba(165, 0, 25, 0.08);
-  --border-focus:  var(--hod-primary);
-
   margin: 0;
   background: var(--hod-surface-muted);
   color: var(--hod-on-surface);
@@ -241,7 +243,7 @@ body.hod-app {
 .hod-kpi-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
 .hod-kpi-icon .material-symbols-outlined { font-size: 24px; }
 .hod-kpi-icon.tertiary { background: rgba(0,86,123,0.10); color: var(--hod-tertiary); }
-.hod-kpi-icon.primary  { background: rgba(165,0,25,0.10); color: var(--hod-primary); }
+.hod-kpi-icon.primary  { background: rgba(var(--primary-rgb), 0.10); color: var(--hod-primary); }
 .hod-kpi-icon.pending  { background: var(--hod-pending-bg); color: var(--hod-pending); }
 .hod-kpi-icon.approved { background: var(--hod-approved-bg); color: var(--hod-approved); }
 .hod-kpi-icon.rejected { background: var(--hod-rejected-bg); color: var(--hod-rejected); }
@@ -278,7 +280,7 @@ body.hod-app {
 .hod-th-right, .hod-td-right { text-align: right; }
 
 .hod-faculty-cell { display: flex; align-items: center; gap: 12px; }
-.hod-cell-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(165,0,25,0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+.hod-cell-avatar { width: 34px; height: 34px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; flex-shrink: 0; }
 .hod-cell-title { font-family: var(--hod-font-head); font-weight: 600; font-size: 14px; color: var(--hod-on-surface); }
 .hod-cell-sub { font-size: 12px; color: var(--hod-on-surface-variant); margin-top: 2px; }
 .hod-cell-truncate { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -305,8 +307,8 @@ body.hod-app {
 .hod-btn .material-symbols-outlined { font-size: 18px; }
 .hod-btn-primary { background: var(--hod-primary); color: #fff; }
 .hod-btn-primary:hover { background: var(--hod-primary-container); }
-.hod-btn-outline { background: transparent; color: var(--hod-primary); border-color: rgba(165,0,25,0.35); }
-.hod-btn-outline:hover { border-color: var(--hod-primary); background: rgba(165,0,25,0.04); }
+.hod-btn-outline { background: transparent; color: var(--hod-primary); border-color: rgba(var(--primary-rgb), 0.35); }
+.hod-btn-outline:hover { border-color: var(--hod-primary); background: rgba(var(--primary-rgb), 0.04); }
 .hod-btn-ghost { background: transparent; color: var(--hod-on-surface-variant); border-color: var(--hod-outline); }
 .hod-btn-ghost:hover { background: var(--hod-surface-low); }
 .hod-btn-danger { background: var(--hod-rejected); color: #fff; }
@@ -334,7 +336,7 @@ body.hod-app {
   font-family: var(--hod-font-body); font-size: 14px;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-.hod-input:focus, .hod-select:focus, .hod-textarea:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(165,0,25,0.12); }
+.hod-input:focus, .hod-select:focus, .hod-textarea:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12); }
 .hod-input[readonly], .hod-input:disabled { background: var(--hod-surface-low); color: var(--hod-on-surface-variant); cursor: not-allowed; }
 .hod-textarea { resize: vertical; min-height: 90px; }
 .hod-search-wrap { position: relative; display: flex; align-items: center; }
@@ -362,7 +364,7 @@ body.hod-app {
    PROFILE HEADER / STAT CARDS / LIST ITEMS  (faculty & HOD profile)
    ============================================================================ */
 .hod-profile-head { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
-.hod-profile-avatar { width: 96px; height: 96px; border-radius: 50%; background: rgba(165,0,25,0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-family: var(--hod-font-head); font-weight: 700; font-size: 34px; flex-shrink: 0; }
+.hod-profile-avatar { width: 96px; height: 96px; border-radius: 50%; background: rgba(var(--primary-rgb), 0.10); color: var(--hod-primary); display: flex; align-items: center; justify-content: center; font-family: var(--hod-font-head); font-weight: 700; font-size: 34px; flex-shrink: 0; }
 .hod-profile-avatar.lg { width: 128px; height: 128px; font-size: 44px; }
 .hod-profile-meta { flex: 1; min-width: 220px; }
 .hod-profile-name { font-family: var(--hod-font-head); font-size: 24px; font-weight: 700; margin: 0 0 4px; }
@@ -516,7 +518,7 @@ body.hod-app {
   font-family: var(--hod-font-body); font-size: 14px;
   transition: border-color .15s ease, box-shadow .15s ease;
 }
-.hod-search input:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(165,0,25,0.12); }
+.hod-search input:focus { outline: none; border-color: var(--hod-primary); box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12); }
 .hod-search input::placeholder { color: var(--hod-outline); }
 
 /* ─── Faculty directory cards ─── */
@@ -526,7 +528,7 @@ body.hod-app {
 .hod-faculty-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
 .hod-faculty-avatar {
   width: 56px; height: 56px; border-radius: 50%;
-  background: rgba(165,0,25,0.10); color: var(--hod-primary);
+  background: rgba(var(--primary-rgb), 0.10); color: var(--hod-primary);
   display: flex; align-items: center; justify-content: center;
   font-family: var(--hod-font-head); font-weight: 700; font-size: 19px; flex-shrink: 0;
 }

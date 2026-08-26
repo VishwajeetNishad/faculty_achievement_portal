@@ -106,7 +106,7 @@
   background-color: var(--primary-color);
   color: #FFFFFF;
   border-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.2);
+  box-shadow: 0 2px 8px rgba(var(--primary-rgb), 0.2);
 }
 .btn-primary:hover {
   background-color: var(--primary-hover);
@@ -471,14 +471,14 @@
 
 .visibility-option:hover {
   border-color: var(--primary-color);
-  background: rgba(225, 29, 72, 0.02);
+  background: rgba(var(--primary-rgb), 0.02);
 }
 
 /* The radio itself stays a real <input> so the keyboard and screen
    readers work; :has() lets the card react without any JavaScript. */
 .visibility-option:has(input:checked) {
   border-color: var(--primary-color);
-  background: rgba(225, 29, 72, 0.04);
+  background: rgba(var(--primary-rgb), 0.04);
   box-shadow: 0 0 0 1px var(--primary-color) inset;
 }
 

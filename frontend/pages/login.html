@@ -54,7 +54,7 @@
     .brand-circle-logo {
       width: 38px;
       height: 38px;
-      background-color: #E11D48;
+      background-color: var(--primary-color);
       color: #FFFFFF;
       border-radius: 50%;
       display: flex;
@@ -198,7 +198,7 @@
     }
 
     .field-label .req {
-      color: #E11D48;
+      color: var(--primary-color);
     }
 
     .input-icon-box {
@@ -230,8 +230,8 @@
 
     .form-input:focus {
       outline: none;
-      border-color: #E11D48;
-      box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.12);
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.12);
     }
 
     .password-eye-btn {
@@ -274,12 +274,12 @@
     }
 
     .forgot-link:hover {
-      color: #E11D48;
+      color: var(--primary-color);
     }
 
     .btn-signin-primary {
       width: 100%;
-      background-color: #E11D48;
+      background-color: var(--primary-color);
       color: #FFFFFF;
       padding: 0.75rem 1rem;
       font-size: 0.925rem;
@@ -289,11 +289,11 @@
       cursor: pointer;
       transition: background-color 0.15s ease, transform 0.1s ease;
       margin-bottom: 0.85rem;
-      box-shadow: 0 4px 12px rgba(225, 29, 72, 0.25);
+      box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.25);
     }
 
     .btn-signin-primary:hover {
-      background-color: #BE123C;
+      background-color: var(--primary-hover);
       transform: translateY(-1px);
     }
 
@@ -329,7 +329,7 @@
     }
 
     .help-link-wrap a:hover {
-      color: #E11D48;
+      color: var(--primary-color);
     }
 
     @media (max-width: 960px) {
@@ -372,7 +372,7 @@
         <!-- 4 Metric Cards (Page 03) -->
         <div class="left-metrics-grid">
           <div class="left-metric-card">
-            <div class="metric-card-num" style="color: #FDA4AF;">7</div>
+            <div class="metric-card-num" style="color: var(--primary-muted);">7</div>
             <div class="metric-card-label">Publications</div>
           </div>
           <div class="left-metric-card">
@@ -461,7 +461,7 @@
           <!-- Remember me & Forgot password -->
           <div class="form-meta-row">
             <label class="checkbox-label">
-              <input type="checkbox" id="rememberMe" checked style="accent-color: #E11D48;">
+              <input type="checkbox" id="rememberMe" checked style="accent-color: var(--primary-color);">
               Remember me
             </label>
             <a href="#" class="forgot-link" onclick="showToast('Contact administrator or HOD to reset your password.', 'info'); return false;">

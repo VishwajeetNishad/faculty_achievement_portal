@@ -77,7 +77,7 @@
     if (!container) return;
 
     container.innerHTML =
-      statMarkup('faculty',      '#E11D48', 'rgba(225,29,72,0.08)', stats.facultyCount,     'Faculty listed') +
+      statMarkup('faculty',      'var(--primary-color)', 'var(--primary-light)', stats.facultyCount,     'Faculty listed') +
       statMarkup('achievements', '#D97706', '#FEF3C7',              stats.achievementCount, 'Public achievements') +
       statMarkup('publications', '#0284C7', '#E0F2FE',              stats.publicationCount, 'Publications') +
       statMarkup('departments',  '#059669', '#D1FAE5',              stats.departmentCount,  'Departments');

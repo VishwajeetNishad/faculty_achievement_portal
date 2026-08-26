@@ -10,6 +10,12 @@
   <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
   <title>Add User Account | NIET Admin Portal</title>
 
+  <!-- Inter webfont — reset.css applies var(--font-family) from variables.css, which
+       asks for Inter. Without these links the page silently falls back to a system sans. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
   <!-- Stylesheets -->
   <link rel="stylesheet" href="../../css/variables.css">
   <link rel="stylesheet" href="../../css/reset.css">
@@ -147,7 +153,7 @@
     .role-option.is-selected {
       border-color: var(--primary-color);
       background: var(--primary-light);
-      box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.08);
+      box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.08);
     }
 
     .role-option.is-locked,
