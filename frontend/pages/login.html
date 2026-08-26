@@ -126,6 +126,15 @@
       max-width: 440px;
     }
 
+    /* login.js reveals the metrics grid only once real counts have arrived.
+       The browser's own [hidden] rule lives in the user-agent stylesheet and
+       ANY author rule outranks it, so the `display: grid` above would keep an
+       empty grid on screen even with hidden=true. !important is deliberate:
+       the whole point is to beat that class's own display value. */
+    .login-left-showcase [hidden] {
+      display: none !important;
+    }
+
     .left-metric-card {
       background: rgba(19, 29, 51, 0.75);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -369,22 +378,25 @@
           Submit, track and manage your academic achievements through one secure institutional platform.
         </p>
 
-        <!-- 4 Metric Cards (Page 03) -->
-        <div class="left-metrics-grid">
+        <!-- 4 Metric Cards (Page 03) — every figure is a live count from the
+             public achievements API, filled in by login.js. The grid stays
+             hidden until those real numbers land: printing a placeholder digit
+             here would be publishing a statistic nobody ever measured. -->
+        <div class="left-metrics-grid" id="showcaseMetrics" hidden>
           <div class="left-metric-card">
-            <div class="metric-card-num" style="color: var(--primary-muted);">7</div>
+            <div class="metric-card-num" id="showcaseCountPublication" style="color: var(--primary-muted);"></div>
             <div class="metric-card-label">Publications</div>
           </div>
           <div class="left-metric-card">
-            <div class="metric-card-num" style="color: #38BDF8;">2</div>
+            <div class="metric-card-num" id="showcaseCountPatent" style="color: #38BDF8;"></div>
             <div class="metric-card-label">Patents</div>
           </div>
           <div class="left-metric-card">
-            <div class="metric-card-num" style="color: #C084FC;">3</div>
+            <div class="metric-card-num" id="showcaseCountGrant" style="color: #C084FC;"></div>
             <div class="metric-card-label">Grants</div>
           </div>
           <div class="left-metric-card">
-            <div class="metric-card-num" style="color: #FBBF24;">5</div>
+            <div class="metric-card-num" id="showcaseCountAward" style="color: #FBBF24;"></div>
             <div class="metric-card-label">Awards</div>
           </div>
         </div>
