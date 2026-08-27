@@ -50,5 +50,13 @@ public enum AuditAction {
     SHARE_CREATED,
     SHARE_UPDATED,
     SHARE_REVOKED,
-    SHARE_EXPIRED
+    SHARE_EXPIRED,
+
+    // Home page highlight banners. Worth auditing even though the content is
+    // only marketing: these images are the first thing a visitor sees, so
+    // "who put that on the front page, and when" is a question somebody will
+    // eventually ask.
+    HIGHLIGHT_CREATED,
+    HIGHLIGHT_UPDATED,
+    HIGHLIGHT_DELETED
 }

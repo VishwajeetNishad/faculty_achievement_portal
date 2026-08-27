@@ -5,7 +5,9 @@ import com.niet.facultyachievement.dto.PagedResponse;
 import com.niet.facultyachievement.dto.publicview.PublicAchievementResponse;
 import com.niet.facultyachievement.dto.publicview.PublicFacultyProfileResponse;
 import com.niet.facultyachievement.dto.publicview.PublicFacultyResponse;
+import com.niet.facultyachievement.dto.publicview.PublicHighlightResponse;
 import com.niet.facultyachievement.dto.publicview.SharedAchievementResponse;
+import com.niet.facultyachievement.service.HighlightService;
 import com.niet.facultyachievement.service.PublicDiscoveryService;
 import com.niet.facultyachievement.service.ShareService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -60,6 +63,7 @@ public class PublicController {
 
     private final PublicDiscoveryService publicDiscoveryService;
     private final ShareService shareService;
+    private final HighlightService highlightService;
 
     /* ── Directory & profiles ─────────────────────────────────────────── */
 
@@ -202,5 +206,64 @@ public class PublicController {
                 .cacheControl(CacheControl.noStore())
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"shared_research_document.pdf\"")
                 .body(fileResource);
+    }
+
+    /* ── Home page highlights ─────────────────────────────────────────── */
+
+    /**
+     * GET /api/public/highlights — the banners for the home page carousel.
+     *
+     * <p>Returns active slides in the order an administrator arranged them, and an
+     * empty list when none have been uploaded. An empty list is the correct
+     * answer, not an error: a portal with no posters yet is a normal portal, and
+     * the browser responds by not rendering the carousel at all.
+     *
+     * <p>These are marketing images, deliberately separate from achievement
+     * records. They are counted nowhere and appear in no search, so nothing here
+     * can inflate a public statistic. See {@code HomepageHighlight} for the full
+     * reasoning.
+     */
+    @GetMapping("/highlights")
+    public ResponseEntity<List<PublicHighlightResponse>> getHighlights() {
+        return ResponseEntity.ok(highlightService.listPublic());
+    }
+
+    /**
+     * GET /api/public/highlights/{id}/image — one banner's image bytes.
+     *
+     * <p>This method exists because the backend serves no static files: there is
+     * no {@code WebMvcConfigurer} and no resource handler anywhere in the
+     * application, so an uploaded file can only reach a browser through a
+     * controller. That is deliberate — it means every uploaded byte leaves through
+     * code that can apply a rule.
+     *
+     * <p>The rule here is that the highlight must exist <em>and</em> be active.
+     * Retiring a banner therefore stops it being downloadable rather than merely
+     * unlisting it, so a URL someone bookmarked — or a search engine indexed —
+     * does not keep serving a withdrawn poster.
+     *
+     * <p>{@code Cache-Control: public, max-age=31536000, immutable} is the exact
+     * opposite of the share-document endpoint above, and both are right. A share
+     * document is unpublished research that must never be cached; a homepage
+     * poster is meant to be cached as hard as possible. A year is safe only
+     * because the URL carries the {@code ?v=} token built from {@code updated_at}:
+     * replacing the image changes the URL, so every browser refetches. Without
+     * that token this header would freeze a replaced banner in visitors' caches.
+     *
+     * <p>The content type comes from the row, which stored what the server
+     * detected from the file's magic bytes at upload time — never the
+     * {@code Content-Type} the uploading browser claimed.
+     */
+    @GetMapping("/highlights/{id}/image")
+    public ResponseEntity<Resource> getHighlightImage(@PathVariable("id") Long id) {
+        HighlightService.HighlightImage image = highlightService.loadImage(id);
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(image.contentType()))
+                .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
+                .contentLength(image.sizeBytes())
+                // inline, never attachment: this is a picture on a page, not a download.
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline")
+                .body(image.resource());
     }
 }

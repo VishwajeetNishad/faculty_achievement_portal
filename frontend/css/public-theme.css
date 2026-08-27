@@ -223,6 +223,299 @@ body.public-body {
 }
 
 /* ====================================================================
+   HIGHLIGHTS CAROUSEL
+   --------------------------------------------------------------------
+   Full-bleed banner strip directly under the header, above the hero —
+   the niet.co.in position.
+
+   Note there is no `.pub-slider[hidden]` rule here: the blanket
+   `.public-body [hidden] { display: none !important; }` at the top of
+   this file already covers it, which is exactly why that rule exists.
+
+   The images are served by the API, one request per banner, and are
+   cropped to fill the frame. `object-fit: cover` on line marked below
+   is the single-property escape hatch — change it to `contain` and
+   nothing crops (letterboxed against the dark background instead).
+   ==================================================================== */
+.pub-slider {
+  position: relative;
+  /* Behind the images, so letterboxing or a slow-loading slide shows
+     brand navy rather than a white flash. */
+  background: var(--sidebar-bg);
+  overflow: hidden;
+}
+
+/* aspect-ratio, not a fixed height. The frame's size is known before any
+   image arrives, so the hero below never gets shoved down as the posters
+   load — no layout shift on the first thing a visitor sees. */
+.pub-slider-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.2 / 1;
+  overflow: hidden;
+}
+
+.pub-slider-track {
+  display: flex;
+  height: 100%;
+  transition: transform 500ms ease;
+  will-change: transform;
+}
+
+.pub-slider-slide {
+  flex: 0 0 100%;
+  position: relative;
+  height: 100%;
+  min-width: 0;
+}
+
+/* A slide may or may not be a link, so both cases fill the frame. */
+.pub-slider-slide > a,
+.pub-slider-slide > .pub-slider-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pub-slider-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* ← THE ESCAPE HATCH. `cover` fills the frame and crops the edges;
+     `contain` shows the whole poster and letterboxes it. One word. */
+  object-fit: cover;
+  /* Overridden by the .is-focus-* class the API's focal point maps to. */
+  object-position: center center;
+}
+
+/* Nine focal points, matching the HighlightFocalPoint enum. The admin's
+   choice arrives as an enum NAME and is applied as a class, so no stored
+   text ever becomes a CSS value. */
+.pub-slider-slide img.is-focus-top-left      { object-position: left top; }
+.pub-slider-slide img.is-focus-top-center    { object-position: center top; }
+.pub-slider-slide img.is-focus-top-right     { object-position: right top; }
+.pub-slider-slide img.is-focus-center-left   { object-position: left center; }
+.pub-slider-slide img.is-focus-center        { object-position: center center; }
+.pub-slider-slide img.is-focus-center-right  { object-position: right center; }
+.pub-slider-slide img.is-focus-bottom-left   { object-position: left bottom; }
+.pub-slider-slide img.is-focus-bottom-center { object-position: center bottom; }
+.pub-slider-slide img.is-focus-bottom-right  { object-position: right bottom; }
+
+/* Optional caption. Sits on a gradient rather than a solid bar so the
+   poster stays visible behind it. */
+.pub-slider-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 3.5rem 2rem 3.25rem;
+  background: linear-gradient(to top, rgba(11, 17, 32, 0.88) 0%, rgba(11, 17, 32, 0) 100%);
+  color: var(--text-inverse);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+  pointer-events: none;
+}
+
+/* ─── Arrows ─── */
+.pub-slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--sidebar-bg);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-normal), transform var(--transition-normal);
+}
+
+.pub-slider-arrow.is-prev { left: 1rem; }
+.pub-slider-arrow.is-next { right: 1rem; }
+
+.pub-slider-arrow:hover {
+  background: #FFFFFF;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.pub-slider-arrow:focus-visible {
+  outline: 3px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.pub-slider-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ─── Dots + pause ─── */
+.pub-slider-controls {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-full);
+  background: rgba(11, 17, 32, 0.55);
+}
+
+.pub-slider-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* The dot somebody sees is 9px; the dot they tap is 24px.
+   WCAG 2.2 SC 2.5.8 asks for a 24x24 CSS px minimum target, and a 9px circle
+   is nowhere near it. The button itself is therefore the full 24x24 and
+   transparent, and ::before draws the visible dot. Growing the button rather
+   than overlaying a pseudo-element matters: flex layout stays aware of the real
+   target size, so with the 0.4rem gap the centres sit 30px apart and no two
+   targets can overlap — an enlarged hit area that swallows its neighbour is
+   worse than a small one. */
+.pub-slider-dot {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pub-slider-dot::before {
+  content: '';
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.45);
+  transition: background var(--transition-normal), width var(--transition-normal);
+}
+
+.pub-slider-dot:hover::before { background: rgba(255, 255, 255, 0.75); }
+
+/* The active dot is both wider and brand red — colour alone would not be
+   enough for anyone who cannot distinguish it. The button widens with the pill
+   inside it so the 26px marker still has its 24px-tall target around it. */
+.pub-slider-dot[aria-selected="true"] { width: 34px; }
+
+.pub-slider-dot[aria-selected="true"]::before {
+  width: 26px;
+  background: var(--primary-color);
+}
+
+.pub-slider-dot:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+.pub-slider-pause {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  /* Same 24x24 floor as the dots. This button is the WCAG 2.2.2 pause control
+     for content that moves for longer than five seconds, so shipping it at a
+     size that fails 2.5.8 would undo the reason it exists. */
+  min-width: 24px;
+  min-height: 24px;
+  padding: 0.2rem 0.35rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-family);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.pub-slider-pause:hover { color: #FFFFFF; }
+
+.pub-slider-pause:focus-visible {
+  outline: 2px solid #FFFFFF;
+  outline-offset: 2px;
+}
+
+.pub-slider-pause svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* aria-pressed is the single source of truth for which icon shows, so the
+   button's accessible state and its appearance cannot drift apart. */
+.pub-slider-pause .pub-slider-play-icon,
+.pub-slider-pause[aria-pressed="true"] .pub-slider-pause-icon {
+  display: none;
+}
+
+.pub-slider-pause[aria-pressed="true"] .pub-slider-play-icon {
+  display: inline;
+}
+
+/* ─── Responsive: the frame gets taller as it gets narrower ───
+   A 2.2:1 letterbox on a phone would leave a strip barely 170px tall,
+   which crops a portrait poster down to almost nothing. Stepping toward
+   4/5 keeps these posters readable on the screen most visitors use. */
+@media (max-width: 1024px) {
+  .pub-slider-viewport { aspect-ratio: 16 / 9; }
+}
+
+@media (max-width: 768px) {
+  .pub-slider-viewport { aspect-ratio: 4 / 3; }
+
+  .pub-slider-arrow { width: 36px; height: 36px; }
+  .pub-slider-arrow.is-prev { left: 0.5rem; }
+  .pub-slider-arrow.is-next { right: 0.5rem; }
+  .pub-slider-arrow svg { width: 16px; height: 16px; }
+
+  .pub-slider-caption {
+    padding: 2.5rem 1.25rem 3rem;
+    font-size: 0.875rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pub-slider-viewport { aspect-ratio: 4 / 5; }
+
+  /* Arrows are the first thing to go on a small screen: swipe and the dots
+     both still work, and 36px circles over a 320px-wide poster cover it. */
+  .pub-slider-arrow { display: none; }
+
+  .pub-slider-controls {
+    gap: 0.65rem;
+    bottom: 0.6rem;
+  }
+
+  .pub-slider-pause-label { display: none; }
+}
+
+/* The project's first reduced-motion block. Someone who has asked their
+   operating system to stop animations gets a hard cut between slides, and
+   public-highlights.js additionally never starts the auto-advance timer. */
+@media (prefers-reduced-motion: reduce) {
+  .pub-slider-track { transition: none; }
+  .pub-slider-arrow { transition: none; }
+  .pub-slider-dot::before { transition: none; }
+}
+
+/* ====================================================================
    HERO
    ==================================================================== */
 .pub-hero {

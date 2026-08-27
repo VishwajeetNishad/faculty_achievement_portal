@@ -75,6 +75,61 @@
   <main id="main">
 
     <!-- ============================================================
+         HIGHLIGHTS CAROUSEL
+         Institute banners, above the hero — the niet.co.in position.
+
+         `hidden` in the source and revealed only when the API returns
+         real banners. No posters uploaded, or a failed request, means
+         no empty frame and no placeholder slide: the same "hide the
+         block rather than fake it" rule the stat strip follows.
+
+         Filled by js/public-highlights.js. These are marketing images,
+         separate from verified achievement records, and are counted in
+         no statistic anywhere.
+         ============================================================ -->
+    <section class="pub-slider" id="highlightSlider" hidden
+             aria-roledescription="carousel" aria-label="Institute highlights">
+
+      <div class="pub-slider-viewport">
+        <div class="pub-slider-track" id="highlightTrack"></div>
+      </div>
+
+      <button class="pub-slider-arrow is-prev" id="highlightPrev" type="button"
+              aria-label="Previous highlight" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+
+      <button class="pub-slider-arrow is-next" id="highlightNext" type="button"
+              aria-label="Next highlight" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+      <div class="pub-slider-controls" id="highlightControls" hidden>
+        <div class="pub-slider-dots" id="highlightDots" role="tablist"
+             aria-label="Choose a highlight"></div>
+
+        <!-- Auto-advance runs every 6s, which is over the 5s threshold in
+             WCAG 2.2.2, so a pause control is required rather than optional. -->
+        <button class="pub-slider-pause" id="highlightPause" type="button"
+                aria-pressed="false" aria-label="Pause the highlights slideshow">
+          <svg class="pub-slider-pause-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <rect x="7" y="5" width="3.5" height="14" rx="1"/>
+            <rect x="13.5" y="5" width="3.5" height="14" rx="1"/>
+          </svg>
+          <svg class="pub-slider-play-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M8 5.5v13a1 1 0 0 0 1.55.83l9.5-6.5a1 1 0 0 0 0-1.66l-9.5-6.5A1 1 0 0 0 8 5.5z"/>
+          </svg>
+          <span class="pub-slider-pause-label">Pause</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ============================================================
          HERO + SEARCH
          ============================================================ -->
     <section class="pub-hero">
@@ -344,5 +399,8 @@
   <script src="js/public-api.js"></script>
   <script src="js/public-common.js"></script>
   <script src="js/public-home.js"></script>
+  <!-- Separate from public-home.js on purpose: a decorative banner failing to
+       load must not take the statistics or the featured research down with it. -->
+  <script src="js/public-highlights.js"></script>
 </body>
 </html>
