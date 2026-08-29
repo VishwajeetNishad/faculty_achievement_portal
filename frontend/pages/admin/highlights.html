@@ -29,12 +29,15 @@
     /* Scoped to this page only. */
 
     /* ---- Table thumbnail -------------------------------------------------
-       Shown at the same 2.2:1 ratio and with the same object-fit: cover as the
-       real carousel frame, so the thumbnail is an honest miniature of what a
-       visitor sees rather than a squashed version of it. */
+       Shown at the same 1.365:1 ratio and with the same object-fit: cover as
+       the real carousel frame, so the thumbnail is an honest miniature of what
+       a visitor sees rather than a squashed version of it. Keep this ratio in
+       step with .pub-slider-viewport in css/public-theme.css — if the two
+       drift apart, the focal point an admin picks here stops matching what
+       the homepage actually crops. */
     .hl-thumb-frame {
       width: 132px;
-      aspect-ratio: 2.2 / 1;
+      aspect-ratio: 1.365 / 1;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
       background: #0F172A;
@@ -136,8 +139,11 @@
       .hl-crop-editor { grid-template-columns: 1fr; }
     }
 
+    /* Matches .pub-slider-viewport's desktop ratio in css/public-theme.css.
+       This is the frame the admin picks a focal point against, so a wrong
+       ratio here would make the choice wrong on the live homepage. */
     .hl-crop-preview {
-      aspect-ratio: 2.2 / 1;
+      aspect-ratio: 1.365 / 1;
       border-radius: var(--radius-md);
       border: 1px solid var(--border-color);
       background: #0F172A;
@@ -362,7 +368,7 @@
               <div class="hl-summary-row">
                 <span>Live on the homepage: <strong id="hlLiveCount">0</strong></span>
                 <span>Retired: <strong id="hlRetiredCount">0</strong></span>
-                <span>Recommended size: <strong>1600 × 730</strong> or larger</span>
+                <span>Recommended size: <strong>1600 × 1172</strong> or larger</span>
               </div>
             </div>
           </div>
@@ -418,8 +424,10 @@
           <label class="form-label required-field" for="hlFile">Picture</label>
           <input type="file" id="hlFile" class="form-control" accept="image/png,image/jpeg,image/webp">
           <span class="form-hint">
-            PNG, JPEG or WebP, up to 2 MB. Wide pictures work best — <strong>1600 × 730</strong> or
-            larger. The server checks the file itself, so renaming a file does not change what it is.
+            PNG, JPEG or WebP, up to 2 MB. The frame is <strong>1600 × 1172</strong> (the same
+            1.365:1 shape niet.co.in cuts its banners to), so a picture at that size or larger fills
+            it with nothing cropped. The server checks the file itself, so renaming a file does not
+            change what it is.
           </span>
           <span class="form-error" id="err-hlFile" style="display: none;"></span>
         </div>

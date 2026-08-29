@@ -26,9 +26,11 @@
 const HL_MAX_FILE_BYTES = 2097152;              // 2 MB
 const HL_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
-/* The banner frame is 1600px wide on a large screen. Anything narrower gets
-   stretched to fill it and looks soft, so the admin is told at upload time
-   rather than discovering it on the live homepage. */
+/* The banner frame spans the full viewport width, so on a large screen it is
+   about 1600px across. Anything narrower gets stretched to fill it and looks
+   soft, so the admin is told at upload time rather than discovering it on the
+   live homepage. At the frame's 1.365:1 shape, 1600px wide pairs with 1172px
+   tall — that is the size the page recommends. */
 const HL_RECOMMENDED_WIDTH = 1600;
 
 const HL_FOCAL_POINTS = [

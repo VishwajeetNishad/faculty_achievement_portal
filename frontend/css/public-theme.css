@@ -247,11 +247,17 @@ body.public-body {
 
 /* aspect-ratio, not a fixed height. The frame's size is known before any
    image arrives, so the hero below never gets shoved down as the posters
-   load — no layout shift on the first thing a visitor sees. */
+   load — no layout shift on the first thing a visitor sees.
+
+   1.365:1 is not a guess. It is measured from niet.co.in's own live banner
+   files, which are all cut to the same shape regardless of resolution:
+   4842x3546, 2421x1773 and 1600x1171 all divide to 1.365. Matching it is
+   what keeps `cover` from destroying a portrait poster — a wider letterbox
+   frame has to throw away far more of a tall image to fill itself. */
 .pub-slider-viewport {
   position: relative;
   width: 100%;
-  aspect-ratio: 2.2 / 1;
+  aspect-ratio: 1.365 / 1;
   overflow: hidden;
 }
 
@@ -469,16 +475,14 @@ body.public-body {
   display: inline;
 }
 
-/* ─── Responsive: the frame gets taller as it gets narrower ───
-   A 2.2:1 letterbox on a phone would leave a strip barely 170px tall,
-   which crops a portrait poster down to almost nothing. Stepping toward
-   4/5 keeps these posters readable on the screen most visitors use. */
-@media (max-width: 1024px) {
-  .pub-slider-viewport { aspect-ratio: 16 / 9; }
-}
-
+/* ─── Responsive: two frame shapes, matching niet.co.in exactly ───
+   Measured from their live banner files. Every desktop banner they ship is
+   1.365:1 and every mobile one is 0.850:1 (1500x1764, 750x882) — a portrait
+   frame on phones. They swap the image file at the phone breakpoint instead
+   of stepping the frame gradually through 16/9 and 4/3, so there are only
+   these two shapes and one switch point. Copied as-is. */
 @media (max-width: 768px) {
-  .pub-slider-viewport { aspect-ratio: 4 / 3; }
+  .pub-slider-viewport { aspect-ratio: 0.85 / 1; }
 
   .pub-slider-arrow { width: 36px; height: 36px; }
   .pub-slider-arrow.is-prev { left: 0.5rem; }
@@ -492,8 +496,6 @@ body.public-body {
 }
 
 @media (max-width: 480px) {
-  .pub-slider-viewport { aspect-ratio: 4 / 5; }
-
   /* Arrows are the first thing to go on a small screen: swipe and the dots
      both still work, and 36px circles over a 320px-wide poster cover it. */
   .pub-slider-arrow { display: none; }
