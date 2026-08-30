@@ -40,7 +40,7 @@
       aspect-ratio: 1.365 / 1;
       border-radius: var(--radius-sm);
       border: 1px solid var(--border-color);
-      background: #0F172A;
+      background: var(--sidebar-bg);
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -146,7 +146,7 @@
       aspect-ratio: 1.365 / 1;
       border-radius: var(--radius-md);
       border: 1px solid var(--border-color);
-      background: #0F172A;
+      background: var(--sidebar-bg);
       overflow: hidden;
       display: flex;
       align-items: center;
@@ -244,12 +244,10 @@
 
   <div class="app-wrapper">
 
-    <!-- Admin Sidebar.
-         The #0F172A / #FCA5A5 literals below are copied from the other seven
-         admin pages so the shell is pixel-identical when navigating between
-         them. They are on the list of stranded colour literals to be replaced
-         with brand tokens across all eight pages in one sweep. -->
-    <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
+    <!-- Admin Sidebar. Colours come from layout.css and the tokens in
+         variables.css — no inline literals here, so a brand change reaches
+         this page like every other one. -->
+    <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
         <span class="niet-logo-badge">
           <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
@@ -309,7 +307,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <a href="../login.html" class="nav-link" style="color: #FCA5A5;">
+        <a href="../login.html" class="nav-link nav-link-signout">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           Sign Out
         </a>
@@ -337,7 +335,7 @@
           </button>
           <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
           <div class="user-profile-widget">
-            <div class="avatar-circle" style="background-color: #DC2626;" data-identity="initials"></div>
+            <div class="avatar-circle" data-identity="initials"></div>
             <div class="user-details">
               <span class="user-name" data-identity="name"></span>
               <span class="user-role-tag" data-identity="role"></span>

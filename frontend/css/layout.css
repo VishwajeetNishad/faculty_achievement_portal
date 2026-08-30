@@ -211,6 +211,22 @@
   background-color: rgba(11, 17, 32, 0.85);
 }
 
+/* The admin pages' sign-out link. Previously every one of the eight pages
+   carried style="color: #FCA5A5" inline — a stranded Tailwind red-300 that no
+   token defined, so changing the brand could never reach it. It now uses the
+   brand's own muted rose, which keeps the "this one is different from the
+   other nav links" signal while staying on-hue (#FCA5A5 is hue 0; the brand
+   ramp is hue 355). Contrast on the sidebar navy is 8.83:1, well past AA.
+   Mirrors .hod-sidebar-footer .hod-nav-link.logout in hod-theme.css. */
+.sidebar-footer .nav-link.nav-link-signout {
+  color: var(--primary-muted);
+}
+
+.sidebar-footer .nav-link.nav-link-signout:hover {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  color: var(--sidebar-text-active);
+}
+
 .sidebar-user-widget {
   display: flex;
   align-items: center;

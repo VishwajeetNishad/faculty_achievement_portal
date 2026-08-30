@@ -31,11 +31,11 @@
     .pagination-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); }
     .pagination-controls { display: flex; gap: 0.4rem; align-items: center; }
     .pagination-controls button { min-width: 34px; padding: 0.3rem 0.6rem; border: 1px solid var(--border-color); background: var(--surface-color); border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
-    .pagination-controls button:hover { background: #DC2626; color: #fff; }
-    .pagination-controls button.active { background: #DC2626; color: #fff; border-color: #DC2626; }
+    .pagination-controls button:hover { background: var(--primary-color); color: #fff; }
+    .pagination-controls button.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
     .pagination-controls button:disabled { opacity: 0.45; cursor: not-allowed; }
     .pagination-info { font-size: 0.82rem; color: var(--text-muted); }
-    .admin-accent { color: #DC2626; }
+    .admin-accent { color: var(--primary-color); }
   </style>
 </head>
 <body>
@@ -43,7 +43,7 @@
   <div class="app-wrapper">
 
     <!-- Admin Sidebar -->
-    <aside class="app-sidebar" id="appSidebar" style="background-color: #0F172A;">
+    <aside class="app-sidebar" id="appSidebar">
       <div class="sidebar-header">
         <span class="niet-logo-badge">
           <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
@@ -103,7 +103,7 @@
       </nav>
 
       <div class="sidebar-footer">
-        <a href="../login.html" class="nav-link" style="color: #FCA5A5;">
+        <a href="../login.html" class="nav-link nav-link-signout">
           <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
           Sign Out
         </a>
@@ -126,7 +126,7 @@
              .header-right to hang the notification bell on. -->
         <div class="header-right">
           <div class="user-profile-widget">
-            <div class="avatar-circle" style="background-color: #DC2626;" data-identity="initials"></div>
+            <div class="avatar-circle" data-identity="initials"></div>
             <div class="user-details">
               <span class="user-name" data-identity="name"></span>
               <span class="user-role-tag" data-identity="role"></span>

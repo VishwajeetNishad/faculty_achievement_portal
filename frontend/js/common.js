@@ -328,7 +328,7 @@ async function initializeNotificationUI() {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         <span>Notifications</span>
-        <span id="unreadNotifBadge" class="badge badge-pending" style="display: none; background: #DC2626; color: #FFF; font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 10px;">0</span>
+        <span id="unreadNotifBadge" class="badge badge-pending" style="display: none; background: var(--primary-color); color: #FFF; font-size: 0.75rem; padding: 0.15rem 0.45rem; border-radius: 10px;">0</span>
       </button>
     `;
     headerRight.insertBefore(bellContainer, headerRight.firstChild);
@@ -428,9 +428,9 @@ async function loadNotificationPanelList() {
       padding: 0.85rem 1rem;
       border-radius: 8px;
       margin-bottom: 0.6rem;
-      background: ${isUnread ? 'rgba(123, 31, 50, 0.04)' : 'var(--surface-card)'};
-      border: 1px solid ${isUnread ? '#7B1F32' : 'var(--border-color)'};
-      border-left: 4px solid ${isUnread ? '#7B1F32' : '#94A3B8'};
+      background: ${isUnread ? 'rgba(var(--primary-rgb), 0.04)' : 'var(--surface-card)'};
+      border: 1px solid ${isUnread ? 'var(--primary-color)' : 'var(--border-color)'};
+      border-left: 4px solid ${isUnread ? 'var(--primary-color)' : 'var(--text-tertiary)'};
     `;
 
     const typeBadge = item.notificationType === 'ACHIEVEMENT_APPROVED' ? '<span class="badge badge-approved" style="font-size:0.75rem;">Approved</span>' :
@@ -440,7 +440,7 @@ async function loadNotificationPanelList() {
 
     card.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.35rem;">
-        <div style="font-weight: 600; font-size: 0.9rem; color: #7B1F32;">${escapeHtml(item.title)}</div>
+        <div style="font-weight: 600; font-size: 0.9rem; color: var(--primary-dark);">${escapeHtml(item.title)}</div>
         <div>${typeBadge}</div>
       </div>
       <div style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; line-height: 1.4;">${escapeHtml(item.message)}</div>

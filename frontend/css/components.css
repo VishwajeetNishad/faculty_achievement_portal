@@ -146,7 +146,10 @@
   border-color: var(--color-danger);
 }
 .btn-danger:hover {
-  background-color: #DC2626;
+  /* Was #DC2626 — a stranded Tailwind red-600. --primary-dark is darker than
+     --color-danger (the base), so the hover still reads as "pressed", and the
+     value now tracks the brand ramp instead of drifting from it. */
+  background-color: var(--primary-dark);
 }
 
 /* Button Sizes */
