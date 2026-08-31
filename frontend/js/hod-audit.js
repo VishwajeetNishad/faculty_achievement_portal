@@ -76,7 +76,7 @@ async function hodAuditSearch(page) {
       <div class="hod-state-title">Unable to load</div>
       <p class="hod-state-text">${escapeHtml(msg)}</p>
     </div></td></tr>`;
-    hodAuditSetCount(0);
+    hodAuditSetCount(null);
     if (pager) pager.innerHTML = '';
     return;
   }
@@ -116,7 +116,19 @@ async function hodAuditSearch(page) {
 
 function hodAuditSetCount(n) {
   const el = document.getElementById('hodAuditCount');
-  if (el) el.textContent = `${n} record${n === 1 ? '' : 's'}`;
+  if (!el) return;
+
+  // null means "not known", which is the honest answer when the request was
+  // refused or failed. It used to be called with 0 in those cases, so a reader
+  // who had just been told they lack permission to see the audit trail was also
+  // told the trail holds no records — a claim about data nobody was allowed to
+  // count, and in fact a wrong one.
+  if (n === null || n === undefined) {
+    el.textContent = '— records';
+    return;
+  }
+
+  el.textContent = `${n} record${n === 1 ? '' : 's'}`;
 }
 
 /**
@@ -143,5 +155,5 @@ function hodAuditDenied() {
       <p class="hod-state-text">Viewing the institutional audit trail requires the <strong>VIEW_AUDIT_LOGS</strong> permission. Ask an administrator to grant it.</p>
     </div></td></tr>`;
   }
-  hodAuditSetCount(0);
+  hodAuditSetCount(null);
 }

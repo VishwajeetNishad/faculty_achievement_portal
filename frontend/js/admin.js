@@ -114,15 +114,15 @@ async function renderAdminStatsAndQueue() {
   // 1. Fetch Real Admin Dashboard Analytics: GET /api/dashboard/admin
   const dashRes = await ApiClient.get('/dashboard/admin');
 
+  const totalFacElem = document.getElementById('adminTotalFaculty');
+  const pendingElem = document.getElementById('adminPendingCount');
+  const verifiedElem = document.getElementById('adminVerifiedCount');
+  const rejectedElem = document.getElementById('adminRejectedCount');
+
   if (dashRes.success && dashRes.data) {
     const data = dashRes.data;
 
     // Update Metric Cards
-    const totalFacElem = document.getElementById('adminTotalFaculty');
-    const pendingElem = document.getElementById('adminPendingCount');
-    const verifiedElem = document.getElementById('adminVerifiedCount');
-    const rejectedElem = document.getElementById('adminRejectedCount');
-
     if (totalFacElem) totalFacElem.textContent = data.totalFaculty;
     if (pendingElem) pendingElem.textContent = data.pendingCount;
     if (verifiedElem) verifiedElem.textContent = data.approvedCount;
@@ -134,15 +134,64 @@ async function renderAdminStatsAndQueue() {
     // Render Distribution Bars
     renderDistributionBars('adminCategoryContainer', data.categoryDistribution, data.totalAchievements, '#002147');
     renderDistributionBars('adminYearContainer', data.academicYearDistribution, data.totalAchievements, '#F2A900');
+  } else {
+    // This else branch did not exist, and its absence was the bug behind the
+    // "admin dashboard is blank" report. On a failed call nothing here was
+    // touched, so all four regions kept whatever the markup shipped: the metric
+    // cards showed a hardcoded "48" for total faculty, the department table
+    // stayed an empty tbody, and both distribution panels sat on a spinner that
+    // could never resolve. Nothing said the request had failed.
+    //
+    // An em dash means "not known", which is the truth after a failed load. Zero
+    // would be a claim, and a wrong one.
+    [totalFacElem, pendingElem, verifiedElem, rejectedElem].forEach(el => {
+      if (el) el.textContent = '—';
+    });
+
+    // Written here rather than by calling renderDepartmentComparisonTable([]),
+    // because that renders "No departments recorded in the system" — a statement
+    // about the database that a failed request gives no grounds for.
+    const deptBody = document.getElementById('adminDeptComparisonBody');
+    if (deptBody) {
+      deptBody.innerHTML = `<tr><td colspan="6" class="empty-state"><div class="empty-state-title" style="color: var(--color-danger);">Department analytics unavailable</div><p class="empty-state-text">${escapeHtml(dashRes.message || 'The request did not complete.')}</p></td></tr>`;
+    }
+
+    ['adminCategoryContainer', 'adminYearContainer'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.innerHTML = `<p class="empty-state-text" style="padding: 1rem 0;">Not available — analytics could not be loaded.</p>`;
+      }
+    });
+
+    showToast(dashRes.message || 'Institutional analytics could not be loaded.', 'error');
   }
 
   // 2. Fetch PENDING records for verification queue
   const resPending = await ApiClient.get('/achievements/status/PENDING');
-  const pendingItems = (resPending.success && Array.isArray(resPending.data)) ? resPending.data : [];
 
   // Render Verification Queue Table
   if (!tableBody) return;
   tableBody.innerHTML = '';
+
+  // A failed request used to fall straight through to the "queue empty" message
+  // below, because the old code collapsed failure and emptiness into one array
+  // and then only looked at its length. "All submitted faculty achievements have
+  // been reviewed" is a strong claim to make about a request that never returned,
+  // and it is the reassuring kind of wrong: an administrator reads it and stops
+  // looking.
+  if (!resPending.success) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-state">
+          <div class="empty-state-title" style="color: var(--color-danger);">Verification queue unavailable</div>
+          <p class="empty-state-text">${escapeHtml(resPending.message || 'The pending achievements could not be loaded.')}</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const pendingItems = Array.isArray(resPending.data) ? resPending.data : [];
 
   if (pendingItems.length === 0) {
     tableBody.innerHTML = `
