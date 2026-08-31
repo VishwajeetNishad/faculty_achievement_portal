@@ -145,10 +145,10 @@ async function ensurePermissionsLoaded() {
 /**
  * Fills the header identity widget from the signed-in user's real profile.
  *
- * <p>A page marks its widget up with data-identity="name" / "role" / "initials"
- * and leaves the text blank. Nothing is hardcoded: if the profile has not
- * arrived yet the widget simply stays empty rather than showing an invented
- * name that belongs to nobody.
+ * <p>A page marks its widget up with data-identity="name" / "role" / "designation"
+ * / "initials" / "email" and leaves the text blank. Nothing is hardcoded: if the
+ * profile has not arrived yet the widget simply stays empty rather than showing
+ * an invented name that belongs to nobody.
  */
 function applyIdentityWidget(root) {
   const me = window.CURRENT_USER_PROFILE;
@@ -164,6 +164,15 @@ function applyIdentityWidget(root) {
       case 'role':     el.textContent = roleLabel + department; break;
       case 'initials': el.textContent = initialsFrom(me.fullName || me.email); break;
       case 'email':    el.textContent = me.email || ''; break;
+
+      // The faculty sidebar shows the academic designation ("Assoc. Prof. · CSE")
+      // rather than the coarse role, because on a page about your own work the
+      // title you hold is the more informative of the two. Falls back to the role
+      // label when no designation is recorded — still real data about the user,
+      // never an invented title.
+      case 'designation':
+        el.textContent = (me.designation || roleLabel) + department;
+        break;
     }
   });
 }
@@ -247,6 +256,27 @@ document.addEventListener('DOMContentLoaded', () => {
   if (mobileToggleBtn && sidebar) {
     mobileToggleBtn.addEventListener('click', () => {
       sidebar.classList.toggle('active');
+    });
+
+    // The X inside the drawer header. layout.css hides it on desktop and shows it
+    // again below 768px, so on a phone it is a visible control — and until now
+    // nothing in the whole frontend listened to it, so tapping it did nothing.
+    // The drawer was only closable by tapping the page behind it, which is not
+    // discoverable when an X is sitting right there.
+    const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+      });
+    }
+
+    // Escape closes the drawer too. The modal handler further down also listens
+    // for Escape, but it only acts when a .modal-backdrop is open, so the two
+    // never fight over the same key press.
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('active')) {
+        sidebar.classList.remove('active');
+      }
     });
 
     document.addEventListener('click', (e) => {

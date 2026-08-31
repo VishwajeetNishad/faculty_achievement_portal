@@ -1,11 +1,13 @@
 /**
  * My Research & Shared Resources — the owner's view of every share link.
  *
- * Backed by four real endpoints. Nothing on this page is invented:
+ * Backed by three real endpoints. Nothing on this page is invented:
  *   GET    /api/achievements/shared        → every link I created, newest first
  *   PATCH  /api/achievements/{id}/share    → change the expiry / proof setting
  *   DELETE /api/achievements/{id}/share    → revoke, effective immediately
- *   GET    /api/auth/me                    → the sidebar identity widget
+ *
+ * The sidebar identity widget is not this file's job: its elements carry
+ * data-identity attributes and common.js fills them from GET /api/auth/me.
  *
  * One thing worth being clear about: the ACTIVE / EXPIRED / REVOKED state shown
  * here is the state the *server* reported when the list was fetched. The server
@@ -26,38 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  loadIdentityWidget();
   wireControls();
   loadShareLinks();
 });
-
-/* ────────────────────────────────────────────────────────────────────────
-   Identity — same shape as dashboard.js so the sidebar matches every other
-   faculty page. Real values only; if the call fails the widget keeps its
-   placeholder rather than showing somebody else's name.
-   ──────────────────────────────────────────────────────────────────────── */
-async function loadIdentityWidget() {
-  const res = await ApiClient.get('/auth/me');
-  if (!res.success || !res.data) return;
-
-  const user = res.data;
-  const names = (user.fullName || 'User').split(' ').filter(Boolean);
-  const initials = names.length >= 2
-    ? (names[0][0] + names[names.length - 1][0]).toUpperCase()
-    : (user.fullName || 'US').substring(0, 2).toUpperCase();
-
-  const headerAvatar = document.getElementById('headerAvatar');
-  const sidebarAvatar = document.getElementById('sidebarAvatar');
-  const sidebarName = document.getElementById('sidebarUserName');
-  const sidebarRole = document.getElementById('sidebarUserRole');
-
-  if (headerAvatar) headerAvatar.textContent = initials;
-  if (sidebarAvatar) sidebarAvatar.textContent = initials;
-  if (sidebarName) sidebarName.textContent = user.fullName || '';
-  if (sidebarRole && (user.designation || user.departmentCode)) {
-    sidebarRole.textContent = `${user.designation || 'Faculty'} • ${user.departmentCode || ''}`;
-  }
-}
 
 function wireControls() {
   const search = document.getElementById('sharedSearchInput');
