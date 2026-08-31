@@ -13,31 +13,24 @@ async function initializeDashboard() {
     recentContainer.innerHTML = `<div style="text-align: center; padding: 2rem;"><div class="spinner"></div><p style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--text-secondary);">Loading dashboard...</p></div>`;
   }
 
-  // 1. Fetch Current User Profile
-  const userRes = await ApiClient.get('/auth/me');
-  if (userRes.success && userRes.data) {
-    const user = userRes.data;
-    
-    // Welcome message
-    const welcomeElem = document.getElementById('dashboardWelcome');
-    if (welcomeElem) welcomeElem.textContent = `Welcome back, ${user.fullName || 'Faculty Member'}`;
+  // 1. The signed-in user's name, for the greeting only.
+  //
+  // The header avatar and the sidebar account block are not touched here any
+  // more: they carry data-identity attributes and common.js fills them from the
+  // same profile, so this page no longer keeps its own copy of that logic (the
+  // old copy also crashed on a user with no fullName, because it called
+  // .substring on null).
+  //
+  // This awaits ensurePermissionsLoaded() rather than calling /auth/me directly.
+  // That helper shares one in-flight request per page load, so asking it costs
+  // nothing — whereas the direct call it replaced meant every dashboard load
+  // asked the backend who you were twice.
+  await ensurePermissionsLoaded().catch(() => { /* backend unreachable */ });
 
-    // Initials calculation
-    const names = (user.fullName || 'User').split(' ');
-    const initials = names.length >= 2 ? (names[0][0] + names[names.length - 1][0]).toUpperCase() : user.fullName.substring(0, 2).toUpperCase();
-
-    // Header avatar
-    const headerAvatar = document.getElementById('headerAvatar');
-    if (headerAvatar) headerAvatar.textContent = initials;
-
-    // Sidebar footer user widget
-    const sidebarAvatar = document.getElementById('sidebarAvatar');
-    const sidebarName = document.getElementById('sidebarUserName');
-    const sidebarRole = document.getElementById('sidebarUserRole');
-
-    if (sidebarAvatar) sidebarAvatar.textContent = initials;
-    if (sidebarName) sidebarName.textContent = user.fullName || 'Dr. Faculty';
-    if (sidebarRole) sidebarRole.textContent = `${user.designation || 'Faculty'} • ${user.departmentCode || 'CSE'}`;
+  const user = window.CURRENT_USER_PROFILE;
+  const welcomeElem = document.getElementById('dashboardWelcome');
+  if (welcomeElem && user && user.fullName) {
+    welcomeElem.textContent = `Welcome back, ${user.fullName}`;
   }
 
   // 2. Fetch Real Dashboard Analytics from GET /api/dashboard/faculty

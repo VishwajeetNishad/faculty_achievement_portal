@@ -50,5 +50,20 @@ public enum AuditAction {
     SHARE_CREATED,
     SHARE_UPDATED,
     SHARE_REVOKED,
-    SHARE_EXPIRED
+    SHARE_EXPIRED,
+
+    // Home page highlight banners. Worth auditing even though the content is
+    // only marketing: these images are the first thing a visitor sees, so
+    // "who put that on the front page, and when" is a question somebody will
+    // eventually ask.
+    HIGHLIGHT_CREATED,
+    HIGHLIGHT_UPDATED,
+    HIGHLIGHT_DELETED,
+
+    // Someone downloaded the institution-wide accreditation report. Only the
+    // export is audited, not every time the page is viewed: reading a report on
+    // screen leaves the data inside the application, while downloading it puts
+    // every faculty member's verified record into a file that travels. The entry
+    // records the filters used, so the trail says which slice left the building.
+    REPORT_EXPORTED
 }

@@ -244,6 +244,27 @@
   }
 }
 
+/* ─── Long Header Button Labels (≤ 480px) ───
+   ".app-header" has a fixed height and ".header-right { flex-shrink: 0 }", so a
+   header strip that does not fit cannot wrap or compress — it just pushes the
+   identity widget off the right edge and the whole page scrolls sideways.
+
+   The accreditation report is the one page with two long-labelled buttons
+   ("Print / Save as PDF" at 162px and "Download CSV" at 139px), which together
+   overran a 390px viewport by 42px. Rather than shrink the shared strip for
+   every page, the trailing words of just these two labels are dropped, exactly
+   the way the notification bell above drops its own label and keeps its icon.
+   Both buttons keep their icon and stay tappable, and "Print" / "CSV" still say
+   what they do.
+
+   Scoped by id, so this cannot reach any other page's header. */
+@media (max-width: 480px) {
+  #repPrintBtn .rep-btn-long,
+  #repCsvBtn .rep-btn-long {
+    display: none;
+  }
+}
+
 /* ─── Print Styles ─── */
 @media print {
   .app-sidebar,

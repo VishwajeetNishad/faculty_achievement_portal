@@ -177,4 +177,108 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long>,
             + "  AND a.visibility = com.niet.facultyachievement.entity.AchievementVisibility.PUBLIC "
             + "  AND u.status = com.niet.facultyachievement.entity.UserStatus.ACTIVE")
     long countPubliclyVisible();
+
+    /* ================================================================
+       ACCREDITATION REPORT QUERIES (NAAC / NBA)
+
+       Same literal-not-parameter discipline as the public block above,
+       for the same kind of reason. There, a parameter could leak a
+       private record to a visitor. Here, it could put an unverified
+       claim into a document the institution signs and submits.
+
+           a.status = APPROVED
+
+       is written into the JPQL, so there is no argument any caller can
+       pass — today or after some future refactor — that makes these
+       methods return a PENDING or REJECTED record.
+
+       Note what is deliberately *not* filtered here: visibility. The
+       public site shows only records the author marked PUBLIC, but an
+       accreditation report covers the institution's whole verified
+       output. A faculty member choosing to keep a paper off the public
+       website is not choosing to withhold it from the college's own
+       NAAC submission, and treating those as the same setting would
+       under-report the institution to its assessors.
+       ================================================================ */
+
+    /**
+     * Every approved achievement in scope, with all five detail tables loaded.
+     *
+     * <p><strong>Why all five {@code LEFT JOIN FETCH} in one query.</strong> All
+     * five details are {@code @OneToOne} (see {@code Achievement:81-94}), i.e.
+     * single-valued, so this produces exactly one row per achievement — no
+     * cartesian product, and the {@code LIMIT} is still applied in SQL. (The
+     * Hibernate warning about applying pagination in memory is about
+     * <em>collection</em> fetches; there are none here.) Without the fetches,
+     * building the detail tables would fire five lazy loads per row — the same
+     * N+1 that {@link #countPublicAchievementsGroupedByUser()} exists to avoid.
+     *
+     * <p>No {@code DISTINCT}: with only single-valued joins there is nothing to
+     * de-duplicate, and it would only cost a needless SQL-level distinct across
+     * every fetched column.
+     *
+     * <p>Returns {@code List} rather than {@code Page} on purpose — a {@code Page}
+     * would make Spring Data derive a count query from a statement carrying five
+     * fetch joins. {@link #countApprovedForReport} does that job explicitly and
+     * cheaply instead.
+     *
+     * <p>{@code fromYear} / {@code toYear} compare {@code academicYear} as text.
+     * That is a correct chronological range <em>only</em> because the stored
+     * format is fixed-width {@code YYYY-YYYY}. It is also why the report derives
+     * its year columns from the data rather than trusting this ordering to place
+     * every value: {@code AchievementCreateRequest.academicYear} carries no
+     * {@code @Pattern}, so an off-format value can exist and would sort wrongly.
+     */
+    @Query("SELECT a FROM Achievement a "
+            + "JOIN FETCH a.user u "
+            + "JOIN FETCH u.department d "
+            + "JOIN FETCH a.category c "
+            + "LEFT JOIN FETCH a.publication "
+            + "LEFT JOIN FETCH a.patent "
+            + "LEFT JOIN FETCH a.researchGrant "
+            + "LEFT JOIN FETCH a.workshopFdp "
+            + "LEFT JOIN FETCH a.award "
+            + "WHERE a.status = com.niet.facultyachievement.entity.AchievementStatus.APPROVED "
+            + "  AND (:departmentId IS NULL OR d.id = :departmentId) "
+            + "  AND (:fromYear IS NULL OR a.academicYear >= :fromYear) "
+            + "  AND (:toYear IS NULL OR a.academicYear <= :toYear) "
+            + "ORDER BY d.name ASC, a.academicYear DESC, u.fullName ASC, a.achievementDate DESC")
+    List<Achievement> findApprovedForReport(@Param("departmentId") Long departmentId,
+                                            @Param("fromYear") String fromYear,
+                                            @Param("toYear") String toYear,
+                                            Pageable pageable);
+
+    /**
+     * How many approved records match the same scope, ignoring the row cap.
+     *
+     * <p>The report compares this against how many rows it actually loaded. If
+     * they differ, it says so on its face. A silently truncated accreditation
+     * report is worse than no report at all.
+     */
+    @Query("SELECT COUNT(a) FROM Achievement a JOIN a.user u JOIN u.department d "
+            + "WHERE a.status = com.niet.facultyachievement.entity.AchievementStatus.APPROVED "
+            + "  AND (:departmentId IS NULL OR d.id = :departmentId) "
+            + "  AND (:fromYear IS NULL OR a.academicYear >= :fromYear) "
+            + "  AND (:toYear IS NULL OR a.academicYear <= :toYear)")
+    long countApprovedForReport(@Param("departmentId") Long departmentId,
+                                @Param("fromYear") String fromYear,
+                                @Param("toYear") String toYear);
+
+    /**
+     * Records in scope that the report had to leave out, as
+     * {@code [status, count]} rows.
+     *
+     * <p>This is what lets the report say "412 of 460 publications, the rest
+     * still awaiting departmental verification" instead of just "412". The first
+     * sentence is honest about its own completeness; the second quietly is not.
+     */
+    @Query("SELECT a.status, COUNT(a) FROM Achievement a JOIN a.user u JOIN u.department d "
+            + "WHERE a.status <> com.niet.facultyachievement.entity.AchievementStatus.APPROVED "
+            + "  AND (:departmentId IS NULL OR d.id = :departmentId) "
+            + "  AND (:fromYear IS NULL OR a.academicYear >= :fromYear) "
+            + "  AND (:toYear IS NULL OR a.academicYear <= :toYear) "
+            + "GROUP BY a.status")
+    List<Object[]> countNonApprovedForReport(@Param("departmentId") Long departmentId,
+                                             @Param("fromYear") String fromYear,
+                                             @Param("toYear") String toYear);
 }

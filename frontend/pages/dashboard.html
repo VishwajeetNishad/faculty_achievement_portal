@@ -3,6 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- No-cache: always load the current faculty JS/CSS during local development -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <link rel="icon" type="image/png" href="../assets/niet-logo.png">
   <title>Faculty Dashboard | NIET Faculty Achievement Portal</title>
 
@@ -13,7 +17,7 @@
   
   <link rel="stylesheet" href="../css/variables.css">
   <link rel="stylesheet" href="../css/reset.css">
-  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/layout.css?v=20260901">
   <link rel="stylesheet" href="../css/components.css">
   <link rel="stylesheet" href="../css/responsive.css">
 
@@ -65,10 +69,10 @@
       justify-content: center;
       font-size: 0.95rem;
     }
-    .stat-icon-badge.total { background-color: #FFE4E6; color: #E11D48; }
+    .stat-icon-badge.total { background-color: var(--primary-tint); color: var(--primary-color); }
     .stat-icon-badge.approved { background-color: #D1FAE5; color: #059669; }
     .stat-icon-badge.pending { background-color: #FEF3C7; color: #D97706; }
-    .stat-icon-badge.rejected { background-color: #FEE2E2; color: #DC2626; }
+    .stat-icon-badge.rejected { background-color: var(--status-rejected-bg); color: var(--status-rejected-text); }
 
     .stat-pill {
       font-size: 0.675rem;
@@ -82,7 +86,7 @@
     .stat-value {
       font-size: 1.85rem;
       font-weight: 800;
-      color: #0F172A;
+      color: var(--text-primary);
       line-height: 1;
       margin-bottom: 0.35rem;
       letter-spacing: -0.02em;
@@ -91,7 +95,7 @@
     .stat-label {
       font-size: 0.8125rem;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-primary);
     }
 
     .stat-desc {
@@ -128,7 +132,7 @@
     .grid-card-title {
       font-size: 0.95rem;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-primary);
     }
 
     .grid-card-subtitle {
@@ -165,7 +169,7 @@
     .bar-column-fill {
       width: 100%;
       max-width: 20px;
-      background-color: #E11D48;
+      background-color: var(--primary-color);
       border-radius: 3px 3px 0 0;
       min-height: 4px;
       transition: height 0.3s ease;
@@ -217,7 +221,7 @@
     .donut-total-val {
       font-size: 1.25rem;
       font-weight: 800;
-      color: #0F172A;
+      color: var(--text-primary);
       line-height: 1;
     }
 
@@ -260,7 +264,7 @@
 
     .legend-val {
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-primary);
     }
 
     /* Row 3: 2-Column Bottom Data Grid */
@@ -285,7 +289,7 @@
     }
 
     .cat-name-lbl {
-      color: #0F172A;
+      color: var(--text-primary);
       font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
@@ -300,7 +304,7 @@
     }
 
     .cat-bar-progress {
-      background-color: #E11D48;
+      background-color: var(--primary-color);
       height: 100%;
       border-radius: 9999px;
     }
@@ -308,7 +312,7 @@
     .cat-count-val {
       text-align: right;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-primary);
     }
 
     /* Recent Submissions Feed */
@@ -333,7 +337,7 @@
     .recent-feed-info h4 {
       font-size: 0.825rem;
       font-weight: 600;
-      color: #0F172A;
+      color: var(--text-primary);
       margin-bottom: 0.2rem;
       line-height: 1.3;
     }
@@ -456,10 +460,15 @@
       <div class="sidebar-footer">
         <div class="sidebar-user-widget">
           <div class="sidebar-user-info">
-            <div class="sidebar-avatar" id="sidebarAvatar">ST</div>
+            <!-- Who is signed in. Filled from GET /api/auth/me by
+                 applyIdentityWidget() in common.js, the same mechanism the admin
+                 sidebar uses, so this page needs no identity JS of its own. Left
+                 blank in the markup on purpose: an empty block for a moment is
+                 honest, a placeholder name that belongs to nobody is not. -->
+            <div class="sidebar-avatar" data-identity="initials"></div>
             <div class="sidebar-user-text">
-              <span class="sidebar-user-name" id="sidebarUserName">Dr. Faculty</span>
-              <span class="sidebar-user-role" id="sidebarUserRole">Assoc. Prof. &bull; CSE</span>
+              <span class="sidebar-user-name" data-identity="name"></span>
+              <span class="sidebar-user-role" data-identity="designation"></span>
             </div>
           </div>
           <div class="sidebar-footer-actions">
@@ -485,7 +494,10 @@
           </button>
           <div class="page-title-group">
             <h1 class="page-title">Dashboard</h1>
-            <p class="page-subtitle" id="dashboardWelcome">Welcome back, Dr. Faculty</p>
+            <!-- dashboard.js replaces this with "Welcome back, <real name>" once
+                 /api/auth/me answers. The greeting alone is safe to ship in the
+                 markup; the name is not. -->
+            <p class="page-subtitle" id="dashboardWelcome">Welcome back</p>
           </div>
         </div>
 
@@ -495,12 +507,18 @@
             <span class="btn-text-full">New Achievement</span>
             <span class="btn-text-short">New</span>
           </a>
-          <button class="header-notif-btn" id="notificationBellBtn" aria-label="Notifications" onclick="showToast('You have 2 unread notifications', 'info')">
+          <!-- No inline onclick here. initializeNotificationUI() in common.js binds
+               the real handler to this id and opens the notification panel; the old
+               inline call fired on top of that handler and announced a hardcoded
+               "2 unread" whatever the real count was. The badge starts empty and
+               hidden — refreshUnreadBadge() fills it from the unread-count endpoint
+               and reveals it only when the count is above zero. -->
+          <button class="header-notif-btn" id="notificationBellBtn" aria-label="Notifications">
             <svg style="width: 17px; height: 17px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span class="notif-badge-bubble" id="unreadNotifBadge">2</span>
+            <span class="notif-badge-bubble" id="unreadNotifBadge" style="display: none;"></span>
           </button>
           <div class="header-user-badge" onclick="window.location.href='profile.html'">
-            <div class="header-user-avatar" id="headerAvatar">ST</div>
+            <div class="header-user-avatar" data-identity="initials"></div>
             <svg class="header-chevron-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
           </div>
         </div>
@@ -642,7 +660,7 @@
               <div class="grid-card">
                 <div class="grid-card-head">
                   <h3 class="grid-card-title">Recent Submissions</h3>
-                  <a href="achievements.html" style="font-size: 0.775rem; color: #E11D48; font-weight: 600; text-decoration: none;">View all &rarr;</a>
+                  <a href="achievements.html" style="font-size: 0.775rem; color: var(--primary-color); font-weight: 600; text-decoration: none;">View all &rarr;</a>
                 </div>
                 <div class="grid-card-body" id="recentSubmissionsBody" style="padding-top: 0.5rem;">
                   <!-- Rendered dynamically -->
@@ -705,10 +723,10 @@
   </div>
 
   <!-- Scripts -->
-  <script src="../js/config.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/validation.js"></script>
-  <script src="../js/common.js"></script>
-  <script src="../js/dashboard.js"></script>
+  <script src="../js/config.js?v=20260901"></script>
+  <script src="../js/api.js?v=20260901"></script>
+  <script src="../js/validation.js?v=20260901"></script>
+  <script src="../js/common.js?v=20260901"></script>
+  <script src="../js/dashboard.js?v=20260901"></script>
 </body>
 </html>

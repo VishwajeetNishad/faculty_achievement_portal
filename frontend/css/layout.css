@@ -111,14 +111,29 @@
   color: #FFF;
 }
 
-/* Navigation Section */
+/* Navigation Section ───
+   This used to be "justify-content: space-between", which only worked for the
+   faculty pages' markup: there the two children are one wrapper <div> holding
+   the whole menu and ".sidebar-support-nav", so space-between pushed Support to
+   the bottom. The admin pages put their section title and their <ul> here as two
+   separate children, so space-between pinned the title to the top and shoved the
+   entire menu to the bottom — a measured 374px of empty navy between the
+   "ADMINISTRATION" label and the first link.
+
+   Sticking Support to the bottom is now the job of "margin-top: auto" on that one
+   element (see .sidebar-support-nav below), which does not care how many children
+   the nav has. Links stack from the top in both portals. */
 .sidebar-nav {
   padding: 1.25rem 0.75rem 0.5rem;
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+}
+
+/* Space between two consecutive grouped sections in the sidebar menu. */
+.nav-group + .nav-group {
+  margin-top: 1.15rem;
 }
 
 .nav-section-title {
@@ -137,10 +152,26 @@
   list-style: none;
 }
 
+/* A menu row: icon, then label, then anything trailing (a count badge or a
+   chevron) pinned to the right edge.
+
+   This was "justify-content: space-between" too, and it had the same
+   markup-shape dependency. The faculty pages wrap icon+label in one
+   ".nav-link-content" child, so space-between correctly split that group from the
+   trailing badge. The admin pages put the <svg> and the label text directly in the
+   link, which makes them two flex items — so space-between drove the icon to the
+   far left and the label to the far right, leaving a gap that changed with every
+   label's length: 34px on "Homepage Highlights", 106px on "Audit Trail". Nothing
+   in the menu lined up.
+
+   "flex-start" plus a real gap gives every row the same icon-to-label rhythm no
+   matter which of the two markups it uses, and the trailing badge/chevron is held
+   to the right by its own "margin-left: auto" instead. */
 .nav-link {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.75rem;
   padding: 0.65rem 0.85rem;
   color: var(--sidebar-text);
   font-size: 0.825rem;
@@ -166,7 +197,7 @@
   background-color: var(--sidebar-active-bg);
   color: var(--text-inverse);
   font-weight: 600;
-  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.35);
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.35);
 }
 
 .nav-icon {
@@ -184,6 +215,7 @@
   border-radius: 9999px;
   min-width: 18px;
   text-align: center;
+  margin-left: auto;
 }
 
 .nav-link.active .nav-badge-count {
@@ -194,21 +226,46 @@
   width: 14px;
   height: 14px;
   opacity: 0.8;
+  margin-left: auto;
 }
 
-/* Secondary Support Navigation in Sidebar */
+/* Secondary Support Navigation in Sidebar ───
+   "margin-top: auto" is what keeps this pinned to the bottom of .sidebar-nav now
+   that the nav itself no longer uses space-between. */
 .sidebar-support-nav {
   border-top: 1px solid var(--sidebar-border);
   padding-top: 0.75rem;
-  margin-top: 1rem;
+  margin-top: auto;
 }
 
-/* Sidebar Footer User Widget */
+/* Sidebar Footer User Widget ───
+   A column because the admin pages stack two things here — who is signed in, then
+   the sign-out row. The faculty pages have only the account block, so the gap has
+   nothing to act on there and they render unchanged. */
 .sidebar-footer {
   padding: 0.85rem;
   border-top: 1px solid var(--sidebar-border);
   flex-shrink: 0;
   background-color: rgba(11, 17, 32, 0.85);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* The admin pages' sign-out link. Previously every one of the eight pages
+   carried style="color: #FCA5A5" inline — a stranded Tailwind red-300 that no
+   token defined, so changing the brand could never reach it. It now uses the
+   brand's own muted rose, which keeps the "this one is different from the
+   other nav links" signal while staying on-hue (#FCA5A5 is hue 0; the brand
+   ramp is hue 355). Contrast on the sidebar navy is 8.83:1, well past AA.
+   Mirrors .hod-sidebar-footer .hod-nav-link.logout in hod-theme.css. */
+.sidebar-footer .nav-link.nav-link-signout {
+  color: var(--primary-muted);
+}
+
+.sidebar-footer .nav-link.nav-link-signout:hover {
+  background-color: rgba(var(--primary-rgb), 0.12);
+  color: var(--sidebar-text-active);
 }
 
 .sidebar-user-widget {
@@ -393,14 +450,14 @@
   gap: 0.35rem;
   transition: all var(--transition-fast);
   text-decoration: none;
-  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.2);
+  box-shadow: 0 2px 6px rgba(var(--primary-rgb), 0.2);
   white-space: nowrap;
 }
 
 .btn-header-cta:hover {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.3);
+  box-shadow: 0 4px 10px rgba(var(--primary-rgb), 0.3);
 }
 
 .header-notif-btn {

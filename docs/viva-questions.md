@@ -108,7 +108,15 @@
 **Ans**: JUnit 5 (JUnit Platform) and Mockito 5 for mocking dependencies (`@Mock`, `@InjectMocks`).
 
 ### Q35: How many test scenarios were verified in total?
-**Ans**: **169 total system test scenarios** across unit tests (28), security hardening (19), E2E workflows (21), dashboard (27), search (30), notifications (20), and audit logs (24)—all passing with 0 failures.
+**Ans**: **126 automated tests**, all passing with 0 failures, across 12 test classes:
+security suites (51 — `HighlightSecurityTest` 21, `NaacReportSecurityTest` 12,
+`ShareLinkSecurityTest` 9, `PermissionSecurityTest` 7, `PublicAccessSecurityTest` 2),
+service suites (61 — `HighlightImageStorageTest` 21, `NaacReportAggregationTest` 24,
+`AchievementServiceTest` 9, `NotificationServiceTest` 4, `AuditLogServiceTest` 3),
+the controller suite (13 — `AchievementControllerTest`), and `PasswordTest` (1).
+Run `mvn test` in `backend/` to reproduce the count. Manual end-to-end scenarios
+walked by hand against a running server are recorded separately in `docs/testing.md`
+and are not counted in the 126.
 
 ### Q36: How is the production executable built?
 **Ans**: Running `mvn clean package` generates a standalone executable JAR at `backend/target/faculty-achievement-portal-0.0.1-SNAPSHOT.jar`.

@@ -28,16 +28,40 @@
 
 ## 3. Test Suites & Summary Results
 
-| Test Suite | Focus Area | Scenarios Run | Passed | Failed | Status |
+Two different things are recorded below, kept apart on purpose. §3.1 is the automated
+suite — it runs on every build and anyone can reproduce its numbers. §3.2 is a record
+of scenarios walked by hand against a running server. Summing the two into a single
+"test coverage" figure would present hand-verification as automation, so they are not
+summed.
+
+### 3.1 Automated test suite
+
+Produced by `mvn test` in `backend/`. JUnit 5 + Mockito, no Spring context, no MySQL —
+so the counts below need nothing but a clone and a JDK.
+
+| Area | Test classes | Tests | Passed | Failed | Status |
 | :--- | :--- | :---: | :---: | :---: | :---: |
-| **Backend Unit Tests** | Service, Controller & Repository unit logic | 28 | 28 | 0 | PASSED ✅ |
-| **Step 17 Test Suite** | Dashboard analytics & math consistency | 27 | 27 | 0 | PASSED ✅ |
-| **Step 18 Test Suite** | Search, pagination & CSV export scope | 30 | 30 | 0 | PASSED ✅ |
-| **Step 19 Test Suite** | In-app notifications & IDOR security | 20 | 20 | 0 | PASSED ✅ |
-| **Step 20 Test Suite** | Append-only audit logging & privacy | 24 | 24 | 0 | PASSED ✅ |
-| **Step 21 Test Suite** | Application security hardening & attack defense | 19 | 19 | 0 | PASSED ✅ |
-| **Step 22 E2E Suite** | End-to-end multi-role workflows & concurrency | 21 | 21 | 0 | PASSED ✅ |
-| **TOTAL** | **Complete System Regression & E2E Verification** | **169** | **169** | **0** | **PASSED ✅** |
+| **Security** | `HighlightSecurityTest` 21, `NaacReportSecurityTest` 12, `ShareLinkSecurityTest` 9, `PermissionSecurityTest` 7, `PublicAccessSecurityTest` 2 | 51 | 51 | 0 | PASSED ✅ |
+| **Service** | `HighlightImageStorageTest` 21, `NaacReportAggregationTest` 24, `AchievementServiceTest` 9, `NotificationServiceTest` 4, `AuditLogServiceTest` 3 | 61 | 61 | 0 | PASSED ✅ |
+| **Controller** | `AchievementControllerTest` | 13 | 13 | 0 | PASSED ✅ |
+| **Utility** | `PasswordTest` | 1 | 1 | 0 | PASSED ✅ |
+| **TOTAL** | **12 test classes** | **126** | **126** | **0** | **PASSED ✅** |
+
+### 3.2 Manual verification scenarios
+
+Executed by hand against a running backend during development of the steps named.
+These are a development record, not a regression suite: they do not run on a build,
+and nothing re-checks them when the code changes.
+
+| Verification Pass | Focus Area | Scenarios Run | Passed | Failed | Status |
+| :--- | :--- | :---: | :---: | :---: | :---: |
+| **Step 17** | Dashboard analytics & math consistency | 27 | 27 | 0 | PASSED ✅ |
+| **Step 18** | Search, pagination & CSV export scope | 30 | 30 | 0 | PASSED ✅ |
+| **Step 19** | In-app notifications & IDOR security | 20 | 20 | 0 | PASSED ✅ |
+| **Step 20** | Append-only audit logging & privacy | 24 | 24 | 0 | PASSED ✅ |
+| **Step 21** | Application security hardening & attack defense | 19 | 19 | 0 | PASSED ✅ |
+| **Step 22** | End-to-end multi-role workflows & concurrency | 21 | 21 | 0 | PASSED ✅ |
+| **SUBTOTAL** | **Manual end-to-end verification** | **141** | **141** | **0** | **PASSED ✅** |
 
 ---
 

@@ -1,0 +1,235 @@
+/* ============================================================
+   report-print.css — printing the accreditation report
+   Linked ONLY from pages/admin/reports.html, after responsive.css.
+
+   The point of this file: Ctrl+P on the report page has to produce a document
+   that can go into an accreditation file as-is. That is a different job from
+   "the page, on paper", and three rules in the shared stylesheets actively
+   break it. Each is undone below, with the reason.
+
+   responsive.css:248-265 already handles the scaffolding in print — it hides
+   .app-sidebar, .app-header, .app-footer, .mobile-toggle-btn, .btn and
+   .modal-backdrop, and zeroes the main margin and page padding. Because the
+   whole .app-header is hidden, the Print and Download buttons disappear on
+   their own; nothing here needs to repeat that.
+
+   Not possible in CSS, so nobody should go hunting for it: printed page
+   numbers. @page margin boxes (@bottom-right { content: counter(page) }) are
+   not implemented in Chrome. The browser's own print dialog has a
+   "Headers and footers" checkbox that adds them, which is where they come from.
+   ============================================================ */
+
+@media print {
+
+  /* ---- Page geometry ----------------------------------------------------
+     Landscape, not portrait.
+
+     Every table in this report is wide: the detail tables run 8 to 15 columns,
+     and the department x year matrices grow a new column every academic year —
+     so they get wider over time, not narrower. A4 portrait leaves about 182mm
+     of usable width, which turns a 15-column publication table into fifteen
+     columns of vertically-stacked words. Landscape gives 273mm and the same
+     table stays readable. Accreditation annexures are landscape for exactly
+     this reason.
+
+     To switch back to portrait, change one word here; nothing else in this
+     file depends on the orientation. */
+  @page {
+    size: A4 landscape;
+    margin: 12mm;
+  }
+
+  /* Backgrounds and borders must survive. Browsers drop background colour in
+     print by default, which would erase the tint that separates a repeated
+     table header from the data rows underneath it. */
+  html, body {
+    background: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---- Screen-only furniture -------------------------------------------
+     The explainer alert and the filter card. Their content is instruction to
+     the operator, not part of the document being submitted. The report's own
+     header already records the scope that was chosen. */
+  .rep-screen-only {
+    display: none !important;
+  }
+
+  /* ---- Trap 1: the horizontal scroller clips on paper -------------------
+     tables.css:7-11 gives .table-responsive `overflow-x: auto`, which is right
+     on screen and wrong on paper: an overflow box has no scrollbar when
+     printed, it just cuts. A 15-column publication table would quietly lose
+     its right-hand columns — indexing, DOI, impact factor — and the printed
+     page would look complete. */
+  .table-responsive {
+    overflow: visible !important;
+    width: auto !important;
+  }
+
+  /* ---- Trap 2: repeating column headers --------------------------------
+     `display: table-header-group` is what makes <thead> reprint at the top of
+     every page. Without it, page 3 of a publication table is a wall of
+     unlabelled columns.
+
+     `position: sticky` (tables.css:32-33) has to go with it: a sticky header
+     cell is taken out of normal flow, and in print that either pins the header
+     to page one or drops it entirely, depending on the engine. Sticky is a
+     scrolling behaviour, and there is no scrolling on paper.
+
+     `white-space: nowrap` (tables.css:31) has to go too — an unwrappable
+     heading sets a floor under the column's width, and fifteen of those push
+     the table past the page edge no matter how small the body text is. */
+  thead {
+    display: table-header-group;
+  }
+
+  .data-table th {
+    position: static !important;
+    white-space: normal !important;
+    background-color: #f1f3f5 !important;
+    border-bottom: 1pt solid #333 !important;
+    font-size: 6.5pt;
+    padding: 3pt 4pt;
+    letter-spacing: 0;
+  }
+
+  /* ---- Table body: fit the columns, keep rows whole -------------------- */
+  .data-table {
+    width: 100% !important;
+    font-size: 7.5pt;
+    border-collapse: collapse;
+  }
+
+  .data-table td {
+    font-size: 7.5pt;
+    padding: 3pt 4pt;
+    line-height: 1.35;
+    border-bottom: 0.5pt solid #d0d0d0 !important;
+    /* DOIs, ISSNs and long journal names have no spaces to break at. Without
+       this one of them widens its column and squeezes every other one. */
+    overflow-wrap: anywhere;
+  }
+
+  /* A record split across two pages reads as two half-records. */
+  .data-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Hover tint is meaningless on paper and prints as a grey band. */
+  .data-table tbody tr:hover {
+    background-color: transparent !important;
+  }
+
+  /* ---- Cards flatten into document sections --------------------------- */
+  .card {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+    margin-bottom: 8mm;
+  }
+
+  .rep-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* A heading, its record count and its breakdown chips must not be the last
+     thing on a page with the table itself starting on the next one. */
+  .card-header,
+  .rep-stat-strip,
+  .rep-breakdown {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .card-header {
+    padding: 0 0 3pt !important;
+    border-bottom: 1pt solid #333 !important;
+  }
+
+  .card-title {
+    font-size: 10pt;
+  }
+
+  .rep-stat-strip,
+  .rep-breakdown {
+    padding: 4pt 0 !important;
+    border-bottom: none !important;
+    font-size: 8pt;
+    gap: 4pt 12pt;
+  }
+
+  .rep-chip {
+    border: 0.5pt solid #999 !important;
+    background: #fff !important;
+    font-size: 7pt;
+    padding: 1pt 4pt;
+  }
+
+  /* ---- The parts of the document that must never be dropped -----------
+     A submitted report has to be able to say what it covers, when it was
+     produced and who produced it. */
+  .rep-doc-header {
+    border-bottom: 1.5pt solid #000 !important;
+    padding-bottom: 4pt;
+    margin-bottom: 6pt;
+  }
+
+  .rep-doc-title {
+    font-size: 14pt;
+  }
+
+  .rep-doc-meta {
+    font-size: 8pt;
+    gap: 2pt 10pt;
+  }
+
+  .rep-empty {
+    padding: 4pt 0 !important;
+    font-size: 8pt;
+  }
+
+  .rep-footnote {
+    font-size: 7pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* The row-cap warning is the one thing on the page that must not be able to
+     disappear. If a printer strips background colours, a tinted alert becomes
+     invisible text on white and the reader has no way to know the tables are
+     truncated — so it gets a hard black border that no colour setting can
+     remove, and it prints before anything else it qualifies. */
+  .rep-truncated {
+    border: 1.5pt solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+    padding: 5pt 7pt !important;
+    margin-bottom: 6pt;
+    font-size: 8.5pt;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    break-after: avoid;
+  }
+
+  /* Same for the access / error notice: if the page is showing one instead of
+     a report, the print must not come out looking like an empty report. */
+  #repNotice .alert {
+    border: 1pt solid #000 !important;
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .rep-num {
+    text-align: right;
+  }
+
+  /* One dangling line at the top or bottom of a page. */
+  p, .rep-empty {
+    orphans: 3;
+    widows: 3;
+  }
+}

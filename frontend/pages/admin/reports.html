@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- No-cache: always load the current admin JS/CSS during local development -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Accreditation Report | NIET Admin Portal</title>
+
+  <!-- Inter webfont — reset.css applies var(--font-family) from variables.css, which
+       asks for Inter. Without these links the page silently falls back to a system sans. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/layout.css?v=20260901">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+  <!-- Print rules for this page only. Linked last so it can override the shared
+       print block in responsive.css. -->
+  <link rel="stylesheet" href="../../css/report-print.css">
+
+  <style>
+    /* Scoped to this page only. */
+
+    .rep-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+
+    .rep-toolbar-field { min-width: 170px; flex: 0 1 200px; }
+
+    .rep-doc-header {
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .rep-doc-title {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-primary);
+      margin: 0 0 0.35rem;
+    }
+
+    .rep-doc-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem 1.5rem;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .rep-doc-meta strong { color: var(--text-primary); }
+
+    .rep-section { margin-bottom: 1.25rem; }
+
+    .rep-section-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      margin: 0.2rem 0 0;
+    }
+
+    .rep-metric-ref {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .rep-stat-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      padding: 0.85rem 1.5rem;
+      border-bottom: 1px solid var(--border-light);
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .rep-stat-strip strong { color: var(--text-primary); }
+
+    .rep-breakdown {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+    }
+
+    .rep-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-color);
+      background: var(--surface-secondary);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    .rep-chip b { color: var(--text-primary); }
+
+    .rep-empty {
+      padding: 1.25rem 1.5rem;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .rep-footnote {
+      margin-top: 1.5rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--border-light);
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    /* The row-cap warning has to survive printing — see report-print.css. */
+    .rep-truncated { margin-bottom: 1.25rem; }
+
+    .rep-num { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- Admin Sidebar -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <span class="niet-logo-badge">
+          <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <div class="sidebar-brand-title">
+          Admin Console
+          <span>Control Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-section-title">Overview</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Admin Dashboard</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">Records &amp; Reports</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="achievements.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span>Achievement Search</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="reports.html" class="nav-link active">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Accreditation Report</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">People &amp; Access</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="faculty.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>Faculty Roster</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="departments.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span>Departments</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="user-permissions.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>User Permissions</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">Site &amp; System</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="highlights.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Homepage Highlights</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="audit-logs.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span>Audit Trail</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Who is signed in. Filled from GET /api/auth/me by
+             applyIdentityWidget() in common.js, the same mechanism the header
+             widget uses, so no page-specific JS is needed. Left blank in the
+             markup on purpose: an empty block is honest, a placeholder name is
+             not. -->
+        <div class="sidebar-user-widget">
+          <div class="sidebar-user-info">
+            <div class="sidebar-avatar" data-identity="initials"></div>
+            <div class="sidebar-user-text">
+              <span class="sidebar-user-name" data-identity="name"></span>
+              <span class="sidebar-user-role" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
+        <a href="../login.html" class="nav-link nav-link-signout" id="signOutBtn">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 class="page-title">Accreditation Report</h1>
+        </div>
+        <div class="header-right">
+          <button type="button" class="btn btn-outline btn-sm" id="repPrintBtn">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Print<span class="rep-btn-long"> / Save as PDF</span>
+          </button>
+          <!-- Shown only if the account holds EXPORT_REPORTS. The backend checks
+               it again on every request; this only decides what to offer. -->
+          <button type="button" class="btn btn-primary btn-sm" id="repCsvBtn" style="display: none;">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            <span class="rep-btn-long">Download </span>CSV
+          </button>
+          <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
+          <div class="user-profile-widget">
+            <div class="avatar-circle" data-identity="initials"></div>
+            <div class="user-details">
+              <span class="user-name" data-identity="name"></span>
+              <span class="user-role-tag" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-container">
+
+          <!-- What this screen is for, in plain language. Hidden when printing. -->
+          <div class="alert alert-info rep-screen-only" style="margin-bottom: 1.25rem;">
+            <div>
+              <strong>One button instead of a week of retyping.</strong> This is every
+              <em>verified</em> achievement on record, grouped the way an accreditation file needs it:
+              department by department, year by year, split by the categories NAAC and NBA ask about.
+              Choose a year range, then either print it straight to PDF or download the whole thing as
+              a spreadsheet. Records still awaiting departmental verification are counted separately and
+              never mixed into the totals.
+            </div>
+          </div>
+
+          <!-- Access message, shown instead of the report when the API refuses -->
+          <div id="repNotice"></div>
+
+          <div class="card rep-screen-only" id="repFilterCard" style="margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: 1rem 1.5rem;">
+              <div class="rep-toolbar">
+                <div class="rep-toolbar-field">
+                  <label class="form-label" for="repFromYear">From academic year</label>
+                  <select id="repFromYear" class="form-control">
+                    <option value="">Earliest on record</option>
+                  </select>
+                </div>
+                <div class="rep-toolbar-field">
+                  <label class="form-label" for="repToYear">To academic year</label>
+                  <select id="repToYear" class="form-control">
+                    <option value="">Latest on record</option>
+                  </select>
+                </div>
+                <div class="rep-toolbar-field">
+                  <label class="form-label" for="repDepartment">Department</label>
+                  <select id="repDepartment" class="form-control">
+                    <option value="">All departments</option>
+                  </select>
+                </div>
+                <div>
+                  <button type="button" class="btn btn-primary" id="repApplyBtn">Apply</button>
+                  <button type="button" class="btn btn-outline" id="repResetBtn">Reset</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Everything below is rendered by admin-reports.js from the live API. -->
+          <div id="repDocument"></div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script src="../../js/config.js?v=20260831"></script>
+  <script src="../../js/api.js?v=20260831"></script>
+  <script src="../../js/common.js?v=20260831"></script>
+  <script src="../../js/admin-reports.js?v=20260831"></script>
+</body>
+</html>

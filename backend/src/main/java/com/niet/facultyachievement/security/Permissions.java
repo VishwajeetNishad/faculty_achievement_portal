@@ -22,9 +22,10 @@ import java.util.Set;
  * silently unenforced security rule.
  *
  * <p>These codes must exactly match the {@code permission_code} values seeded
- * by {@code V3__permissions.sql}. {@link #ALL} is compared against the database
- * at startup by {@code PermissionCatalogValidator}, which logs a clear error if
- * the two have drifted apart.
+ * by {@code V3__permissions.sql} (codes 1–15) and {@code V5__homepage_highlights.sql}
+ * (code 16). {@link #ALL} is compared against the database at startup by
+ * {@code PermissionCatalogValidator}, which logs a clear error if the two have
+ * drifted apart — so a new constant here always needs a matching migration.
  */
 public final class Permissions {
 
@@ -51,6 +52,18 @@ public final class Permissions {
     public static final String VIEW_AUDIT_LOGS = "VIEW_AUDIT_LOGS";
     public static final String MANAGE_PERMISSIONS = "MANAGE_PERMISSIONS";
 
+    // ---- Homepage content ------------------------------------------------
+    /**
+     * Upload, reorder and remove the banners in the public home page
+     * carousel.
+     *
+     * <p>Deliberately absent from {@link #ADMIN_ONLY_GRANTABLE}: it edits
+     * marketing images and cannot grant any further authority, so an Admin may
+     * hand it to a communications staff member the same way MANAGE_DEPARTMENTS
+     * is delegated. It touches no achievement, no user and no statistic.
+     */
+    public static final String MANAGE_HIGHLIGHTS = "MANAGE_HIGHLIGHTS";
+
     /**
      * Every permission code the application understands, in display order.
      *
@@ -74,7 +87,8 @@ public final class Permissions {
             EXPORT_REPORTS,
             MANAGE_DEPARTMENTS,
             VIEW_AUDIT_LOGS,
-            MANAGE_PERMISSIONS
+            MANAGE_PERMISSIONS,
+            MANAGE_HIGHLIGHTS
     )));
 
     /**

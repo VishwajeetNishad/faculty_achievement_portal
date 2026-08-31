@@ -61,8 +61,9 @@
   - Visual showcase of Dashboard, Achievement Roster, Verification Modal, and Audit Logs.
 
 - **Slide 12: Testing & Verification Results**
-  - **169 / 169 System Test Scenarios PASSED (100%)**.
-  - Unit tests (28), Security hardening (19), Integration & E2E suites (122).
+  - **126 / 126 automated tests PASSED (0 failures)** — reproducible with `mvn test`.
+  - Security suites (51), Service suites (61), Controller suite (13), Utility (1).
+  - Manual end-to-end scenarios are recorded separately in `docs/testing.md`.
 
 - **Slide 13: Conclusion**
   - Successfully deployed a production-ready, secure, and scalable solution for NIET.

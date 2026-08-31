@@ -173,7 +173,7 @@
   function metricsMarkup(achievements, counts) {
     return '' +
       '<div class="pub-metric-row">' +
-        metricCard('total',        '#E11D48', achievements.length,      'Public achievements') +
+        metricCard('total',        'var(--primary-color)', achievements.length,      'Public achievements') +
         metricCard('publications', '#0284C7', counts.PUBLICATION || 0,  'Publications') +
         metricCard('patents',      '#0D9488', counts.PATENT || 0,       'Patents') +
       '</div>';

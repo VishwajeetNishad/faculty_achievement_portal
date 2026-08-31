@@ -1,7 +1,8 @@
 # Master Test Case Matrix
 
 **Institution**: Noida Institute of Engineering and Technology (NIET)  
-**Total Verified Test Cases**: 18 Master Scenarios (Sub-verified across 169 system assertions)  
+**Total Verified Test Cases**: 18 Master Scenarios (manually verified — see `docs/testing.md` §3.2)  
+**Automated suite**: 126 tests, 0 failures (`mvn test` — see `docs/testing.md` §3.1)  
 
 ---
 

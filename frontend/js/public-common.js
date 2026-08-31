@@ -133,7 +133,7 @@ const PublicUI = (function () {
   function categoryMeta(code) {
     return CATEGORIES[code] || {
       label: code || 'Achievement', short: code || 'Achievement',
-      color: '#E11D48', bg: 'rgba(225,29,72,0.08)',
+      color: 'var(--primary-color)', bg: 'var(--primary-light)',
       icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>'
     };
   }

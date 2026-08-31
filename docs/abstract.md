@@ -20,4 +20,4 @@ Key architectural highlights include:
 5. **Real-Time Notification & Immutable Audit Trail**: Integrates event-driven notifications to alert stakeholders of review status changes and maintains an append-only security audit log recording every system transaction.
 6. **Institutional Analytics & Data Export**: Delivers real-time category distribution, status metrics, and department comparison analytics alongside authorization-scoped CSV report generation.
 
-Comprehensive automated testing validated system correctness across 169 test scenarios with a **100% pass rate**. The portal establishes a reliable, transparent, and scalable digital infrastructure for institutional academic excellence.
+Comprehensive automated testing validated system correctness across 126 automated tests with a **100% pass rate**. The portal establishes a reliable, transparent, and scalable digital infrastructure for institutional academic excellence.

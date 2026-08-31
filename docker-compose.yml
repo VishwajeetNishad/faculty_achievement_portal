@@ -65,6 +65,9 @@ services:
       CORS_ALLOW_LOCALHOST: "false"
       # --- Uploaded PDF proofs: absolute path backed by the "uploads" volume ---
       APP_FILE_STORAGE_UPLOAD_DIR: /app/uploads/achievements
+      # --- Home page carousel banners: same "uploads" volume, separate directory,
+      #     so no new volume is needed and the images survive a redeploy ---
+      APP_HIGHLIGHT_STORAGE_UPLOAD_DIR: /app/uploads/highlights
       # --- Rolling log files: written to the persistent "logs" volume ---
       LOG_DIR: /app/logs
       # --- First admin, created once on first boot (blank values = skip) ---

@@ -39,7 +39,7 @@
   - IDOR, SQL Injection & CORS Defense
   - PDF Magic-Byte Header Verification
 - **Chapter 10: Testing & Quality Assurance**
-  - Test Strategy & Automation (169 Test Scenarios)
+  - Test Strategy & Automation (126 Automated Tests)
   - Unit, Security, and E2E Results
 - **Chapter 11: System Results & Performance**
   - Interface Screenshots

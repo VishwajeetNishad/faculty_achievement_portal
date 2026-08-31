@@ -43,18 +43,22 @@ or misrepresent the current state; **[Enhancement]** items are future work.
 
 ## 2. Medium Priority — Accuracy & Consistency
 
-### 2.1 "Test Coverage: 169/169" is mislabeled `[Accuracy]`
-- **Issue**: 169/169 is a **pass rate over scenarios**, not code coverage
-  (percentage of lines/branches exercised).
-- **Fix**: Rename to "Test Scenarios Passed". Add real coverage measurement
-  (e.g. JaCoCo) if a coverage metric is desired.
+### 2.1 "Test Coverage: 169/169" is mislabeled `[Accuracy]` — **RESOLVED**
+- **Issue**: 169/169 was a **pass rate over scenarios**, not code coverage
+  (percentage of lines/branches exercised). It was also not a count of automated
+  tests: the real automated suite was 90 at the time this was written.
+- **Done**: The headline now reads "126 / 126 automated tests passing (`mvn test`)",
+  and `docs/testing.md` §3 splits the automated suite (126, reproducible on any
+  clone) from the manually-walked scenarios (141, a development record). The
+  per-class breakdown in `README.md` §9.1 can be checked against
+  `target/surefire-reports/`.
+- **Still open**: no real line/branch coverage measurement — see §3.1.
 
-### 2.2 Documentation cites steps not yet committed `[Accuracy]`
-- **Issue**: README references "Step 17–20 Integration Suites (101 passed)", but
-  the latest commit is Step 17. If steps 18–20 are not committed, the counts are
-  aspirational.
-- **Fix**: Align the reported test counts with what is actually committed, or
-  commit the remaining work before citing it.
+### 2.2 Documentation cites steps not yet committed `[Accuracy]` — **RESOLVED**
+- **Issue**: README referenced "Step 17–20 Integration Suites (101 passed)", suite
+  names that do not exist in `src/test/java`. The counts were invented.
+- **Done**: The invented breakdown is replaced by the twelve real test classes and
+  their real counts, which sum to 126.
 
 ### 2.3 Frontend `file://` origin conflicts with CORS whitelist `[Accuracy]`
 - **Issue**: Opening `index.html` directly yields a `null` origin, which will
@@ -75,7 +79,7 @@ or misrepresent the current state; **[Enhancement]** items are future work.
 
 ### 3.3 Automated CI `[Enhancement]`
 - Add a CI pipeline (e.g. GitHub Actions) to run the Maven test suite on every
-  push so the "169/169" claim is continuously verified.
+  push so the "126 / 126" claim is continuously verified.
 
 ### 3.4 API rate limiting / brute-force protection `[Enhancement]`
 - Add rate limiting on the login endpoint to complement the audit logging of

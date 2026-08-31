@@ -5,8 +5,37 @@
  * academic-year distribution. Degrades to bar lists if Chart.js is unavailable.
  */
 
-const HOD_STATUS_COLORS = { approved: '#15803D', pending: '#B45309', rejected: '#BE123C' };
-const HOD_CHART_PALETTE = ['#a50019', '#00567b', '#b22b1d', '#15803D', '#B45309', '#6d28d9', '#0891b2', '#be123c'];
+/* Chart.js paints into a <canvas>, which cannot resolve CSS var() — so the chart
+   colours have to be read out of the stylesheet as real values. Resolved lazily
+   (on render, not at parse time) so the stylesheets are guaranteed to have
+   applied, and every lookup carries a fallback literal: a missing token would
+   otherwise hand Chart.js an empty string and paint an invisible chart. */
+function hodCssColor(token, fallback) {
+  const value = getComputedStyle(document.body).getPropertyValue(token).trim();
+  return value || fallback;
+}
+
+function hodStatusColors() {
+  return {
+    approved: hodCssColor('--hod-approved', '#047857'),
+    pending:  hodCssColor('--hod-pending',  '#B45309'),
+    rejected: hodCssColor('--hod-rejected', '#B91C1C')
+  };
+}
+
+/* First five entries follow the brand/status palette; the last three are neutral
+   categorical hues that carry no brand meaning. */
+function hodChartPalette() {
+  return [
+    hodCssColor('--primary-color', '#CF0012'),
+    hodCssColor('--hod-tertiary',  '#00567b'),
+    hodCssColor('--primary-hover', '#AA000F'),
+    hodCssColor('--hod-approved',  '#047857'),
+    hodCssColor('--hod-pending',   '#B45309'),
+    '#6d28d9', '#0891b2', '#0F766E'
+  ];
+}
+
 let hodStatusChart = null;
 let hodCategoryChart = null;
 
@@ -63,10 +92,11 @@ function hodRenderStatusChart(approved, pending, rejected) {
     return;
   }
 
+  const statusColors = hodStatusColors();
   const rows = [
-    { label: 'Approved', value: approved, color: HOD_STATUS_COLORS.approved },
-    { label: 'Pending', value: pending, color: HOD_STATUS_COLORS.pending },
-    { label: 'Rejected', value: rejected, color: HOD_STATUS_COLORS.rejected }
+    { label: 'Approved', value: approved, color: statusColors.approved },
+    { label: 'Pending', value: pending, color: statusColors.pending },
+    { label: 'Rejected', value: rejected, color: statusColors.rejected }
   ];
 
   if (legend) {
@@ -101,11 +131,12 @@ function hodRenderCategoryChart(distMap) {
   if (!window.Chart || !canvas) { hodAnBars('hodCategoryChartWrap', distMap, total); return; }
 
   if (hodCategoryChart) hodCategoryChart.destroy();
+  const palette = hodChartPalette();
   hodCategoryChart = new Chart(canvas, {
     type: 'bar',
     data: {
       labels: entries.map((e) => e[0]),
-      datasets: [{ data: entries.map((e) => e[1]), backgroundColor: entries.map((_, i) => HOD_CHART_PALETTE[i % HOD_CHART_PALETTE.length]), borderRadius: 6, maxBarThickness: 34 }]
+      datasets: [{ data: entries.map((e) => e[1]), backgroundColor: entries.map((_, i) => palette[i % palette.length]), borderRadius: 6, maxBarThickness: 34 }]
     },
     options: {
       indexAxis: 'y', responsive: true, maintainAspectRatio: false,

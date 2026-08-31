@@ -1,22 +1,26 @@
 /* ====================================================================
    Faculty Achievement Portal — Design Tokens (Matching PDF 42-Screen Design)
-   Deep Navy Sidebar (#0F172A) + Crimson Red Primary (#E11D48)
+   Deep Navy Sidebar (#0F172A) + NIET Red Primary (#CF0012)
    ==================================================================== */
 
 :root {
-  /* ─── Primary Brand Colors (Crimson Red #E11D48) ─── */
-  --primary-color: #E11D48;        /* Crimson Red Primary */
-  --primary-hover: #BE123C;        /* Darker Red */
-  --primary-dark: #9F1239;         /* Deep Red */
-  --primary-light: rgba(225, 29, 72, 0.08); /* Light Red Tint */
-  --primary-muted: #FDA4AF;        /* Muted Rose */
+  /* ─── Primary Brand Colors (NIET Red #CF0012, sampled from assets/niet-logo.png) ───
+     The ramp is HSL-derived from hsl(354.8, 100%, 40.6%) so the hue stays constant.
+     White text scores 5.73:1 on --primary-color, 7.73:1 on hover — both WCAG AA. */
+  --primary-color: #CF0012;        /* NIET Red Primary */
+  --primary-rgb: 207, 0, 18;       /* Same colour as raw channels, for rgba(var(--primary-rgb), a) */
+  --primary-hover: #AA000F;        /* Darker Red — lightness x 0.82 */
+  --primary-dark: #89000C;         /* Deep Red — lightness x 0.66 */
+  --primary-light: rgba(var(--primary-rgb), 0.08); /* Light Red Tint */
+  --primary-muted: #E3A0A6;        /* Muted Rose */
+  --primary-tint: #FAE6E7;         /* Opaque 10% brand over white — active-nav fills */
 
   /* ─── Sidebar Brand Theme (Dark Navy #0B1120 / #0F172A) ─── */
   --sidebar-bg: #0B1120;
   --sidebar-border: #1E293B;
   --sidebar-text: #94A3B8;
   --sidebar-text-active: #FFFFFF;
-  --sidebar-active-bg: #E11D48;
+  --sidebar-active-bg: var(--primary-color);
 
   /* ─── Secondary / Accent Colors ─── */
   --secondary-color: #F59E0B;      /* Amber / Gold */
@@ -30,7 +34,7 @@
   --surface-secondary: #F8FAFC;    /* Secondary Table Header / Subsurfaces */
   --border-color: #E2E8F0;        /* Crisp Grey Borders */
   --border-light: #F1F5F9;        /* Extra Light Border */
-  --border-focus: #E11D48;        /* Crimson Focus Ring */
+  --border-focus: var(--primary-color); /* Brand Focus Ring */
 
   /* ─── Text & Typography Colors ─── */
   --text-primary: #0F172A;         /* Slate Dark Text */

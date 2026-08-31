@@ -3,7 +3,7 @@
 **Institution**: Noida Institute of Engineering and Technology (NIET)  
 **Project Status**: Production-Ready / Final College Submission Package  
 **Architecture**: Spring Boot 3.3.4 (Java 21) + MySQL 8.0 + Vanilla HTML5/CSS3/JavaScript  
-**Test Coverage**: **169 / 169 System Test Scenarios Passed (100%)**
+**Test Coverage**: **126 / 126 automated tests passing** (`mvn test`, 0 failures) — see §9
 
 ---
 
@@ -158,29 +158,57 @@ Open `frontend/pages/index.html` or serve `frontend/` using any static web serve
 
 ## 9. Verification & Test Suite Summary
 
-- **Backend Unit Tests**: 28 / 28 PASSED
-- **Security Hardening Suite**: 19 / 19 PASSED
-- **Master E2E Integration Suite**: 21 / 21 PASSED
-- **Step 17–20 Integration Suites**: 101 / 101 PASSED
-- **TOTAL**: **169 / 169 PASSED (0 Failures)**
+### 9.1 Automated tests
+
+Every number below is produced by `mvn test` in `backend/` and can be reproduced by
+anyone with a clone of this repository. No database or running server is required —
+the suite is JUnit 5 + Mockito with no Spring context.
+
+| Area | Test class | Tests |
+| :--- | :--- | :---: |
+| Security | `HighlightSecurityTest` | 21 |
+| Security | `NaacReportSecurityTest` | 12 |
+| Security | `ShareLinkSecurityTest` | 9 |
+| Security | `PermissionSecurityTest` | 7 |
+| Security | `PublicAccessSecurityTest` | 2 |
+| Service | `HighlightImageStorageTest` | 21 |
+| Service | `NaacReportAggregationTest` | 24 |
+| Service | `AchievementServiceTest` | 9 |
+| Service | `NotificationServiceTest` | 4 |
+| Service | `AuditLogServiceTest` | 3 |
+| Controller | `AchievementControllerTest` | 13 |
+| Utility | `PasswordTest` | 1 |
+| **TOTAL** | **12 test classes** | **126** |
+
+```bash
+cd backend && mvn test
+```
+
+### 9.2 Manual verification scenarios
+
+Separately from the automated suite, [`docs/testing.md`](docs/testing.md) records the
+manual end-to-end scenarios that were walked by hand against a running server
+(multi-role workflows, concurrency, filesystem consistency). Those are a different
+artifact from the table above and are **not** included in the 126 — a scenario walked
+by hand is not a test that runs on every build.
 
 ---
 
 ## 10. Documentation Index
 
-Detailed documentation files are available in the [`docs/`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/) directory:
+Detailed documentation files are available in the [`docs/`](docs/) directory:
 
-1. [`docs/abstract.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/abstract.md): Academic Project Abstract
-2. [`docs/problem-statement.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/problem-statement.md): Problem Statement & Objectives
-3. [`docs/SRS.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/SRS.md): Software Requirements Specification
-4. [`docs/architecture.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/architecture.md): System Architecture & Diagrams
-5. [`docs/database.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/database.md): Relational Database Schema Documentation
-6. [`docs/er-diagram.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/er-diagram.md): Entity-Relationship Specification
-7. [`docs/security.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/security.md): Application Security & Threat Defense Guide
-8. [`docs/api.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/api.md): Complete REST API Specification
-9. [`docs/testing.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/testing.md): System Integration & E2E Testing Report
-10. [`docs/test-cases.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/test-cases.md): Comprehensive Test Case Matrix
-11. [`docs/deployment.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/deployment.md): Production Deployment & Environment Setup Guide
-12. [`docs/user-manual.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/user-manual.md): User Manual & Operating Guide
-13. [`docs/presentation-outline.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/presentation-outline.md): 14-Slide Final Project PPT Outline
-14. [`docs/viva-questions.md`](file:///c:/Users/vishw/Desktop/Faculty/faculty-achievement-portal/docs/viva-questions.md): 40 Technical Viva Preparation Questions & Answers
+1. [`docs/abstract.md`](docs/abstract.md): Academic Project Abstract
+2. [`docs/problem-statement.md`](docs/problem-statement.md): Problem Statement & Objectives
+3. [`docs/SRS.md`](docs/SRS.md): Software Requirements Specification
+4. [`docs/architecture.md`](docs/architecture.md): System Architecture & Diagrams
+5. [`docs/database.md`](docs/database.md): Relational Database Schema Documentation
+6. [`docs/er-diagram.md`](docs/er-diagram.md): Entity-Relationship Specification
+7. [`docs/security.md`](docs/security.md): Application Security & Threat Defense Guide
+8. [`docs/api.md`](docs/api.md): Complete REST API Specification
+9. [`docs/testing.md`](docs/testing.md): System Integration & E2E Testing Report
+10. [`docs/test-cases.md`](docs/test-cases.md): Comprehensive Test Case Matrix
+11. [`docs/deployment.md`](docs/deployment.md): Production Deployment & Environment Setup Guide
+12. [`docs/user-manual.md`](docs/user-manual.md): User Manual & Operating Guide
+13. [`docs/presentation-outline.md`](docs/presentation-outline.md): 14-Slide Final Project PPT Outline
+14. [`docs/viva-questions.md`](docs/viva-questions.md): 40 Technical Viva Preparation Questions & Answers

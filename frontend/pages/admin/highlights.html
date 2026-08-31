@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- No-cache: always load the current admin JS/CSS during local development -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="icon" type="image/png" href="../../assets/niet-logo.png">
+  <title>Homepage Highlights | NIET Admin Portal</title>
+
+  <!-- Inter webfont — reset.css applies var(--font-family) from variables.css, which
+       asks for Inter. Without these links the page silently falls back to a system sans. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="../../css/variables.css">
+  <link rel="stylesheet" href="../../css/reset.css">
+  <link rel="stylesheet" href="../../css/layout.css?v=20260901">
+  <link rel="stylesheet" href="../../css/components.css">
+  <link rel="stylesheet" href="../../css/forms.css">
+  <link rel="stylesheet" href="../../css/tables.css">
+  <link rel="stylesheet" href="../../css/responsive.css">
+
+  <style>
+    /* Scoped to this page only. */
+
+    /* ---- Table thumbnail -------------------------------------------------
+       Shown at the same 1.365:1 ratio and with the same object-fit: cover as
+       the real carousel frame, so the thumbnail is an honest miniature of what
+       a visitor sees rather than a squashed version of it. Keep this ratio in
+       step with .pub-slider-viewport in css/public-theme.css — if the two
+       drift apart, the focal point an admin picks here stops matching what
+       the homepage actually crops. */
+    .hl-thumb-frame {
+      width: 132px;
+      aspect-ratio: 1.365 / 1;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--sidebar-bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hl-thumb-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;   /* matches .pub-slider-slide img in public-theme.css */
+      display: block;
+    }
+
+    /* Retired banners have no thumbnail on purpose: the public image endpoint
+       404s an inactive row, which is the point of retiring it. Showing this
+       instead of a broken-image icon says so plainly. */
+    .hl-thumb-retired {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--text-tertiary);
+      text-align: center;
+      padding: 0 0.5rem;
+      line-height: 1.3;
+    }
+
+    /* ---- Chips ---------------------------------------------------------- */
+    .hl-chip {
+      display: inline-block;
+      padding: 0.1rem 0.45rem;
+      border-radius: var(--radius-xs);
+      background: var(--surface-secondary);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      white-space: nowrap;
+    }
+
+    .hl-chip.is-focus { background: var(--primary-light); border-color: transparent; color: var(--primary-dark); }
+    .hl-chip.is-warn  { background: var(--status-pending-bg); border-color: var(--status-pending-border); color: var(--status-pending-text); }
+    .hl-chip.is-live  { background: var(--status-approved-bg); border-color: var(--status-approved-border); color: var(--status-approved-text); }
+    .hl-chip.is-off   { background: var(--surface-hover); border-color: var(--border-color); color: var(--text-secondary); }
+
+    /* ---- Reorder buttons ------------------------------------------------ */
+    .hl-order {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .hl-order-stack { display: flex; flex-direction: column; gap: 0.15rem; }
+
+    .hl-order-btn {
+      width: 26px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      background: var(--surface-card);
+      color: var(--text-secondary);
+      cursor: pointer;
+      line-height: 1;
+      font-size: 10px;
+      transition: var(--transition-fast);
+    }
+
+    .hl-order-btn:hover:not(:disabled) {
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .hl-order-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .hl-order-position {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-bold);
+      color: var(--text-primary);
+      min-width: 1.1em;
+      text-align: center;
+    }
+
+    /* ---- Crop editor in the modal ---------------------------------------
+       The whole reason this exists: the banner frame is wide and the images are
+       cropped to fill it, so an administrator has to be able to SEE what the
+       crop discards before saving. */
+    .hl-crop-editor {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      gap: 1.25rem;
+      align-items: start;
+    }
+
+    @media (max-width: 700px) {
+      .hl-crop-editor { grid-template-columns: 1fr; }
+    }
+
+    /* Matches .pub-slider-viewport's desktop ratio in css/public-theme.css.
+       This is the frame the admin picks a focal point against, so a wrong
+       ratio here would make the choice wrong on the live homepage. */
+    .hl-crop-preview {
+      aspect-ratio: 1.365 / 1;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      background: var(--sidebar-bg);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hl-crop-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hl-crop-empty {
+      font-size: var(--font-size-xs);
+      color: var(--text-tertiary);
+      text-align: center;
+      padding: 0 1rem;
+      line-height: 1.4;
+    }
+
+    /* A 3 x 3 grid that mirrors the nine focal points, so choosing one is
+       pointing at a part of the picture rather than reading an enum name out of
+       a dropdown. */
+    .hl-focal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.3rem;
+      max-width: 168px;
+    }
+
+    .hl-focal-cell {
+      aspect-ratio: 1 / 1;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xs);
+      background: var(--surface-secondary);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+    }
+
+    .hl-focal-cell::after {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: var(--radius-full);
+      background: var(--text-tertiary);
+    }
+
+    .hl-focal-cell:hover { border-color: var(--primary-color); }
+
+    .hl-focal-cell[aria-checked="true"] {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+
+    .hl-focal-cell[aria-checked="true"]::after { background: var(--text-inverse); }
+
+    /* The nine focal points as object-position values. Identical to the
+       .is-focus-* rules in public-theme.css — the admin preview and the live
+       slide must crop the same way or the preview is a lie. The value arrives
+       as an enum name and is applied as a CLASS, never as inline CSS. */
+    .hl-focus-top-left      { object-position: left top; }
+    .hl-focus-top-center    { object-position: center top; }
+    .hl-focus-top-right     { object-position: right top; }
+    .hl-focus-center-left   { object-position: left center; }
+    .hl-focus-center        { object-position: center center; }
+    .hl-focus-center-right  { object-position: right center; }
+    .hl-focus-bottom-left   { object-position: left bottom; }
+    .hl-focus-bottom-center { object-position: center bottom; }
+    .hl-focus-bottom-right  { object-position: right bottom; }
+
+    /* ---- Misc ----------------------------------------------------------- */
+    .hl-summary-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+    }
+
+    .hl-summary-row strong { color: var(--text-primary); }
+
+    .hl-file-facts {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-wrapper">
+
+    <!-- Admin Sidebar. Colours come from layout.css and the tokens in
+         variables.css — no inline literals here, so a brand change reaches
+         this page like every other one. -->
+    <aside class="app-sidebar" id="appSidebar">
+      <div class="sidebar-header">
+        <span class="niet-logo-badge">
+          <img src="../../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
+        </span>
+        <div class="sidebar-brand-title">
+          Admin Console
+          <span>Control Center</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-group">
+          <div class="nav-section-title">Overview</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 00-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span>Admin Dashboard</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">Records &amp; Reports</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="achievements.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                <span>Achievement Search</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="reports.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span>Accreditation Report</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">People &amp; Access</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="faculty.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span>Faculty Roster</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="departments.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                <span>Departments</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="user-permissions.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                <span>User Permissions</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="nav-group">
+          <div class="nav-section-title">Site &amp; System</div>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="highlights.html" class="nav-link active">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span>Homepage Highlights</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="audit-logs.html" class="nav-link">
+                <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                <span>Audit Trail</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Who is signed in. Filled from GET /api/auth/me by
+             applyIdentityWidget() in common.js, the same mechanism the header
+             widget uses, so no page-specific JS is needed. Left blank in the
+             markup on purpose: an empty block is honest, a placeholder name is
+             not. -->
+        <div class="sidebar-user-widget">
+          <div class="sidebar-user-info">
+            <div class="sidebar-avatar" data-identity="initials"></div>
+            <div class="sidebar-user-text">
+              <span class="sidebar-user-name" data-identity="name"></span>
+              <span class="sidebar-user-role" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
+        <a href="../login.html" class="nav-link nav-link-signout" id="signOutBtn">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-toggle-btn" id="mobileToggleBtn" aria-label="Toggle Navigation">
+            <svg style="width: 24px; height: 24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <h1 class="page-title">Homepage Highlights</h1>
+        </div>
+        <div class="header-right">
+          <a class="btn btn-outline btn-sm" href="../../index.html" target="_blank" rel="noopener">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+            View Homepage
+          </a>
+          <button type="button" class="btn btn-primary btn-sm" id="addHighlightBtn">
+            <svg style="width:15px;height:15px;margin-right:0.35rem;vertical-align:-2px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add Banner
+          </button>
+          <!-- Filled from GET /api/auth/me by applyIdentityWidget() in common.js. -->
+          <div class="user-profile-widget">
+            <div class="avatar-circle" data-identity="initials"></div>
+            <div class="user-details">
+              <span class="user-name" data-identity="name"></span>
+              <span class="user-role-tag" data-identity="role"></span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="content-container">
+
+          <!-- What this screen is, in plain language -->
+          <div class="alert alert-info" style="margin-bottom: 1.25rem;">
+            <div>
+              <strong>These banners are the first thing a visitor sees.</strong> They sit at the very
+              top of the public homepage and slide automatically. The picture files are stored on the
+              server, not in this page and not in the code — the database keeps only the file name,
+              the alt text and the order. Banners are institute publicity: they are separate from
+              verified achievement records and are not counted in any statistic.
+            </div>
+          </div>
+
+          <!-- Access message, shown instead of the table when the API refuses -->
+          <div id="highlightNotice"></div>
+
+          <div class="card" style="margin-bottom: 1.25rem;">
+            <div class="card-body" style="padding: 1rem 1.5rem;">
+              <div class="hl-summary-row">
+                <span>Live on the homepage: <strong id="hlLiveCount">0</strong></span>
+                <span>Retired: <strong id="hlRetiredCount">0</strong></span>
+                <span>Recommended size: <strong>1600 × 1172</strong> or larger</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">Banners, in the order they appear</h2>
+            </div>
+            <div class="card-body" style="padding: 0;">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Preview</th>
+                      <th>Banner</th>
+                      <th>Image</th>
+                      <th>Order</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="highlightsTableBody">
+                    <!-- Rendered by admin-highlights.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- ================================================================
+       Add / edit a banner.
+       In "add" mode the file picker is shown and required. In "edit" mode it is
+       hidden: swapping the picture is a separate, deliberate action, so fixing a
+       typo in a caption can never re-upload a poster by accident.
+       ================================================================ -->
+  <div class="modal-backdrop" id="highlightModal" aria-hidden="true" role="dialog" aria-labelledby="highlightModalTitle">
+    <div class="modal-container" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="highlightModalTitle">Add Banner</h3>
+        <button class="modal-close-btn" onclick="closeModal('highlightModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="highlightModalNotice"></div>
+
+        <div class="form-group" id="hlFileGroup">
+          <label class="form-label required-field" for="hlFile">Picture</label>
+          <input type="file" id="hlFile" class="form-control" accept="image/png,image/jpeg,image/webp">
+          <span class="form-hint">
+            PNG, JPEG or WebP, up to 2 MB. The frame is <strong>1600 × 1172</strong> (the same
+            1.365:1 shape niet.co.in cuts its banners to), so a picture at that size or larger fills
+            it with nothing cropped. The server checks the file itself, so renaming a file does not
+            change what it is.
+          </span>
+          <span class="form-error" id="err-hlFile" style="display: none;"></span>
+        </div>
+
+        <div class="hl-crop-editor" style="margin-bottom: 1.25rem;">
+          <div>
+            <label class="form-label">How it will look on the homepage</label>
+            <div class="hl-crop-preview">
+              <img id="hlPreviewImg" class="hl-focus-center" alt="" hidden>
+              <p class="hl-crop-empty" id="hlPreviewEmpty">
+                Choose a picture to see exactly what the homepage banner will show.
+              </p>
+            </div>
+            <span class="form-hint">
+              The banner is wide, so a tall picture loses its top and bottom. This is the desktop
+              shape; on a phone the frame is taller and crops the sides instead.
+            </span>
+          </div>
+
+          <div>
+            <label class="form-label">Keep this part</label>
+            <div class="hl-focal-grid" id="hlFocalGrid" role="radiogroup" aria-label="Which part of the picture must survive the crop">
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="TOP_LEFT"      aria-label="Top left"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="TOP_CENTER"    aria-label="Top centre"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="TOP_RIGHT"     aria-label="Top right"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="CENTER_LEFT"   aria-label="Middle left"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="true"  data-value="CENTER"        aria-label="Middle centre"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="CENTER_RIGHT"  aria-label="Middle right"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="BOTTOM_LEFT"   aria-label="Bottom left"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="BOTTOM_CENTER" aria-label="Bottom centre"></button>
+              <button type="button" class="hl-focal-cell" role="radio" aria-checked="false" data-value="BOTTOM_RIGHT"  aria-label="Bottom right"></button>
+            </div>
+            <span class="form-hint">
+              Click the part of the picture that must stay — usually a face, a logo or a headline.
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required-field" for="hlAltText">Describe the picture</label>
+          <input type="text" id="hlAltText" class="form-control" maxlength="255" autocomplete="off"
+                 placeholder="e.g. Dr. Neema Agarwal receiving the Next Gen Women Edupreneur Award 2025">
+          <span class="form-hint">
+            Read aloud to visitors using a screen reader, and shown if the picture fails to load.
+            Required — it is also how this banner is labelled on this page.
+          </span>
+          <span class="form-error" id="err-hlAltText" style="display: none;"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hlCaption">Caption (optional)</label>
+          <input type="text" id="hlCaption" class="form-control" maxlength="160" autocomplete="off"
+                 placeholder="e.g. NIET at SIIEJ 2026, Tokyo">
+          <span class="form-hint">
+            A short line printed over the bottom of the banner. Leave it blank when the picture
+            already contains its own text.
+          </span>
+          <span class="form-error" id="err-hlCaption" style="display: none;"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="hlLinkUrl">Link (optional)</label>
+          <input type="text" id="hlLinkUrl" class="form-control" maxlength="500" autocomplete="off"
+                 placeholder="e.g. https://www.niet.co.in/news or /public/achievements.html">
+          <span class="form-hint">
+            Where clicking the banner goes. Must start with <code>https://</code>, <code>http://</code>
+            or <code>/</code>. Leave it blank to make the banner unclickable.
+          </span>
+          <span class="form-error" id="err-hlLinkUrl" style="display: none;"></span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" for="hlActive">Show on the homepage</label>
+          <select id="hlActive" class="form-control">
+            <option value="true">Yes — live now</option>
+            <option value="false">No — keep it, but hide it</option>
+          </select>
+          <span class="form-hint">A hidden banner stays here and its picture stops being downloadable.</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('highlightModal')">Cancel</button>
+        <button class="btn btn-primary" id="hlSaveBtn">Add Banner</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================
+       Replace the picture, keeping the text, order and position.
+       ================================================================ -->
+  <div class="modal-backdrop" id="highlightImageModal" aria-hidden="true" role="dialog" aria-labelledby="hlImageTitle">
+    <div class="modal-container" style="max-width: 560px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="hlImageTitle">Replace Picture</h3>
+        <button class="modal-close-btn" onclick="closeModal('highlightImageModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="hlImageNotice"></div>
+
+        <p id="hlImageTarget" style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: 1rem;"></p>
+
+        <div class="form-group">
+          <label class="form-label required-field" for="hlNewFile">New picture</label>
+          <input type="file" id="hlNewFile" class="form-control" accept="image/png,image/jpeg,image/webp">
+          <span class="form-hint">
+            PNG, JPEG or WebP, up to 2 MB. The old picture is deleted from the server once the new
+            one is saved. The text, order and crop setting stay as they are.
+          </span>
+          <span class="form-error" id="err-hlNewFile" style="display: none;"></span>
+        </div>
+
+        <div class="hl-crop-preview">
+          <img id="hlNewPreviewImg" class="hl-focus-center" alt="" hidden>
+          <p class="hl-crop-empty" id="hlNewPreviewEmpty">Choose a picture to preview the crop.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('highlightImageModal')">Cancel</button>
+        <button class="btn btn-primary" id="hlImageSaveBtn">Replace Picture</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirmation -->
+  <div class="modal-backdrop" id="highlightDeleteModal" aria-hidden="true" role="dialog" aria-labelledby="hlDeleteTitle">
+    <div class="modal-container" style="max-width: 460px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="hlDeleteTitle">Delete Banner</h3>
+        <button class="modal-close-btn" onclick="closeModal('highlightDeleteModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="hlDeleteMessage" style="font-size: var(--font-size-base); color: var(--text-primary);"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('highlightDeleteModal')">Cancel</button>
+        <button class="btn btn-danger" id="hlDeleteConfirmBtn">Delete Banner</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/config.js?v=20260827"></script>
+  <script src="../../js/api.js?v=20260827"></script>
+  <script src="../../js/common.js?v=20260827"></script>
+  <script src="../../js/admin-highlights.js?v=20260827"></script>
+</body>
+</html>
