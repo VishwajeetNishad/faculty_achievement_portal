@@ -544,7 +544,7 @@ public class AchievementServiceImpl implements AchievementService {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         // Write UTF-8 BOM so Excel auto-detects encoding
-        baos.writeBytes(new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF});
+        baos.writeBytes(com.niet.facultyachievement.util.Csv.bom());
         try (PrintWriter pw = new PrintWriter(baos, true, StandardCharsets.UTF_8)) {
             pw.println("ID,Faculty Name,Employee ID,Department,Category,Title,Academic Year,Achievement Date,Status,Verification Comment,Created At");
             for (Achievement a : resultPage.getContent()) {
@@ -591,13 +591,7 @@ public class AchievementServiceImpl implements AchievementService {
     }
 
     private String csvCell(String value) {
-        if (value == null) return "";
-        // Escape double-quotes by doubling them and wrap cell in quotes if needed
-        String escaped = value.replace("\"", "\"\"");
-        if (escaped.contains(",") || escaped.contains("\"") || escaped.contains("\n")) {
-            return "\"" + escaped + "\"";
-        }
-        return escaped;
+        return com.niet.facultyachievement.util.Csv.cell(value);
     }
 
     private String extractFilenameFromUrl(String url) {

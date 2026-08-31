@@ -58,5 +58,12 @@ public enum AuditAction {
     // eventually ask.
     HIGHLIGHT_CREATED,
     HIGHLIGHT_UPDATED,
-    HIGHLIGHT_DELETED
+    HIGHLIGHT_DELETED,
+
+    // Someone downloaded the institution-wide accreditation report. Only the
+    // export is audited, not every time the page is viewed: reading a report on
+    // screen leaves the data inside the application, while downloading it puts
+    // every faculty member's verified record into a file that travels. The entry
+    // records the filters used, so the trail says which slice left the building.
+    REPORT_EXPORTED
 }
