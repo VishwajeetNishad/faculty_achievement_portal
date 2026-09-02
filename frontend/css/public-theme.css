@@ -254,10 +254,30 @@ body.public-body {
    4842x3546, 2421x1773 and 1600x1171 all divide to 1.365. Matching it is
    what keeps `cover` from destroying a portrait poster — a wider letterbox
    frame has to throw away far more of a tall image to fill itself. */
+/* ...but the ratio alone is not enough, and this cap is the reason.
+   niet.co.in never applies 1.365:1 to the full viewport width: their banner
+   image occupies only the right-hand 59% of the row (the left 41% is a white
+   caption panel), so on a 1440px screen their frame is 850x623. Ours is
+   full-bleed, so the same ratio across 1440px resolves to 1054px tall — more
+   than a 900px-tall window can show, which pushed the hero, the search box and
+   every statistic below the fold. On a 1920px monitor it reached ~1407px.
+
+   `max-height` clamps the height without touching the width, because `width`
+   is definite here: the used width stays 100%, aspect-ratio proposes a height,
+   and this caps it. The frame simply becomes wider than 1.365:1 on short
+   screens and `object-fit: cover` trims a little more off the top and bottom —
+   which is what the chosen focal point already controls. The height is still
+   resolved from layout alone, before any image arrives, so the no-layout-shift
+   property above is preserved.
+
+   svh, not vh, so mobile browser chrome is excluded rather than guessed at;
+   the plain vh line above it is the fallback for engines without svh. */
 .pub-slider-viewport {
   position: relative;
   width: 100%;
   aspect-ratio: 1.365 / 1;
+  max-height: 76vh;
+  max-height: 76svh;
   overflow: hidden;
 }
 
@@ -482,7 +502,16 @@ body.public-body {
    of stepping the frame gradually through 16/9 and 4/3, so there are only
    these two shapes and one switch point. Copied as-is. */
 @media (max-width: 768px) {
-  .pub-slider-viewport { aspect-ratio: 0.85 / 1; }
+  /* A portrait frame is allowed more of the screen than the desktop one: a
+     phone is tall, the banner is the whole first impression, and there is no
+     wide hero competing for the fold. 0.85:1 at 390px is only 459px, so this
+     cap never engages on a phone at all — it exists for the 768px tablet,
+     where the ratio would otherwise ask for 903px. */
+  .pub-slider-viewport {
+    aspect-ratio: 0.85 / 1;
+    max-height: 82vh;
+    max-height: 82svh;
+  }
 
   .pub-slider-arrow { width: 36px; height: 36px; }
   .pub-slider-arrow.is-prev { left: 0.5rem; }
