@@ -11,11 +11,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <link rel="stylesheet" href="../css/variables.css?v=20260902b">
-  <link rel="stylesheet" href="../css/reset.css?v=20260902b">
-  <link rel="stylesheet" href="../css/components.css?v=20260902b">
-  <link rel="stylesheet" href="../css/forms.css?v=20260902b">
-  <link rel="stylesheet" href="../css/responsive.css?v=20260902b">
+  <link rel="stylesheet" href="../css/variables.css?v=20260902c">
+  <link rel="stylesheet" href="../css/reset.css?v=20260902c">
+  <link rel="stylesheet" href="../css/components.css?v=20260902c">
+  <link rel="stylesheet" href="../css/forms.css?v=20260902c">
+  <link rel="stylesheet" href="../css/responsive.css?v=20260902c">
 
   <style>
     body {
@@ -45,10 +45,26 @@
       border-right: 1px solid #1E293B;
     }
 
+    /* The brand block is an <a> back to the public homepage. reset.css paints
+       every bare `a` with --primary-color, which would turn the portal name
+       brand-red on this navy panel, so the colour is pinned back to inherit. */
     .brand-header-left {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      color: inherit;
+      text-decoration: none;
+      align-self: flex-start;
+      border-radius: 10px;
+    }
+
+    .brand-header-left:hover .brand-title-left {
+      color: #E2E8F0;
+    }
+
+    .brand-header-left:focus-visible {
+      outline: 2px solid #FFFFFF;
+      outline-offset: 4px;
     }
 
     .brand-circle-logo {
@@ -156,9 +172,12 @@
       font-weight: 500;
     }
 
+    /* #475569 is a muted colour meant for light backgrounds; on this #0B1120
+       panel it measures 2.48:1, well under the 4.5:1 minimum. #94A3B8 is the
+       same muted role for dark chrome and measures 7.34:1. */
     .left-footer-copy {
       font-size: 0.75rem;
-      color: #475569;
+      color: #94A3B8;
     }
 
     /* Right Sign In Form Section */
@@ -341,6 +360,10 @@
       color: var(--primary-color);
     }
 
+    .help-link-sep {
+      margin: 0 0.5rem;
+    }
+
     @media (max-width: 960px) {
       .login-split-wrapper {
         grid-template-columns: 1fr;
@@ -361,13 +384,13 @@
     <!-- ─── Left Dark Branding Showcase (Page 03 Matching) ─── -->
     <div class="login-left-showcase">
       
-      <!-- Brand Logo Header -->
-      <div class="brand-header-left">
+      <!-- Brand Logo Header — also the way back to the public site -->
+      <a class="brand-header-left" href="../index.html">
         <span class="niet-logo-badge">
           <img src="../assets/niet-logo.png" alt="NIET — Noida Institute of Engineering and Technology">
         </span>
         <span class="brand-title-left">Achievement Portal</span>
-      </div>
+      </a>
 
       <!-- Center Showcase Content -->
       <div class="left-hero-content">
@@ -491,8 +514,13 @@
             Create Account
           </a>
 
-          <!-- Help footer -->
+          <!-- Help footer. The way back to the homepage lives here, in the right
+               card, and not only on the brand logo: the whole left showcase is
+               display:none below 960px, so a link placed there alone would be
+               unreachable on every phone. -->
           <div class="help-link-wrap">
+            <a href="../index.html"><span aria-hidden="true">&larr;</span> Back to homepage</a>
+            <span class="help-link-sep" aria-hidden="true">&middot;</span>
             <a href="#">&#9432; Need Help?</a>
           </div>
 
@@ -504,10 +532,10 @@
   </div>
 
   <!-- Scripts -->
-  <script src="../js/config.js?v=20260902b"></script>
-  <script src="../js/api.js?v=20260902b"></script>
-  <script src="../js/validation.js?v=20260902b"></script>
-  <script src="../js/common.js?v=20260902b"></script>
-  <script src="../js/login.js?v=20260902b"></script>
+  <script src="../js/config.js?v=20260902c"></script>
+  <script src="../js/api.js?v=20260902c"></script>
+  <script src="../js/validation.js?v=20260902c"></script>
+  <script src="../js/common.js?v=20260902c"></script>
+  <script src="../js/login.js?v=20260902c"></script>
 </body>
 </html>

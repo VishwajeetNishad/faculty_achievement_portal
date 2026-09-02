@@ -109,7 +109,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check URL query parameters for session expiration notice
   const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('session') === 'expired') {
+  const sessionNotice = urlParams.get('session');
+  if (sessionNotice === 'idle') {
+    // The limit is read from ApiClient rather than written here, so the number in
+    // this sentence can never drift from the number the timer actually uses.
+    //
+    // `typeof`, not `window.ApiClient`: api.js declares `const ApiClient`, and a
+    // top-level const is a script-scope binding, not a property of window — so
+    // `window.ApiClient` is undefined even when ApiClient is perfectly available.
+    // typeof is also the only form that is safe if api.js failed to load at all,
+    // since a bare reference to an undeclared name throws ReferenceError.
+    const mins = typeof ApiClient !== 'undefined' && ApiClient.idleLimitMinutes;
+    showToast(
+      mins
+        ? `Signed out after ${mins} minutes of inactivity. Please sign in again.`
+        : 'Signed out due to inactivity. Please sign in again.',
+      'warning'
+    );
+  } else if (sessionNotice === 'expired') {
     showToast('Your session has expired. Please sign in again.', 'warning');
   }
 
@@ -165,6 +182,13 @@ document.addEventListener('DOMContentLoaded', () => {
           // the new user never sees buttons belonging to someone else. The real
           // list is fetched from /api/auth/me on the next page load.
           sessionStorage.removeItem('currentPermissions');
+
+          // Start the idle clock now. Without this the stamp left behind by an
+          // earlier session survives (the manual Sign Out below clears the other
+          // keys but this one is written by api.js), and the very first page
+          // after signing in would read a stale timestamp as "idle for an hour"
+          // and bounce the user straight back here.
+          sessionStorage.setItem('lastActivityAt', String(Date.now()));
 
           showToast(`Welcome back, ${res.data.fullName || 'User'}!`, 'success');
 

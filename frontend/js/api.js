@@ -6,6 +6,29 @@
 
 const ApiClient = (() => {
 
+  /**
+   * Idle-timeout settings.
+   *
+   * <p><b>This is a convenience, not a security control.</b> Everything below runs
+   * in the browser and can be stopped by anyone who opens the devtools console.
+   * The real guarantee is the backend, which verifies the JWT's signature and its
+   * `exp` claim on every single request. What this buys is the ordinary case: a
+   * faculty member walks away from a shared lab machine, comes back after lunch,
+   * and finds the login screen instead of their dashboard.
+   *
+   * <p>The JWT itself still lives its full configured lifetime
+   * (`app.jwt.expiration-ms`, 24h) — this does not shorten it and does not try to.
+   */
+  const IDLE_LIMIT_MINUTES = 30;
+  const IDLE_LIMIT_MS = IDLE_LIMIT_MINUTES * 60 * 1000;
+  const ACTIVITY_KEY = 'lastActivityAt';
+
+  /** How often the timer re-checks. Short enough to be prompt, cheap enough to ignore. */
+  const IDLE_POLL_MS = 30 * 1000;
+
+  /** Don't touch sessionStorage on every mousemove; once every 15s is plenty. */
+  const ACTIVITY_WRITE_THROTTLE_MS = 15 * 1000;
+
   const getHeaders = (isMultipart = false) => {
     const headers = {};
     if (!isMultipart) {
@@ -74,11 +97,16 @@ const ApiClient = (() => {
    * ('currentPermissions' is spelled out rather than imported because api.js is
    * the bottom layer and must not depend on common.js — login.js:167 writes the
    * same literal for the same reason.)
+   *
+   * @param reason 'expired' (the JWT's own exp has passed, or the server refused
+   *               a dead token) or 'idle' (the browser sat untouched past the
+   *               idle limit). It only picks which sentence login.js shows.
    */
-  const endSession = () => {
+  const endSession = (reason = 'expired') => {
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem('currentPermissions');
+    sessionStorage.removeItem(ACTIVITY_KEY);
     window.CURRENT_PERMISSIONS = [];
     window.CURRENT_USER_PROFILE = null;
 
@@ -87,8 +115,110 @@ const ApiClient = (() => {
     const path = window.location.pathname;
     if (path.endsWith('login.html') || path.endsWith('index.html')) return;
 
+    const notice = reason === 'idle' ? 'idle' : 'expired';
     const isSubdir = path.includes('/admin/') || path.includes('/hod/');
-    window.location.href = isSubdir ? '../login.html?session=expired' : 'login.html?session=expired';
+    window.location.href = isSubdir
+      ? `../login.html?session=${notice}`
+      : `login.html?session=${notice}`;
+  };
+
+  let lastActivityWrite = 0;
+
+  /**
+   * Stamps "the user did something just now".
+   *
+   * <p>Throttled, because the listeners below fire on scroll and keypress and
+   * writing sessionStorage on every one of those would be wasteful. The cost of
+   * throttling is that the recorded time can lag reality by up to 15 seconds,
+   * which against a 30-minute limit is noise.
+   */
+  const markActivity = () => {
+    if (!sessionStorage.getItem('accessToken')) return;
+
+    const now = Date.now();
+    if (now - lastActivityWrite < ACTIVITY_WRITE_THROTTLE_MS) return;
+
+    lastActivityWrite = now;
+    sessionStorage.setItem(ACTIVITY_KEY, String(now));
+  };
+
+  /** Milliseconds since the last recorded activity, or null if none is recorded. */
+  const idleMs = () => {
+    const raw = Number(sessionStorage.getItem(ACTIVITY_KEY));
+    if (!Number.isFinite(raw) || raw <= 0) return null;
+
+    // A stamp in the future means the clock moved backwards (timezone change,
+    // NTP correction). Treat it as "just now" rather than as a huge negative.
+    return Math.max(0, Date.now() - raw);
+  };
+
+  /**
+   * Ends the session if the token has expired or the browser has sat idle too long.
+   *
+   * <p>Called at page load, on a timer, and whenever the tab becomes visible again.
+   * Load time is the one that fixes a real hole: every page guard in this codebase
+   * used to check only that a token was <i>present</i>, so a token that had already
+   * expired still rendered the whole page and only bounced the user once the first
+   * API call came back 403 — a broken half-loaded screen, then a redirect.
+   */
+  const enforceSession = () => {
+    // No token means either the login page or an already-ended session. Either
+    // way there is nothing to end, and endSession() would only risk a redirect loop.
+    if (!sessionStorage.getItem('accessToken')) return;
+
+    if (sessionLooksDead()) {
+      endSession('expired');
+      return;
+    }
+
+    const idle = idleMs();
+
+    // No stamp yet — this is the first page after signing in. Seed it as "now".
+    // Treating an unknown stamp as infinitely idle would log the user out on the
+    // very first page they land on, which is the worse of the two failure directions.
+    if (idle === null) {
+      lastActivityWrite = Date.now();
+      sessionStorage.setItem(ACTIVITY_KEY, String(lastActivityWrite));
+      return;
+    }
+
+    if (idle >= IDLE_LIMIT_MS) endSession('idle');
+  };
+
+  /**
+   * Wires the idle timeout up. Runs once, when this file is parsed.
+   *
+   * <p>Deliberately not gated on DOMContentLoaded: the load-time check should
+   * happen before the page renders content the user is not entitled to see.
+   */
+  const armIdleTimeout = () => {
+    enforceSession();
+
+    // Passive listeners so scrolling is never blocked; capture so a handler that
+    // stops propagation somewhere in the page cannot hide activity from us.
+    ['pointerdown', 'keydown', 'scroll', 'wheel', 'touchstart'].forEach((evt) => {
+      window.addEventListener(evt, markActivity, { passive: true, capture: true });
+    });
+
+    // The timer alone is not enough. Browsers throttle timers in background tabs
+    // to roughly once a minute and may freeze them outright, so a tab left open
+    // overnight cannot be relied on to have ticked. visibilitychange fires the
+    // moment the user comes back to the tab, which is exactly the case that
+    // prompted this: "logged in but not using — when they visit again, log in".
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) enforceSession();
+    });
+
+    // Same reason, for a window that was behind another one rather than hidden.
+    window.addEventListener('focus', enforceSession);
+
+    // Restoring from the back/forward cache re-uses the old JS state without
+    // re-running this file, so the load-time check above would be skipped.
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) enforceSession();
+    });
+
+    setInterval(enforceSession, IDLE_POLL_MS);
   };
 
   const handleResponse = async (response) => {
@@ -187,7 +317,12 @@ const ApiClient = (() => {
     };
   };
 
+  armIdleTimeout();
+
   return {
+    /** Exposed so login.js can name the limit in its message without repeating the number. */
+    idleLimitMinutes: IDLE_LIMIT_MINUTES,
+
     get: async (endpoint) => {
       try {
         const controller = new AbortController();

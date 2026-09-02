@@ -239,6 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.removeItem('accessToken');
       sessionStorage.removeItem('currentUser');
       sessionStorage.removeItem(PERMISSIONS_STORAGE_KEY);
+      sessionStorage.removeItem('lastActivityAt');
       window.CURRENT_PERMISSIONS = [];
       window.CURRENT_USER_PROFILE = null;
       showToast('You have been signed out.', 'info');
