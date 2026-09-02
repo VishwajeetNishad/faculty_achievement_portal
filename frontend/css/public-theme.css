@@ -29,7 +29,26 @@ body.public-body {
   overflow-x: hidden;
 }
 
-.public-body a {
+/* Kills the browser's blue underlined link so each component can choose its
+   own colour. `:where()` is load-bearing, not decoration.
+
+   Written as plain `.public-body a` this was (0,1,1) — one class plus one
+   type — which **out-specifies every single-class component rule below it**.
+   So `.pub-nav-link { color: var(--sidebar-text) }` (0,1,0) lost, and the
+   inactive nav links inherited the body's dark navy #0F172A onto the dark
+   navy nav bar: 1.05:1, invisible. `.pub-btn-login` lost the same way and
+   drew dark navy text on the red button at 3.11:1. Only the *active* nav
+   link looked right, because `.pub-nav-link.is-active` has two classes and
+   won — which is exactly the fingerprint that made this look like a
+   colour-token bug rather than a specificity one.
+
+   `:where(a)` contributes zero, so the rule is (0,1,0): still strong enough
+   to beat reset.css's `a { color: var(--primary-color) }` at (0,0,1), but
+   now it merely ties with the component rules — and every one of them is
+   declared later in this file, so they win on source order. Wrapping the
+   whole selector instead (`:where(.public-body a)`) would drop it to (0,0,0)
+   and let reset.css turn every public link red. */
+.public-body :where(a) {
   color: inherit;
   text-decoration: none;
 }
@@ -985,7 +1004,11 @@ body.public-body {
 
 .pub-ach-date {
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  /* --text-secondary, not --text-tertiary. variables.css labels tertiary
+     "Disabled / Placeholder Text" and it measures 2.56:1 on this white card —
+     below the 4.5:1 AA floor. A date is real content, not a placeholder.
+     --text-secondary is 4.76:1 and still reads as muted next to the title. */
+  color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   flex-shrink: 0;
@@ -1182,7 +1205,11 @@ body.public-body {
 
 .pub-fac-count-label {
   font-size: 0.65rem;
-  color: var(--text-tertiary);
+  /* Same swap as .pub-ach-date, and it matters more here: this is the word
+     that tells you whether the number above it means achievements or
+     publications. At 0.65rem it was the smallest text on the card and the
+     faintest at 2.56:1. */
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-weight: var(--font-weight-semibold);
@@ -1767,7 +1794,11 @@ body.public-body {
 .pub-footer-bottom {
   padding-top: 1.5rem;
   font-size: var(--font-size-sm);
-  color: #475569;
+  /* Was a stranded #475569 literal — a light-background muted colour sitting
+     on the navy footer at 2.48:1, which made the copyright line and the
+     "only verified achievements" note nearly unreadable. --sidebar-text is
+     the token the rest of this dark footer already uses, and it is 7.34:1. */
+  color: var(--sidebar-text);
   display: flex;
   justify-content: space-between;
   gap: 1rem;
