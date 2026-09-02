@@ -45,8 +45,48 @@ async function initializeAchievementsPage() {
   const exportBtn = document.getElementById('exportCsvBtn');
   if (exportBtn) exportBtn.addEventListener('click', exportCsv);
 
+  // Manual reload
+  const refreshBtn = document.getElementById('refreshBtn');
+  if (refreshBtn) refreshBtn.addEventListener('click', refreshList);
+
+  // Visibility modal save
+  const saveVisibilityBtn = document.getElementById('saveVisibilityBtn');
+  if (saveVisibilityBtn) saveVisibilityBtn.addEventListener('click', saveVisibilityChange);
+
   // Initial load
   await runSearch(0);
+}
+
+/**
+ * Reloads the list without changing what the user is looking at.
+ *
+ * <p>Deliberately `runSearch(currentPage)` and not `runSearch(0)`: the filters
+ * and the page number are part of what the person is currently reading, and a
+ * refresh that silently jumped them back to page 1 would lose their place.
+ *
+ * <p>The button is disabled for the duration. Two clicks would fire two
+ * searches whose replies can arrive out of order, and the slower one would win
+ * and paint stale rows over fresh ones.
+ */
+async function refreshList() {
+  const btn = document.getElementById('refreshBtn');
+
+  if (btn) {
+    if (btn.dataset.busy === 'true') return;
+    btn.dataset.busy = 'true';
+    btn.disabled = true;
+  }
+
+  try {
+    await runSearch(currentPage);
+  } finally {
+    // In a finally block so a failed search cannot leave the button stuck
+    // spinning with no way to try again.
+    if (btn) {
+      btn.dataset.busy = 'false';
+      btn.disabled = false;
+    }
+  }
 }
 
 async function runSearch(page) {
@@ -88,6 +128,17 @@ async function runSearch(page) {
   const totalCountElem = document.getElementById('tableTotalCount');
   if (totalCountElem) totalCountElem.textContent = `${data.totalElements || list.length} total achievements`;
 
+  // The sidebar badge is written into the markup as a literal 0 and only
+  // dashboard.js ever filled it — so on this page it sat at 0 while the card
+  // header right next to it said "1 total achievements". Updated only when no
+  // filter is applied, because a filtered total is not the record count the
+  // nav badge claims to show.
+  const sidebarCount = document.getElementById('sidebarAchievementCount');
+  const filtersActive = params.has('keyword') || params.has('status') || params.has('categoryId');
+  if (sidebarCount && !filtersActive && typeof data.totalElements === 'number') {
+    sidebarCount.textContent = String(data.totalElements);
+  }
+
   tableBody.innerHTML = '';
 
   if (list.length === 0) {
@@ -123,6 +174,7 @@ async function runSearch(page) {
       <td data-label="Actions" style="text-align: right;">
         <div style="display: inline-flex; gap: 0.35rem; justify-content: flex-end;">
           <button class="btn btn-outline btn-sm view-item-btn" data-id="${item.id}">View</button>
+          <button class="btn btn-outline btn-sm visibility-item-btn" data-id="${item.id}" title="Change who can see this record">Visibility</button>
           ${item.proofDocumentUrl ? `<button class="btn btn-outline btn-sm view-proof-btn" data-id="${item.id}" title="View Proof PDF">📄</button>` : ''}
         </div>
       </td>
@@ -133,6 +185,8 @@ async function runSearch(page) {
   // Attach handlers
   tableBody.querySelectorAll('.view-item-btn').forEach(btn =>
     btn.addEventListener('click', () => showAchievementDetailsModal(btn.getAttribute('data-id'))));
+  tableBody.querySelectorAll('.visibility-item-btn').forEach(btn =>
+    btn.addEventListener('click', () => openVisibilityModal(btn.getAttribute('data-id'))));
   tableBody.querySelectorAll('.view-proof-btn').forEach(btn =>
     btn.addEventListener('click', () => openProtectedProofPdf(btn.getAttribute('data-id'))));
 
@@ -266,6 +320,15 @@ async function showAchievementDetailsModal(id) {
         <span style="color: var(--text-secondary); font-weight: 600;">Achievement Date:</span>
         <span style="color: var(--text-primary);">${formatDate(item.achievementDate)}</span>
       </div>
+      <!-- Visibility belongs in the detail view too. This modal used to omit it
+           entirely, so the only place it appeared was one badge in the table. -->
+      <div style="display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.4rem; align-items: center;">
+        <span style="color: var(--text-secondary); font-weight: 600;">Visibility:</span>
+        <span style="display: inline-flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+          ${renderVisibilityBadge(item.visibility)}
+          <button class="btn btn-outline btn-sm" onclick="closeModal('${document.getElementById('viewDetailModal') ? 'viewDetailModal' : 'viewModal'}'); openVisibilityModal(${item.id});">Change</button>
+        </span>
+      </div>
       ${item.description ? `
       <div style="display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem; font-size: 0.8rem; margin-top: 0.5rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
         <span style="color: var(--text-secondary); font-weight: 600;">Description:</span>
@@ -306,6 +369,204 @@ async function openProtectedProofPdf(id) {
   } else {
     showToast(res.message || 'Unable to open proof document', 'error');
   }
+}
+
+// ─── Change Visibility ────────────────────────────────────────────────────────
+
+const VISIBILITY_LABELS = { PUBLIC: 'Public', UNLISTED: 'Unlisted Link', PRIVATE: 'Private' };
+
+/** The four fields PUT /api/achievements/{id} validates as required. */
+const REQUIRED_UPDATE_FIELDS = ['categoryId', 'title', 'achievementDate', 'academicYear'];
+
+/**
+ * The record the visibility modal is currently editing.
+ *
+ * <p>The whole record is kept, not just its id, because the backend has no
+ * visibility-only endpoint — the one route is PUT /api/achievements/{id}, and
+ * that is a <b>full replace</b>. It overwrites category, title, description,
+ * keywords, date, academic year and proof URL from whatever the request body
+ * holds. So a body carrying only the new visibility does not leave the rest
+ * alone; it wipes it. Keeping the server's own copy is what lets every other
+ * field go back untouched.
+ */
+let visibilityRecord = null;
+
+/**
+ * Loads a record and opens the visibility modal for it.
+ *
+ * <p>Re-fetched rather than read out of the table row: the row carries only the
+ * columns the list draws, and the update needs the whole record. Re-reading also
+ * means a change someone made in another tab is picked up instead of being
+ * silently overwritten with values from a stale row.
+ */
+async function openVisibilityModal(id) {
+  const modal = document.getElementById('visibilityModal');
+  if (!modal) return;
+
+  const res = await ApiClient.get(`/achievements/${id}`);
+  if (!res.success || !res.data) {
+    showToast(res.message || 'Failed to load this record', 'error');
+    return;
+  }
+
+  const item = res.data;
+
+  /* If the server did not return one of the required fields, resending the
+     record would either be rejected as invalid or — the worse outcome — succeed
+     with that field blanked. Stop here and say which field is missing, rather
+     than send a body that damages the record. */
+  const missing = REQUIRED_UPDATE_FIELDS.filter(
+    (field) => item[field] === null || item[field] === undefined || item[field] === ''
+  );
+
+  if (missing.length > 0) {
+    showToast(
+      `This record cannot be updated from here — the server did not return: ${missing.join(', ')}.`,
+      'error'
+    );
+    return;
+  }
+
+  visibilityRecord = item;
+  const current = (item.visibility || 'PRIVATE').toUpperCase();
+
+  const titleEl = document.getElementById('visibilityModalTitle');
+  const metaEl = document.getElementById('visibilityModalMeta');
+  if (titleEl) titleEl.textContent = item.title;
+  if (metaEl) metaEl.textContent = ` — currently ${VISIBILITY_LABELS[current] || current}`;
+
+  // Preselect what the record already is, so opening the modal and pressing
+  // Save without touching anything is a no-op instead of a silent reset.
+  // Assigned to .onchange rather than addEventListener: this runs again every
+  // time the modal opens, and addEventListener would stack a duplicate handler
+  // on each open.
+  modal.querySelectorAll('input[name="editVisibility"]').forEach((radio) => {
+    radio.checked = radio.value === current;
+    radio.onchange = updateVisibilityNotes;
+  });
+
+  updateVisibilityNotes();
+  openModal('visibilityModal');
+}
+
+/**
+ * Shows the consequences of the selected option before it is saved, not after.
+ *
+ * <p>Two of them are easy to get wrong: choosing Public on a record that is not
+ * approved yet does nothing visible, and moving off Unlisted Link really does
+ * kill every share link that was handed out.
+ */
+function updateVisibilityNotes() {
+  const modal = document.getElementById('visibilityModal');
+  const pendingNote = document.getElementById('visibilityPendingNote');
+  const revokeNote = document.getElementById('visibilityRevokeNote');
+  if (!modal || !visibilityRecord) return;
+
+  const selected = modal.querySelector('input[name="editVisibility"]:checked');
+  const chosen = selected ? selected.value : null;
+  const current = (visibilityRecord.visibility || 'PRIVATE').toUpperCase();
+  const status = visibilityRecord.status || 'PENDING';
+
+  if (pendingNote) {
+    if (chosen === 'PUBLIC' && status === 'APPROVED') {
+      pendingNote.textContent = 'This record is approved, so saving Public lists it on the public NIET '
+        + 'research site straight away, together with your name and department.';
+      pendingNote.style.display = 'block';
+    } else if (chosen === 'PUBLIC' && status === 'REJECTED') {
+      pendingNote.textContent = 'This record was rejected, so Public will not put it on the public site. '
+        + 'Only approved records are ever listed there.';
+      pendingNote.style.display = 'block';
+    } else if (chosen === 'PUBLIC') {
+      pendingNote.textContent = 'This record is still awaiting review, so Public will not show it on the '
+        + 'public site yet. It appears there once your HOD approves it.';
+      pendingNote.style.display = 'block';
+    } else {
+      pendingNote.style.display = 'none';
+    }
+  }
+
+  if (revokeNote) {
+    if (current === 'UNLISTED' && chosen && chosen !== 'UNLISTED') {
+      revokeNote.textContent = 'Moving away from Unlisted Link revokes every share link you created for '
+        + 'this record. Anyone still holding one will no longer be able to open it.';
+      revokeNote.style.display = 'block';
+    } else {
+      revokeNote.style.display = 'none';
+    }
+  }
+}
+
+async function saveVisibilityChange() {
+  if (!visibilityRecord) return;
+
+  const modal = document.getElementById('visibilityModal');
+  const selected = modal ? modal.querySelector('input[name="editVisibility"]:checked') : null;
+  if (!selected) {
+    showToast('Please choose a visibility option', 'error');
+    return;
+  }
+
+  const next = selected.value;
+  const current = (visibilityRecord.visibility || 'PRIVATE').toUpperCase();
+  const status = visibilityRecord.status || 'PENDING';
+
+  // Nothing changed. Skipping the request keeps the audit log free of entries
+  // that record no actual change.
+  if (next === current) {
+    closeModal('visibilityModal');
+    showToast(`Visibility is already set to ${VISIBILITY_LABELS[next] || next}.`, 'info');
+    return;
+  }
+
+  const btn = document.getElementById('saveVisibilityBtn');
+  const originalLabel = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+  }
+
+  /* Every field this endpoint replaces is sent back exactly as the server
+     returned it, with only `visibility` different. Leaving any of them out of
+     the body would not preserve the stored value — it would overwrite it with
+     null. See the note on visibilityRecord above. */
+  const res = await ApiClient.put(`/achievements/${visibilityRecord.id}`, {
+    categoryId: visibilityRecord.categoryId,
+    title: visibilityRecord.title,
+    description: visibilityRecord.description,
+    keywords: visibilityRecord.keywords,
+    achievementDate: visibilityRecord.achievementDate,
+    academicYear: visibilityRecord.academicYear,
+    proofDocumentUrl: visibilityRecord.proofDocumentUrl,
+    visibility: next
+  });
+
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+  }
+
+  if (!res.success) {
+    showToast(res.message || 'Could not change the visibility', 'error');
+    return;
+  }
+
+  closeModal('visibilityModal');
+
+  const label = VISIBILITY_LABELS[next] || next;
+  if (next === 'PUBLIC' && status === 'APPROVED') {
+    showToast('Visibility set to Public — this record is now listed on the public research site.', 'success');
+  } else if (next === 'PUBLIC') {
+    showToast('Visibility set to Public. It will appear on the public site once the record is approved.', 'success');
+  } else if (current === 'UNLISTED') {
+    showToast(`Visibility set to ${label}. Existing share links for this record have been revoked.`, 'success');
+  } else {
+    showToast(`Visibility set to ${label}.`, 'success');
+  }
+
+  visibilityRecord = null;
+
+  // Repaint so the badge in the table matches what was just saved.
+  await runSearch(currentPage);
 }
 
 // ─── Add Achievement Form Controller ───────────────────────────────────────────

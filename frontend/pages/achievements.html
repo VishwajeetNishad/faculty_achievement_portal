@@ -15,13 +15,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="../css/variables.css?v=20260902c">
-  <link rel="stylesheet" href="../css/reset.css?v=20260902c">
-  <link rel="stylesheet" href="../css/layout.css?v=20260902c">
-  <link rel="stylesheet" href="../css/components.css?v=20260902c">
-  <link rel="stylesheet" href="../css/forms.css?v=20260902c">
-  <link rel="stylesheet" href="../css/tables.css?v=20260902c">
-  <link rel="stylesheet" href="../css/responsive.css?v=20260902c">
+  <link rel="stylesheet" href="../css/variables.css?v=20260902d">
+  <link rel="stylesheet" href="../css/reset.css?v=20260902d">
+  <link rel="stylesheet" href="../css/layout.css?v=20260902d">
+  <link rel="stylesheet" href="../css/components.css?v=20260902d">
+  <link rel="stylesheet" href="../css/forms.css?v=20260902d">
+  <link rel="stylesheet" href="../css/tables.css?v=20260902d">
+  <link rel="stylesheet" href="../css/responsive.css?v=20260902d">
 
   <style>
     .achievements-toolbar-wrap {
@@ -51,6 +51,23 @@
       .achievements-toolbar-wrap {
         grid-template-columns: 1fr;
       }
+    }
+
+    /* The refresh icon turns while a reload is in flight, so a re-fetch that
+       returns identical rows still looks like it did something. Without this
+       the button appears dead whenever nothing has changed. */
+    @keyframes refresh-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #refreshBtn[data-busy="true"] .refresh-icon {
+      animation: refresh-spin 0.7s linear infinite;
+    }
+
+    /* The three visibility cards are a 3-column grid on the wide
+       add-achievement form. A modal is far narrower, so they stack. */
+    #visibilityModal .visibility-options {
+      grid-template-columns: 1fr;
     }
   </style>
 </head>
@@ -228,6 +245,14 @@
                 <p style="font-size: 0.75rem; color: var(--text-secondary);" id="tableTotalCount">0 total achievements</p>
               </div>
               <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <!-- Re-runs the current search with the current filters and stays
+                     on the current page. Approval happens on the HOD's screen,
+                     not this one, so without this the only way to see that a
+                     record has been approved is a full page reload. -->
+                <button id="refreshBtn" class="btn btn-outline btn-sm" title="Reload this list" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                  <svg class="refresh-icon" style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                  Refresh
+                </button>
                 <button id="exportCsvBtn" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
                   <svg style="width: 14px; height: 14px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                   Export CSV
@@ -321,6 +346,70 @@
     </div>
   </div>
 
+  <!-- ─── Modal: Change Visibility ───────────────────────────────────────────
+       Visibility is picked when a record is created, and people change their
+       mind afterwards — most often to put an approved record on the public
+       site. Until now nothing in the portal could change it.
+
+       There is no dedicated visibility endpoint. The only route is
+       PUT /api/achievements/{id}, and that endpoint REPLACES the whole record.
+       So achievements.js loads the record first and sends every existing field
+       back untouched alongside the new visibility; a body carrying visibility
+       on its own would blank the title, category, date and proof URL. -->
+  <div class="modal-backdrop" id="visibilityModal" aria-hidden="true">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Change Visibility</h3>
+        <button class="modal-close-btn" onclick="closeModal('visibilityModal')" aria-label="Close modal">&times;</button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Which record is being changed. Filled by achievements.js from the
+             record it fetched, so the title on screen is the title on file. -->
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+          <span style="font-weight: 600; color: var(--text-primary);" id="visibilityModalTitle"></span>
+          <span id="visibilityModalMeta"></span>
+        </p>
+
+        <div class="visibility-options">
+          <label class="visibility-option">
+            <input type="radio" name="editVisibility" value="PRIVATE">
+            <span>
+              <span class="visibility-option-label">Private</span>
+              <span class="visibility-option-hint">Only you, your HOD and administrators can see it.</span>
+            </span>
+          </label>
+
+          <label class="visibility-option">
+            <input type="radio" name="editVisibility" value="PUBLIC">
+            <span>
+              <span class="visibility-option-label">Public</span>
+              <span class="visibility-option-hint">Listed on the public NIET research site — but only once the record is Approved.</span>
+            </span>
+          </label>
+
+          <label class="visibility-option">
+            <input type="radio" name="editVisibility" value="UNLISTED">
+            <span>
+              <span class="visibility-option-label">Unlisted Link</span>
+              <span class="visibility-option-hint">Not listed anywhere. Reachable only through a share link you create on My Shared Research.</span>
+            </span>
+          </label>
+        </div>
+
+        <!-- Two consequences the person needs to know BEFORE saving, not after.
+             achievements.js shows each only when it actually applies. -->
+        <div id="visibilityPendingNote" class="alert alert-info" style="display: none; margin-top: 1rem; font-size: 0.75rem;"></div>
+        <div id="visibilityRevokeNote" class="alert alert-warning" style="display: none; margin-top: 0.75rem; font-size: 0.75rem;"></div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline btn-sm" onclick="closeModal('visibilityModal')">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="saveVisibilityBtn">Save Visibility</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ─── Modal: Help & Support ─── -->
   <div class="modal-backdrop" id="helpSupportModal" aria-hidden="true">
     <div class="modal-container" style="max-width: 520px;">
@@ -360,10 +449,10 @@
   </div>
 
   <!-- Scripts -->
-  <script src="../js/config.js?v=20260902c"></script>
-  <script src="../js/api.js?v=20260902c"></script>
-  <script src="../js/validation.js?v=20260902c"></script>
-  <script src="../js/common.js?v=20260902c"></script>
-  <script src="../js/achievements.js?v=20260902c"></script>
+  <script src="../js/config.js?v=20260902d"></script>
+  <script src="../js/api.js?v=20260902d"></script>
+  <script src="../js/validation.js?v=20260902d"></script>
+  <script src="../js/common.js?v=20260902d"></script>
+  <script src="../js/achievements.js?v=20260902d"></script>
 </body>
 </html>
